@@ -416,6 +416,12 @@ private:
 	void loadProjectileView(R3 *projectile);
 	void drawPhaserBeam(R3 *projectile);
 
+	// saveload.cpp
+	void syncSpaceState(Common::Serializer &ser);
+	void syncR3(Common::Serializer &ser, R3 &r3);
+	int16 getShipIndex(const R3 *ship) const;
+	R3 *getShipByIndex(int16 index);
+
 	// bridgedisplays.cpp
 	void initBridgeDisplays();
 	void removeBridgeDisplays();
@@ -430,6 +436,7 @@ private:
 	void drawViewscreenStatic();
 
 	void playWarpSequence();
+	void initSpaceObjects();
 	void pointCameraAt(const Point3 &target, const Point_Fixed14 &up);
 	void turnCameraTowards(const Point3 &target);
 	void playOrbitArrivalSequence();

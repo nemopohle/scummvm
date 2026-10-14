@@ -703,6 +703,16 @@ void StarTrekEngine::playOrbitDepartureSequence() {
 	updateShipSpeed(&_enterpriseR3, 25 << 16);
 }
 
+// Called once, after the intro
+void StarTrekEngine::initSpaceObjects() {
+	_planetR3 = R3();
+	_planetR3.matrix = initMatrix();
+	_planetR3.pos = Point3(0, 0, 15300);
+	initPlanet(&_planetR3, "noname", 0x2ca, 10);
+	addR3(&_planetR3);
+	resetShipControls(&_enterpriseR3);
+}
+
 void StarTrekEngine::resetShipControls(R3 *r3) {
 	r3->commandedSpeed = 0;
 	r3->targetTurnRate = Point3(0, 0, 0);

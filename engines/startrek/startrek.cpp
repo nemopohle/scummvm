@@ -187,20 +187,17 @@ Common::Error StarTrekEngine::run() {
 	bool loadedSave = false;
 
 	if (ConfMan.hasKey("save_slot")) {
+		initSpaceObjects();
 		if (!loadGame(ConfMan.getInt("save_slot")))
 			error("Failed to load savegame %d", ConfMan.getInt("save_slot"));
 		loadedSave = true;
 	}
 
-	if (!loadedSave && (isCd || !isDemo))
-		playIntro();
-
-	_planetR3 = R3();
-	_planetR3.matrix = initMatrix();
-	_planetR3.pos = Point3(0, 0, 15300);
-	initPlanet(&_planetR3, "noname", 0x2ca, 10);
-	addR3(&_planetR3);
-	resetShipControls(&_enterpriseR3);
+	if (!loadedSave) {
+		if (isCd || !isDemo)
+			playIntro();
+		initSpaceObjects();
+	}
 
 	if (!loadedSave) {
 		if (isCd || !isDemo) {

@@ -74,7 +74,7 @@ bool StarTrekEngine::showLoadMenu() {
 	return loadGame(slot);
 }
 
-const uint32 CURRENT_SAVEGAME_VERSION = 1;
+const uint32 CURRENT_SAVEGAME_VERSION = 2;
 
 bool StarTrekEngine::saveGame(int slot, Common::String desc) {
 	Common::String filename = getSavegameFilename(slot);
@@ -408,7 +408,160 @@ bool StarTrekEngine::saveOrLoadGameData(Common::SeekableReadStream *in, Common::
 		ser.syncAsSint16LE(_warpHotspotsActive);
 	}
 
+	if (meta->version >= 2)
+		syncSpaceState(ser);
+
 	return true;
+}
+
+static void syncBool(Common::Serializer &ser, bool &value) {
+	byte b = value;
+	ser.syncAsByte(b);
+	value = b != 0;
+}
+
+static void syncPoint(Common::Serializer &ser, Point3 &point) {
+	for (int i = 0; i < 3; i++)
+		ser.syncAsSint32LE(point[i]);
+}
+
+static void syncMatrix(Common::Serializer &ser, Matrix &matrix) {
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			int16 value = matrix[i][j].raw();
+			ser.syncAsSint16LE(value);
+			matrix[i][j] = Fixed14::fromRaw(value);
+		}
+	}
+}
+
+void StarTrekEngine::syncR3(Common::Serializer &ser, R3 &r3) {
+	syncPoint(ser, r3.pos);
+	syncMatrix(ser, r3.matrix);
+	ser.syncAsSint16LE(r3.field1e);
+	ser.syncAsSint16LE(r3.field20);
+	ser.syncAsSint16LE(r3.field22);
+	ser.syncAsSint16LE(r3.field24);
+	for (int i = 0; i < 3; i++)
+		ser.syncAsSint16LE(r3.speed[i]);
+
+	for (int i = 0; i < ARRAYSIZE(r3.systems); i++) {
+		ser.syncAsSint16LE(r3.systems[i].present);
+		ser.syncAsSint16LE(r3.systems[i].maxStrength);
+		ser.syncAsSint16LE(r3.systems[i].strength);
+	}
+	ser.syncAsSint32LE(r3.maxTurnRate);
+	ser.syncAsSint32LE(r3.turnAcceleration);
+	ser.syncAsSint32LE(r3.maxSpeed);
+	ser.syncAsSint32LE(r3.speedAcceleration);
+	ser.syncAsSint32LE(r3.commandedSpeed);
+	syncPoint(ser, r3.targetTurnRate);
+	ser.syncAsSint32LE(r3.targetSpeed);
+	ser.syncAsSint32LE(r3.currentSpeed);
+	syncPoint(ser, r3.turnRate);
+	syncPoint(ser, r3.turnAngle);
+	ser.syncAsSint16LE(r3.field140);
+	ser.syncAsSint16LE(r3.energy);
+	syncBool(ser, r3.shieldsOn);
+	syncBool(ser, r3.shieldsActive);
+	syncBool(ser, r3.weaponsOn);
+	syncBool(ser, r3.weaponsActive);
+
+	ser.syncAsSint32LE(r3.enterpriseDistance);
+	ser.syncAsSint32LE(r3.enterpriseDistanceChange);
+	syncBool(ser, r3.maneuverActive);
+	ser.syncAsSint16LE(r3.maneuver);
+	ser.syncAsSint16LE(r3.maneuverState);
+	for (int i = 0; i < ARRAYSIZE(r3.weapons); i++) {
+		ShipWeapon &weapon = r3.weapons[i];
+		ser.syncAsUint32LE(weapon.nextFireTime);
+		ser.syncAsSint16LE(weapon.lifetime);
+		ser.syncAsSint16LE(weapon.speed);
+		ser.syncAsSint16LE(weapon.cooldown);
+		syncPoint(ser, weapon.mount);
+		ser.syncAsSint16LE(weapon.shape);
+	}
+	ser.syncAsSint32LE(r3.engageRange);
+	syncBool(ser, r3.canCloak);
+	syncBool(ser, r3.cloakRequested);
+	syncBool(ser, r3.cloakActive);
+	ser.syncAsSint16LE(r3.cloakLevel);
+	syncBool(ser, r3.exploding);
+	ser.syncAsSint16LE(r3.explosionFrame);
+	syncBool(ser, r3.retreating);
+
+	ser.syncAsSint16LE(r3.planetSize);
+	ser.syncString(r3.planetName);
+	ser.syncAsUint16LE(r3.planetSeed);
+	ser.syncAsSint16LE(r3.planetColors);
+	ser.syncAsSint16LE(r3.projectileLife);
+	ser.syncAsSint16LE(r3.projectileDamage);
+	ser.syncAsSint16LE(r3.projectileColor);
+}
+
+// Ships are saved as -1 for none, 0 for the Enterprise and 1 to 4 for the enemies
+int16 StarTrekEngine::getShipIndex(const R3 *ship) const {
+	if (ship == &_enterpriseR3)
+		return 0;
+	for (int i = 0; i < NUM_ENEMY_SHIPS; i++) {
+		if (ship == &_enemyShips[i])
+			return i + 1;
+	}
+	return -1;
+}
+
+R3 *StarTrekEngine::getShipByIndex(int16 index) {
+	if (index == 0)
+		return &_enterpriseR3;
+	if (index >= 1 && index <= NUM_ENEMY_SHIPS)
+		return &_enemyShips[index - 1];
+	return nullptr;
+}
+
+void StarTrekEngine::syncSpaceState(Common::Serializer &ser) {
+	ser.syncAsUint32LE(_msRandState);
+	syncPoint(ser, _starfieldPosition);
+	syncMatrix(ser, _someMatrix);
+	ser.syncAsSint16LE(_viewDirection);
+	ser.syncAsSint16LE(_viewscreenZoom);
+	syncBool(ser, _enterpriseState.shields);
+	syncBool(ser, _enterpriseState.weapons);
+	syncBool(ser, _enterpriseState.targetAnalysis);
+	syncBool(ser, _emergencyPowerUsed);
+	ser.syncAsSint32LE(_emergencyPowerTicks);
+	ser.syncAsSint16LE(_emergencyPowerRate);
+	ser.syncAsSint16LE(_emergencyPowerAmount);
+	ser.syncAsSint16LE(_emergencyPowerDuration);
+	ser.syncAsSint16LE(_repairPriority);
+
+	syncR3(ser, _enterpriseR3);
+	syncR3(ser, _planetR3);
+	for (int i = 0; i < NUM_ENEMY_SHIPS; i++)
+		syncR3(ser, _enemyShips[i]);
+	for (int i = 0; i < NUM_PROJECTILES; i++) {
+		syncR3(ser, _projectiles[i]);
+		int16 owner = getShipIndex(_projectiles[i].projectileOwner);
+		ser.syncAsSint16LE(owner);
+		_projectiles[i].projectileOwner = getShipByIndex(owner);
+	}
+	int16 target = getShipIndex(_targetShip);
+	ser.syncAsSint16LE(target);
+	_targetShip = getShipByIndex(target);
+
+	if (ser.isLoading()) {
+		// Rebuild the list of objects in space
+		Common::fill(_r3List, _r3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);
+		addR3(&_enterpriseR3);
+		addR3(&_planetR3);
+		for (int i = 0; i < NUM_ENEMY_SHIPS; i++) {
+			if (_enemyShips[i].field1e != 0)
+				addR3(&_enemyShips[i]);
+		}
+		for (int i = 0; i < NUM_PROJECTILES; i++) {
+			if (_projectiles[i].field1e != 0)
+				addR3(&_projectiles[i]);
+		}
+	}
 }
 
 Common::String StarTrekEngine::getSavegameFilename(int slotId) const {
