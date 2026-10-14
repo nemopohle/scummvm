@@ -34,7 +34,7 @@ public:
 	~Font();
 
 	byte *getCharData(int i);
-	bool isDisplayableCharacter(char c);
+	static bool isDisplayableCharacter(char c);
 
 private:
 	StarTrekEngine *_vm;

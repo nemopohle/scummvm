@@ -22,6 +22,8 @@
 #include "common/events.h"
 #include "common/stream.h"
 #include "graphics/cursorman.h"
+#include "graphics/fonts/amigafont.h"
+#include "graphics/surface.h"
 
 #include "startrek/graphics.h"
 #include "startrek/resource.h"
@@ -83,6 +85,17 @@ const char *StarTrekEngine::getNextTextLine(const char *text, char *lineOutput, 
 void StarTrekEngine::drawTextLineToBitmap(const char *text, int textLen, int x, int y, Bitmap *bitmap) {
 	const int charWidth = 8;
 
+	if (_gfx->_amigaFont) {
+		::Graphics::Surface surface;
+		surface.init(bitmap->width, bitmap->height, bitmap->width, bitmap->pixels, ::Graphics::PixelFormat::createFormatCLUT8());
+		Common::Rect area(x, y, bitmap->width - 2, MIN<int>(y + 8, bitmap->height - 2));
+		if (!area.isEmpty())
+			surface.fillRect(area, 0);
+		Common::String line(text, strnlen(text, textLen));
+		_gfx->_amigaFont->drawString(&surface, line, x, y, bitmap->width - 2 - x, 0xb0);
+		return;
+	}
+
 	int textOffset = 0;
 
 	while (textOffset < textLen) {
@@ -136,7 +149,48 @@ void StarTrekEngine::drawTextLineToBitmap(const char *text, int textLen, int x, 
 	}
 }
 
+// The Amiga version wraps the lines by their width in the proportional font
+const char *StarTrekEngine::getNextAmigaTextLine(const char *text, Common::String *line) {
+	if (*text == '\0')
+		return nullptr;
+
+	const int maxWidth = (TEXT_CHARS_PER_LINE + 2) * 8 - 4;
+	const char *end = text;
+	const char *lastSpace = nullptr;
+	const char *next = nullptr;
+
+	while (*end != '\0' && _gfx->_amigaFont->getStringWidth(Common::String(text, end + 1)) <= maxWidth) {
+		if (*end == '\n') {
+			next = end + 1;
+			break;
+		}
+		if (*end == ' ')
+			lastSpace = end;
+		end++;
+	}
+
+	if (!next) {
+		next = end;
+		if (*end == ' ')
+			next = end + 1;
+		else if (*end != '\0' && lastSpace)
+			next = lastSpace + 1;
+	}
+
+	// Like the original, drop the character before the next line
+	*line = Common::String(text, next - (*next != '\0' ? 1 : 0));
+	return next;
+}
+
+int StarTrekEngine::getTextLineStride() const {
+	return _gfx->_amigaFont ? AMIGA_TEXT_LINE_STRIDE : TEXT_CHARS_PER_LINE;
+}
+
 Common::String StarTrekEngine::centerTextboxHeader(Common::String headerText) {
+	// The Amiga version centers the header when drawing it
+	if (_gfx->_amigaFont)
+		return headerText;
+
 	char text[TEXT_CHARS_PER_LINE + 1];
 	memset(text, ' ', sizeof(text));
 	text[TEXT_CHARS_PER_LINE] = '\0';
@@ -367,7 +421,7 @@ int StarTrekEngine::showText(TextGetterFunc textGetter, uintptr var, int xoffset
 				    textBitmap,
 				    numTextLines - scrollOffset,
 				    numTextboxLines,
-				    lineFormattedText.c_str() + scrollOffset * (TEXTBOX_WIDTH - 2),
+				    lineFormattedText.c_str() + scrollOffset * getTextLineStride(),
 				    numChoicesWithNames != 0);
 				break;
 
@@ -380,7 +434,7 @@ int StarTrekEngine::showText(TextGetterFunc textGetter, uintptr var, int xoffset
 				    textBitmap,
 				    numTextLines - scrollOffset,
 				    numTextboxLines,
-				    lineFormattedText.c_str() + scrollOffset * (TEXTBOX_WIDTH - 2),
+				    lineFormattedText.c_str() + scrollOffset * getTextLineStride(),
 				    numChoicesWithNames != 0);
 				break;
 
@@ -399,7 +453,7 @@ int StarTrekEngine::showText(TextGetterFunc textGetter, uintptr var, int xoffset
 				    textBitmap,
 				    numTextLines - scrollOffset,
 				    numTextboxLines,
-				    lineFormattedText.c_str() + scrollOffset * (TEXTBOX_WIDTH - 2),
+				    lineFormattedText.c_str() + scrollOffset * getTextLineStride(),
 				    numChoicesWithNames != 0);
 				break;
 
@@ -412,7 +466,7 @@ int StarTrekEngine::showText(TextGetterFunc textGetter, uintptr var, int xoffset
 				    textBitmap,
 				    numTextLines - scrollOffset,
 				    numTextboxLines,
-				    lineFormattedText.c_str() + scrollOffset * (TEXTBOX_WIDTH - 2),
+				    lineFormattedText.c_str() + scrollOffset * getTextLineStride(),
 				    numChoicesWithNames != 0);
 				break;
 
@@ -491,6 +545,13 @@ int StarTrekEngine::getNumTextboxLines(const Common::String &str) {
 
 	int lines = 0;
 
+	if (_gfx->_amigaFont) {
+		Common::String amigaLine;
+		while ((text = getNextAmigaTextLine(text, &amigaLine)) != nullptr)
+			lines++;
+		return lines;
+	}
+
 	while (text != nullptr) {
 		text = getNextTextLine(text, line, TEXTBOX_WIDTH - 2);
 		lines++;
@@ -503,6 +564,17 @@ Common::String StarTrekEngine::putTextIntoLines(const Common::String &_text) {
 
 	const char *text = _text.c_str();
 	String output;
+
+	if (_gfx->_amigaFont) {
+		Common::String amigaLine;
+		while ((text = getNextAmigaTextLine(text, &amigaLine)) != nullptr) {
+			amigaLine = Common::String(amigaLine.c_str(), MIN<uint>(amigaLine.size(), AMIGA_TEXT_LINE_STRIDE));
+			while (amigaLine.size() < AMIGA_TEXT_LINE_STRIDE)
+				amigaLine += ' ';
+			output += amigaLine;
+		}
+		return output;
+	}
 
 	text = getNextTextLine(text, line, TEXTBOX_WIDTH - 2);
 
@@ -530,7 +602,13 @@ TextBitmap *StarTrekEngine::initTextSprite(int *xoffsetPtr, int *yoffsetPtr, byt
 
 	int textHeight = numTextLines + linesBeforeTextStart;
 
-	TextBitmap *bitmap = new TextBitmap(TEXTBOX_WIDTH * 8, textHeight * 8);
+	TextBitmap *bitmap;
+	if (_gfx->_amigaFont) {
+		bitmap = new TextBitmap(TEXTBOX_WIDTH * 8, numTextLines * 8 + 4 + (withHeader ? 11 : 0));
+		bitmap->amigaLines.resize(numTextLines + 1);
+	} else {
+		bitmap = new TextBitmap(TEXTBOX_WIDTH * 8, textHeight * 8);
+	}
 
 	*sprite = Sprite();
 	sprite->drawPriority = 15;
@@ -554,6 +632,17 @@ TextBitmap *StarTrekEngine::initTextSprite(int *xoffsetPtr, int *yoffsetPtr, byt
 
 	xoffset -= (bitmap->width + 0x1d) / 2;
 	yoffset -= bitmap->height;
+
+	if (_gfx->_amigaFont) {
+		_gfx->addSprite(sprite);
+		sprite->drawMode = 3;
+		sprite->pos.x = xoffset;
+		sprite->pos.y = yoffset;
+		sprite->drawPriority = 15;
+		*xoffsetPtr = xoffset;
+		*yoffsetPtr = yoffset;
+		return bitmap;
+	}
 
 	bitmap->pixels[0] = 0x10;
 	memset(&bitmap->pixels[1], 0x11, TEXTBOX_WIDTH - 2);
@@ -601,6 +690,20 @@ void StarTrekEngine::drawMainText(TextBitmap *bitmap, int numTextLines, int numT
 	if (numTextLines >= numTextboxLines)
 		numTextLines = numTextboxLines;
 
+	if (_gfx->_amigaFont) {
+		bitmap->amigaLines.resize(numTextboxLines + 1);
+		for (int i = 0; i < numTextboxLines; i++) {
+			Common::String line;
+			if (i < numTextLines) {
+				line = Common::String(text + i * AMIGA_TEXT_LINE_STRIDE, AMIGA_TEXT_LINE_STRIDE);
+				while (!line.empty() && line.lastChar() == ' ')
+					line.deleteLastChar();
+			}
+			bitmap->amigaLines[i + 1] = line;
+		}
+		return;
+	}
+
 	if (withHeader)
 		dest += TEXTBOX_WIDTH * 2; // Start of 4th row
 
@@ -644,7 +747,10 @@ Common::String StarTrekEngine::readLineFormattedText(TextGetterFunc textGetter, 
 		String lineFormattedText = putTextIntoLines(text);
 		drawMainText(textBitmap, *numTextLines, numTextboxLines, lineFormattedText, hasHeader);
 
-		memcpy(textBitmap->pixels + TEXTBOX_WIDTH + 1, headerText.c_str(), headerText.size());
+		if (_gfx->_amigaFont)
+			textBitmap->amigaLines[0] = headerText;
+		else
+			memcpy(textBitmap->pixels + TEXTBOX_WIDTH + 1, headerText.c_str(), headerText.size());
 
 		return lineFormattedText;
 	} else
@@ -848,7 +954,7 @@ Common::String StarTrekEngine::showTextInputBox(int16 x, int16 y, const Common::
 				break;
 
 			default: // Typed any other character
-				if (_gfx->_font->isDisplayableCharacter(event.kbd.ascii)) {
+				if (Font::isDisplayableCharacter(event.kbd.ascii)) {
 					addCharToTextInputBuffer(event.kbd.ascii);
 					if (_textInputCursorPos < MAX_TEXT_INPUT_LEN - 1)
 						_textInputCursorPos++;

@@ -23,6 +23,7 @@
 #define STARTREK_BITMAP_H
 
 #include "common/ptr.h"
+#include "common/str-array.h"
 #include "common/stream.h"
 #include "common/memstream.h"
 
@@ -54,6 +55,9 @@ protected:
  */
 struct TextBitmap : Bitmap {
 	TextBitmap(int w, int h);
+
+	// The Amiga version draws the header (line 0) and the text lines with a proportional font
+	Common::StringArray amigaLines;
 };
 
 

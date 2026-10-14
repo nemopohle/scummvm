@@ -103,6 +103,8 @@ const int MAX_MENUBUTTONS = 32;
 const int TEXTBOX_WIDTH = 26;
 const int TEXT_CHARS_PER_LINE = TEXTBOX_WIDTH - 2;
 const int MAX_TEXTBOX_LINES = 12;
+// Characters per line in the line formatted text of the Amiga version
+const int AMIGA_TEXT_LINE_STRIDE = 80;
 
 const int TEXT_INPUT_BUFFER_SIZE = 134;
 const int MAX_TEXT_INPUT_LEN = 20;
@@ -644,6 +646,8 @@ public:
 	 */
 	void drawTextLineToBitmap(const char *text, int textLen, int x, int y, Bitmap *bitmap);
 
+	const char *getNextAmigaTextLine(const char *text, Common::String *line);
+	int getTextLineStride() const;
 	Common::String centerTextboxHeader(Common::String headerText);
 	void getTextboxHeader(Common::String *headerTextOutput, Common::String speakerText, int choiceIndex);
 	/**

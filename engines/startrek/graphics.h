@@ -33,6 +33,10 @@
 using Common::SharedPtr;
 using Common::String;
 
+namespace Graphics {
+class AmigaFont;
+}
+
 namespace StarTrek {
 
 class Font;
@@ -151,8 +155,11 @@ public:
 	void loadEGAData(const char *egaFile);
 	void drawBackgroundImage(const char *filename);
 
+	void drawAmigaTextbox(const Sprite &sprite, byte *dest, const Common::Rect &rect);
+
 public:
 	Font *_font;
+	::Graphics::AmigaFont *_amigaFont;
 
 private:
 	StarTrekEngine *_vm;

@@ -26,8 +26,10 @@
 #include "common/algorithm.h"
 #include "common/config-manager.h"
 #include "common/events.h"
+#include "common/file.h"
 #include "common/rendermode.h"
 #include "graphics/cursorman.h"
+#include "graphics/fonts/amigafont.h"
 #include "graphics/paletteman.h"
 #include "graphics/surface.h"
 
@@ -35,6 +37,7 @@ namespace StarTrek {
 
 Graphics::Graphics(StarTrekEngine *vm) : _vm(vm), _egaMode(false) {
 	_font = nullptr;
+	_amigaFont = nullptr;
 	_egaData = nullptr;
 	_lutData = nullptr;
 
@@ -50,6 +53,13 @@ Graphics::Graphics(StarTrekEngine *vm) : _vm(vm), _egaMode(false) {
 
 	if (_vm->getGameType() == GType_ST25 && _vm->getPlatform() != Common::kPlatformAmiga)
 		_font = new Font(_vm);
+
+	if (_vm->getPlatform() == Common::kPlatformAmiga) {
+		Common::File fontFile;
+		if (!fontFile.open("startrektiny/8"))
+			error("Could not open the font startrektiny/8");
+		_amigaFont = new ::Graphics::AmigaFont(&fontFile);
+	}
 
 	_numSprites = 0;
 	_pushedNumSprites = -1;
@@ -69,6 +79,7 @@ Graphics::~Graphics() {
 	delete _backgroundImage;
 
 	delete _font;
+	delete _amigaFont;
 }
 
 void Graphics::setBackgroundImage(Common::String imageName) {
@@ -374,6 +385,11 @@ void Graphics::drawSprite(const Sprite &sprite, ::Graphics::Surface *surface, co
 	}
 
 	case 3: { // Text
+		if (_amigaFont) {
+			drawAmigaTextbox(sprite, dest, rect);
+			break;
+		}
+
 		// The sprite's "bitmap" is not actually a bitmap, but instead the list of
 		// characters to display.
 
@@ -691,6 +707,54 @@ void Graphics::popSprites() {
 	memcpy(_sprites, _pushedSprites, sizeof(_sprites));
 
 	_pushedNumSprites = -1;
+}
+
+// Like the Amiga version, which draws textboxes with the graphics.library
+void Graphics::drawAmigaTextbox(const Sprite &sprite, byte *dest, const Common::Rect &rect) {
+	// Baseline of the StarTrekTiny font
+	const int kBaseline = 6;
+
+	const TextBitmap *bitmap = (const TextBitmap *)sprite.bitmap;
+	int width = bitmap->width;
+	int height = bitmap->height;
+
+	::Graphics::Surface box;
+	box.create(width, height, ::Graphics::PixelFormat::createFormatCLUT8());
+	box.fillRect(Common::Rect(width, height), 0);
+	box.hLine(0, 0, width - 1, 0x78);
+	box.vLine(width - 1, 0, height - 1, 0x78);
+	box.hLine(0, height - 1, width - 1, 0x78);
+	box.vLine(0, 1, height - 1, 0x78);
+
+	byte color;
+	if (sprite.textColor == 0xc0)
+		color = 0xb1;
+	else if (sprite.textColor == 0xa1)
+		color = 0xa1;
+	else if (sprite.textColor == 0x88)
+		color = 0x2c;
+	else
+		color = 0xb0;
+
+	int y = 8;
+	uint line = 0;
+	if (!bitmap->amigaLines.empty() && !bitmap->amigaLines[0].empty()) {
+		const Common::String &header = bitmap->amigaLines[0];
+		box.hLine(1, 12, width - 2, 0x78);
+		_amigaFont->drawString(&box, header, (width - _amigaFont->getStringWidth(header)) / 2, y - kBaseline, width, color);
+		y += 12;
+	}
+	for (line = 1; line < bitmap->amigaLines.size(); line++) {
+		_amigaFont->drawString(&box, bitmap->amigaLines[line], 2, y - kBaseline, width - 2, color);
+		y += 8;
+	}
+
+	int left = rect.left - sprite.drawX;
+	int top = rect.top - sprite.drawY;
+	for (int row = 0; row < rect.height(); row++)
+		memcpy(dest + row * SCREEN_WIDTH, box.getBasePtr(left, top + row), rect.width());
+
+	box.free();
 }
 
 byte *Graphics::getFontGfx(char c) {
