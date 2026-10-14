@@ -141,6 +141,12 @@ public:
 
 typedef TMatrix<Point_Fixed14> Matrix;
 
+struct ShipSystem {
+	int16 present;
+	int16 maxStrength;
+	int16 strength;
+};
+
 struct Star {
 	bool active;
 	Point3 pos;
@@ -173,6 +179,20 @@ struct R3 {
 	double field88; // 0x88
 	double field90; // 0x90
 	double field98; // 0x98
+	ShipSystem systems[16]; // 0xa0
+	// 16.16 fixed-point rates and speeds
+	int32 maxTurnRate; // 0x100
+	int32 turnAcceleration; // 0x104
+	int32 maxSpeed; // 0x108
+	int32 speedAcceleration; // 0x10c
+	int32 commandedSpeed; // 0x110
+	Point3 targetTurnRate; // 0x114
+	int32 targetSpeed; // 0x120
+	int32 currentSpeed; // 0x124
+	Point3 turnRate; // 0x128
+	Point3 turnAngle; // 0x134
+	int16 field140; // 0x140
+	int16 energy; // 0x142
 };
 
 // 2.14 fixed-point multiplications, with the products summed before shifting

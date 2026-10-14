@@ -137,6 +137,7 @@ public:
 
 	void addSprite(Sprite *sprite);
 	void delSprite(Sprite *sprite);
+	bool hasSprite(const Sprite *sprite) const;
 
 	// Save/load the current state of sprites. Can only push once for now.
 	void pushSprites();

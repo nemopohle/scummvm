@@ -54,15 +54,16 @@ void StarTrekEngine::initBridge(bool b) {
 	_gfx->loadPalette("bridge");
 	_sound->loadMusicFile("bridge");
 
-	initStarfieldPosition();
-	// TODO: starfield
+	if (b && !_enterpriseState.inOrbit)
+		initStarfieldPosition();
+	_enterpriseR3.pos = _starfieldPosition;
+	_enterpriseR3.matrix = _someMatrix;
 
 	loadBridge();
 }
 
 void StarTrekEngine::loadBridge() {
-	// TODO: The view angle depends on the magnification of the main viewscreen
-	initStarfield(72, 30, 247, 102, 0x200 / 6);
+	initStarfield(72, 30, 247, 102, 0x200 / _viewscreenZoom);
 
 	_gfx->setBackgroundImage("bridge");
 	_gfx->loadPri("bridge");
@@ -70,6 +71,7 @@ void StarTrekEngine::loadBridge() {
 	_system->updateScreen();
 
 	loadBridgeActors();
+	initStarfieldSprite(&_starfieldSprite, new StubBitmap(0, 0), _starfieldRect);
 
 	//sub_1312C();	// TODO
 
@@ -90,7 +92,10 @@ void StarTrekEngine::loadBridgeActors() {
 
 // TODO: 2 params, change Enterprise state
 void StarTrekEngine::setBridgeMouseCursor() {
-	_gfx->setMouseBitmap("pushbtn" /*_mouseControllingShip ? "entcur" : "cursor"*/);
+	if (!_mouseControllingShip)
+		_gfx->setMouseBitmap("pushbtn");
+	else
+		_gfx->setMouseBitmap(_enterpriseState.weapons ? "cursor" : "entcur");
 }
 
 void StarTrekEngine::showTextboxBridge(int talker, int textId) {
@@ -969,6 +974,8 @@ void StarTrekEngine::bridgeLeftClick() {
 }
 
 void StarTrekEngine::cleanupBridge() {
+	if (_gfx->hasSprite(&_starfieldSprite))
+		_gfx->delSprite(&_starfieldSprite);
 	// TODO
 	// if (!v_starfieldInitialized)
 	// sub_12691()
@@ -1005,6 +1012,16 @@ void StarTrekEngine::handleBridgeEvents() {
 
 		switch (event.type) {
 		case TREKEVENT_TICK:
+			if (!_enterpriseState.inOrbit) {
+				// Roll while Ins or Del is held
+				int32 roll = 0;
+				if (_heldKey == Common::KEYCODE_INSERT || _heldKey == Common::KEYCODE_KP0)
+					roll = _enterpriseR3.maxTurnRate;
+				else if (_heldKey == Common::KEYCODE_DELETE || _heldKey == Common::KEYCODE_KP_PERIOD)
+					roll = -_enterpriseR3.maxTurnRate;
+				_enterpriseR3.targetTurnRate.z = roll;
+			}
+			updateBridgeSpace();
 			updateActorAnimations();
 
 			//updateMouseBitmap();
@@ -1026,7 +1043,11 @@ void StarTrekEngine::handleBridgeEvents() {
 			break;
 
 		case TREKEVENT_MOUSEMOVE:
-			// TODO
+			restrictBridgeMouse();
+			if (!_enterpriseState.inOrbit && _mouseControllingShip) {
+				_enterpriseR3.targetTurnRate.y = (int32)(event.mouse.x - _starfieldXVar1) << 16;
+				_enterpriseR3.targetTurnRate.x = (int32)(event.mouse.y - _starfieldYVar1) << 16;
+			}
 			break;
 
 		case TREKEVENT_RBUTTONDOWN:
@@ -1060,19 +1081,22 @@ void StarTrekEngine::handleBridgeEvents() {
 				// TODO
 				break;
 			case Common::KEYCODE_TAB:	// Toggle between movement/fire mode and crew selection mode
-				// TODO
+				setMouseControllingShip(!_mouseControllingShip);
+				restrictBridgeMouse();
 				break;
 			case Common::KEYCODE_COMMA:	// Reduce the main view screen magnification
-				// TODO
+				setViewscreenZoom(_viewscreenZoom - 1);
 				break;
 			case Common::KEYCODE_PERIOD:	// Enlarge the main view screen magnification
-				// TODO
+				setViewscreenZoom(_viewscreenZoom + 1);
 				break;
 			case Common::KEYCODE_o:	// Enter/exit orbit
 				handleBridgeMenu(kBridgeSuluOrbit);
 				break;
 			case Common::KEYCODE_KP5:	// Center controls
-				// TODO
+				_enterpriseR3.targetTurnRate = Point3(0, 0, 0);
+				if (_mouseControllingShip)
+					_gfx->warpMouse(160, _starfieldYVar1);
 				break;
 			case Common::KEYCODE_n:	// Main star navigational map
 				handleBridgeMenu(kBridgeChekovNavigation);
@@ -1106,12 +1130,12 @@ void StarTrekEngine::handleBridgeEvents() {
 				if (event.kbd.flags & Common::KBD_CTRL)
 					showQuitGamePrompt(20, 20);
 				break;
+			case Common::KEYCODE_BACKQUOTE:
 			case Common::KEYCODE_TILDE:	// Ship speed: reverse
-				// TODO
+				if (!_enterpriseState.inOrbit)
+					_enterpriseR3.commandedSpeed = -_enterpriseR3.maxSpeed >> 3;
 				break;
 			case Common::KEYCODE_1:	// Ship speed: stop
-				// TODO
-				break;
 			case Common::KEYCODE_2:
 			case Common::KEYCODE_3:
 			case Common::KEYCODE_4:
@@ -1122,7 +1146,10 @@ void StarTrekEngine::handleBridgeEvents() {
 			case Common::KEYCODE_9:
 			case Common::KEYCODE_0:
 				// Ship speed: toggle slow -> fast
-				// TODO
+				if (!_enterpriseState.inOrbit) {
+					int speed = (event.kbd.keycode == Common::KEYCODE_0) ? 9 : event.kbd.keycode - Common::KEYCODE_1;
+					_enterpriseR3.commandedSpeed = speed * _enterpriseR3.maxSpeed / 9;
+				}
 				break;
 			default:
 				break;
@@ -1133,6 +1160,55 @@ void StarTrekEngine::handleBridgeEvents() {
 			break;
 		}
 	}
+}
+
+void StarTrekEngine::updateBridgeSpace() {
+	distributeEnergy(&_enterpriseR3);
+	moveR3(&_enterpriseR3);
+	if ((_frameIndex & 0x1f) == 7)
+		repairShipSystems(&_enterpriseR3);
+	// TODO: Enemy ships and projectiles
+	if ((_frameIndex & 0x3f) == 0)
+		normalizeShipMatrices();
+	// TODO: Rotate the planet
+	updateCamera();
+
+	// The viewscreen shows static depending on the damage of this system
+	const ShipSystem &viewscreen = _enterpriseR3.systems[12];
+	bool showStatic = viewscreen.maxStrength > 0 && viewscreen.strength < (int16)_randomSource.getRandomNumber(viewscreen.maxStrength - 1);
+	updateStarfieldAndShips(showStatic);
+}
+
+void StarTrekEngine::setMouseControllingShip(bool enable) {
+	_mouseControllingShip = enable;
+	setBridgeMouseCursor();
+	// TODO: Switch between the normal and the full screen view
+	_gfx->warpMouse(160, enable ? _starfieldYVar1 : 166);
+}
+
+void StarTrekEngine::restrictBridgeMouse() {
+	Common::Point mouse = _gfx->getMousePos();
+	Common::Point restricted = mouse;
+	if (_mouseControllingShip) {
+		restricted.x = CLIP<int16>(mouse.x, _starfieldRect.left, _starfieldRect.right - 1);
+		restricted.y = CLIP<int16>(mouse.y, _starfieldRect.top, _starfieldRect.bottom - 1);
+	} else {
+		// Keep the mouse below the viewscreen
+		restricted.y = MAX<int16>(mouse.y, _starfieldRect.bottom + 3);
+	}
+
+	if (restricted != mouse)
+		_gfx->warpMouse(restricted.x, restricted.y);
+}
+
+void StarTrekEngine::setViewscreenZoom(int16 zoom) {
+	if (zoom < 4 || zoom > 8)
+		return;
+
+	_viewscreenZoom = zoom;
+	showTextboxBridge(kBridgeTalkerSulu, Common::String::format(localizeText("Magnification %d"), zoom - 3));
+	// TODO: Full screen view
+	initStarfield(72, 30, 247, 102, 0x200 / _viewscreenZoom);
 }
 
 void StarTrekEngine::handleBridgeMenu(int menuEvent) {

@@ -45,6 +45,31 @@ static Matrix multMatrix(const Matrix &a, const Matrix &b) {
 	return result;
 }
 
+// Matrix rows and columns changed by rotations around the X, Y and Z axis
+static const int kRotationAxes[3][2] = { { 1, 2 }, { 2, 0 }, { 0, 1 } };
+
+static void rotateMatrix(Matrix &matrix, int axis, int16 sinValue, int16 cosValue) {
+	int a = kRotationAxes[axis][0];
+	int b = kRotationAxes[axis][1];
+
+	Matrix rotation;
+	for (int i = 0; i < 3; i++)
+		rotation[i][i] = Fixed14::fromRaw(0x4000);
+	rotation[a][a] = Fixed14::fromRaw(cosValue);
+	rotation[a][b] = Fixed14::fromRaw(sinValue);
+	rotation[b][a] = Fixed14::fromRaw(-sinValue);
+	rotation[b][b] = Fixed14::fromRaw(cosValue);
+	matrix = multMatrix(rotation, matrix);
+}
+
+static Point_Fixed14 crossProduct(const Point_Fixed14 &a, const Point_Fixed14 &b) {
+	Point_Fixed14 result;
+	result.x = Fixed14::fromRaw(fixedMult2(a.y.raw(), b.z.raw(), a.z.raw(), -b.y.raw()));
+	result.y = Fixed14::fromRaw(fixedMult2(a.z.raw(), b.x.raw(), a.x.raw(), -b.z.raw()));
+	result.z = Fixed14::fromRaw(fixedMult2(a.x.raw(), b.y.raw(), a.y.raw(), -b.x.raw()));
+	return result;
+}
+
 static int16 vectorLength(int16 x, int16 y, int16 z) {
 	uint32 squared = (uint32)((int32)x * x + (int32)y * y + (int32)z * z);
 	uint32 root = (uint32)sqrt((double)squared);
@@ -53,6 +78,25 @@ static int16 vectorLength(int16 x, int16 y, int16 z) {
 	while ((root + 1) * (root + 1) <= squared)
 		root++;
 	return (int16)root;
+}
+
+static Point_Fixed14 normalizeVector(const Point_Fixed14 &v) {
+	Point_Fixed14 result;
+	int16 length = vectorLength(v.x.raw(), v.y.raw(), v.z.raw());
+	if (length != 0) {
+		result.x = Fixed14::fromRaw(fixedDiv(v.x.raw(), length));
+		result.y = Fixed14::fromRaw(fixedDiv(v.y.raw(), length));
+		result.z = Fixed14::fromRaw(fixedDiv(v.z.raw(), length));
+	}
+	return result;
+}
+
+// Removes the rounding errors accumulated by repeated rotations
+static void normalizeMatrix(Matrix &matrix) {
+	matrix[0] = crossProduct(matrix[1], matrix[2]);
+	matrix[1] = crossProduct(matrix[2], matrix[0]);
+	for (int i = 0; i < 3; i++)
+		matrix[i] = normalizeVector(matrix[i]);
 }
 
 void StarTrekEngine::initTrigTables() {
@@ -70,6 +114,13 @@ void StarTrekEngine::initTrigTables() {
 	for (int i = 0; i < ARRAYSIZE(_tanTable); i++) {
 		_tanTable[i] = (int16)(tan(angle) * 16384.0);
 		angle += step;
+	}
+
+	for (int i = 0; i < ARRAYSIZE(_turnSinTable); i++) {
+		angle = (16.0 * i) / 16384.0;
+		_turnSinTable[i] = (int16)(sin(angle) * 16384.0);
+		_turnCosTable[i] = (int16)(cos(angle) * 16384.0);
+		_turnAngleTable[i] = (int32)(512.0 * angle / 3.141592654 * 65536.0);
 	}
 }
 
@@ -191,8 +242,151 @@ void StarTrekEngine::loadShipDescriptor(R3 *r3, const Common::String &name) {
 	r3->field20 = file->readSint16(); // Shape
 	r3->field22 = file->readSint16(); // Radius
 	r3->field24 = file->readSint16(); // Size
-	// TODO: The rest of the file describes shields, weapons etc.
+
+	for (int i = 0; i < ARRAYSIZE(r3->systems); i++) {
+		r3->systems[i].present = file->readSint16();
+		r3->systems[i].maxStrength = file->readSint16();
+		r3->systems[i].strength = file->readSint16();
+	}
+
+	r3->maxTurnRate = file->readSint32();
+	r3->turnAcceleration = file->readSint32();
+	r3->maxSpeed = file->readSint32();
+	r3->speedAcceleration = file->readSint32();
+	r3->commandedSpeed = file->readSint32();
+	for (int i = 0; i < 3; i++)
+		r3->targetTurnRate[i] = file->readSint32();
+	r3->targetSpeed = file->readSint32();
+	r3->currentSpeed = file->readSint32();
+	for (int i = 0; i < 3; i++)
+		r3->turnRate[i] = file->readSint32();
+	for (int i = 0; i < 3; i++)
+		r3->turnAngle[i] = file->readSint32();
+	r3->field140 = file->readSint16();
+	// TODO: The rest of the file describes weapons etc.
 	delete file;
+}
+
+// Scales the turn rate of a ship by the strength of this system
+static const int kSteeringSystem = 7;
+
+void StarTrekEngine::moveR3(R3 *r3) {
+	if (r3->field1e != 3) {
+		const ShipSystem &steering = r3->systems[kSteeringSystem];
+		int32 factor = 0;
+		if (steering.maxStrength != 0)
+			factor = ((int32)steering.strength << 16) / steering.maxStrength;
+
+		for (int i = 0; i < 3; i++) {
+			int32 delta = r3->targetTurnRate[i] - r3->turnRate[i];
+			if (delta == 0)
+				continue;
+			delta = CLIP(delta, -r3->turnAcceleration, r3->turnAcceleration);
+			r3->turnRate[i] = CLIP(r3->turnRate[i] + (delta >> 16) * factor, -r3->maxTurnRate, r3->maxTurnRate);
+		}
+
+		for (int i = 0; i < 3; i++) {
+			int32 steps = r3->turnRate[i] >> 16;
+			if (steps == 0)
+				continue;
+			int16 index = ABS(steps);
+			int16 sinValue = steps < 0 ? -_turnSinTable[index] : _turnSinTable[index];
+			rotateMatrix(r3->matrix, i, sinValue, _turnCosTable[index]);
+			r3->turnAngle[i] += _turnAngleTable[index];
+		}
+
+		r3->field140--;
+		updateShipSpeed(r3, r3->targetSpeed);
+	}
+
+	r3->pos.x += r3->speed.x;
+	r3->pos.y += r3->speed.y;
+	r3->pos.z += r3->speed.z;
+}
+
+void StarTrekEngine::updateShipSpeed(R3 *r3, int32 targetSpeed) {
+	int32 speed = targetSpeed;
+	if (r3->field1e == 2) {
+		r3->currentSpeed += CLIP(targetSpeed - r3->currentSpeed, -r3->speedAcceleration, r3->speedAcceleration);
+		speed = r3->currentSpeed;
+	}
+
+	int16 speedInt = speed >> 16;
+	r3->speed.x = fixedMult(speedInt, r3->matrix[2].x.raw());
+	r3->speed.y = fixedMult(speedInt, r3->matrix[2].y.raw());
+	r3->speed.z = fixedMult(speedInt, r3->matrix[2].z.raw());
+}
+
+void StarTrekEngine::distributeEnergy(R3 *r3) {
+	r3->energy = r3->systems[13].strength + r3->systems[14].strength + r3->systems[15].strength;
+	// TODO: Emergency power, shields, weapons and cloaking device
+
+	int16 available = MIN<int16>(r3->energy, 70);
+	int16 required = 0;
+	if (r3->maxSpeed != 0)
+		required = (int16)(r3->commandedSpeed * 70 / r3->maxSpeed);
+
+	if (available < required) {
+		r3->targetSpeed = r3->maxSpeed * available / 70;
+		r3->energy -= available;
+	} else {
+		r3->targetSpeed = r3->commandedSpeed;
+		r3->energy -= required;
+	}
+}
+
+void StarTrekEngine::repairShipSystems(R3 *r3) {
+	for (int i = 0; i < ARRAYSIZE(r3->systems); i++) {
+		ShipSystem &system = r3->systems[i];
+		system.strength = MIN<int16>(system.strength + 1, system.maxStrength);
+	}
+	// TODO: Damage control of the Enterprise
+}
+
+void StarTrekEngine::normalizeShipMatrices() {
+	for (int i = 0; i < NUM_SPACE_OBJECTS; i++) {
+		R3 *r3 = _r3List[i];
+		if (r3 != nullptr && (r3->field1e == 1 || r3->field1e == 2))
+			normalizeMatrix(r3->matrix);
+	}
+}
+
+void StarTrekEngine::updateCamera() {
+	if (_viewDirection == -1)
+		return;
+
+	_starfieldPosition = _enterpriseR3.pos;
+	_someMatrix = _enterpriseR3.matrix;
+
+	Point_Fixed14 right = _someMatrix[0];
+	Point_Fixed14 up = _someMatrix[1];
+	Point_Fixed14 forward = _someMatrix[2];
+	const Point_Fixed14 zero;
+
+	switch (_viewDirection) {
+	case 1:
+		_someMatrix[0] = zero - right;
+		_someMatrix[2] = zero - forward;
+		break;
+	case 2:
+		_someMatrix[0] = forward;
+		_someMatrix[2] = zero - right;
+		break;
+	case 3:
+		_someMatrix[0] = zero - forward;
+		_someMatrix[2] = right;
+		break;
+	case 4:
+		_someMatrix[1] = zero - forward;
+		_someMatrix[2] = up;
+		break;
+	case 5:
+		_someMatrix[1] = forward;
+		_someMatrix[2] = zero - up;
+		break;
+	default:
+		break;
+	}
 }
 
 void StarTrekEngine::initStarfieldPosition() {

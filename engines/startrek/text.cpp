@@ -124,6 +124,8 @@ static const TranslatedText kGermanTexts[] = {
 	  "#GENE\\SPACE000#Die Enterprise wurde zerst\xf6rt!" },
 	{ " choice %d",
 	  " Auswahl %d" },
+	{ "Magnification %d",
+	  "Vergr\xf6\xdf" "erung %d" },
 	{ nullptr, nullptr }
 };
 

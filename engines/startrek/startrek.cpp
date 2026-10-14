@@ -94,6 +94,9 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 
 	_showSubtitles = true;
 	_shipDitheringEnabled = true;
+	_viewDirection = 0;
+	_viewscreenZoom = 6;
+	_heldKey = Common::KEYCODE_INVALID;
 	Common::fill(_r3List, _r3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);
 	Common::fill(_orderedR3List, _orderedR3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);
 
@@ -154,6 +157,7 @@ Common::Error StarTrekEngine::run() {
 	_enterpriseR3 = R3();
 	_enterpriseR3.matrix = initMatrix();
 	loadShipDescriptor(&_enterpriseR3, "enterpri");
+	addR3(&_enterpriseR3);
 
 	if (!isDemo)
 		loadBridgeComputerTopics();
@@ -234,7 +238,7 @@ Common::Error StarTrekEngine::runGameMode(int mode, bool resume) {
 			switch (_gameMode) {
 			case GAMEMODE_BRIDGE:
 				_sound->loadMusicFile("bridge");
-				initBridge(false);	// TODO: param
+				initBridge(true);
 				break;
 
 			case GAMEMODE_AWAYMISSION:

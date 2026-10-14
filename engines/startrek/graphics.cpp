@@ -647,6 +647,14 @@ void Graphics::delSprite(Sprite *sprite) {
 	error("delSprite: sprite not in list");
 }
 
+bool Graphics::hasSprite(const Sprite *sprite) const {
+	for (int i = 0; i < _numSprites; i++) {
+		if (_sprites[i] == sprite)
+			return true;
+	}
+	return false;
+}
+
 void Graphics::pushSprites() {
 	if (_pushedNumSprites != -1)
 		error("Tried to push sprites more than once");

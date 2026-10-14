@@ -255,6 +255,10 @@ public:
 	void setBridgeMouseCursor();
 	void playBridgeSequence(int sequenceId);
 	void handleBridgeEvents();
+	void updateBridgeSpace();
+	void setMouseControllingShip(bool enable);
+	void restrictBridgeMouse();
+	void setViewscreenZoom(int16 zoom);
 	void handleBridgeComputer();
 	void showMissionPerformance(int score, int missionScoreTextId, int missionId);
 
@@ -362,6 +366,12 @@ private:
 	void loadShipView(R3 *r3);
 	bool calcShipViewTransform(R3 *r3, double scale, double forward[4], double inverse[4]);
 	void freeShipView(R3 *r3);
+	void moveR3(R3 *r3);
+	void updateShipSpeed(R3 *r3, int32 targetSpeed);
+	void distributeEnergy(R3 *r3);
+	void repairShipSystems(R3 *r3);
+	void normalizeShipMatrices();
+	void updateCamera();
 
 	// Trigonometry with angles in 1/1024 of a full circle and 2.14 fixed-point values
 	void initTrigTables();
@@ -773,6 +783,7 @@ public:
 	bool _finishedPlayingSpeech;
 
 	bool _mouseControllingShip;
+	Common::KeyCode _heldKey;
 
 	// TODO: make this work.
 	// When false, the keyboard generally acts in a more specific way (ie. move mouse
@@ -801,8 +812,16 @@ public:
 	int16 _sinTable[257];
 	int16 _cosTable[257];
 	int16 _tanTable[129];
+	// Turns by 0 to 32 steps of 1/1024 radians per tick
+	int16 _turnSinTable[33];
+	int16 _turnCosTable[33];
+	int32 _turnAngleTable[33];
 	// Disabled during the intro
 	bool _shipDitheringEnabled;
+	// 0 is forward, -1 detaches the camera from the Enterprise
+	int16 _viewDirection;
+	// 4 to 8, shown as magnification 1 to 5
+	int16 _viewscreenZoom;
 
 	Graphics *_gfx;
 	Sound *_sound;

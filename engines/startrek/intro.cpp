@@ -35,7 +35,7 @@ void StarTrekEngine::playIntro() {
 
 	initStarfieldSprite(&_starfieldSprite, new StubBitmap(0, 0), _starfieldRect);
 
-	//delR3(&_enterpriseR3); // TODO: uncomment
+	delR3(&_enterpriseR3);
 
 	R3 planetR3 = R3();
 	planetR3.matrix = initMatrix();
@@ -310,6 +310,9 @@ void StarTrekEngine::playIntro() {
 		if (frame >= 0x186)
 			frame = 0x186;
 	}
+
+	addR3(&_enterpriseR3);
+	_enterpriseR3.field1e = 2;
 
 	_gfx->fadeoutScreen();
 	_gfx->delSprite(&_starfieldSprite);

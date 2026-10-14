@@ -1329,6 +1329,8 @@ void StarTrekEngine::initStarfieldSprite(Sprite *sprite, Bitmap *bitmap, const C
 	bitmap->yoffset = 0;
 	bitmap->width = rect.width();
 	bitmap->height = rect.height();
+	if (_gfx->hasSprite(sprite))
+		_gfx->delSprite(sprite);
 	_gfx->addSprite(sprite);
 	sprite->drawMode = 1;
 }

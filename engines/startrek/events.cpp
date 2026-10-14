@@ -61,10 +61,16 @@ void StarTrekEngine::pollEvents(bool queueEvents) {
 			break;
 
 		case Common::EVENT_KEYDOWN:
+			_heldKey = event.kbd.keycode;
 			if (queueEvents) {
 				trekEvent.type = TREKEVENT_KEYDOWN;
 				addEventToQueue(trekEvent);
 			}
+			break;
+
+		case Common::EVENT_KEYUP:
+			if (event.kbd.keycode == _heldKey)
+				_heldKey = Common::KEYCODE_INVALID;
 			break;
 
 		default:
