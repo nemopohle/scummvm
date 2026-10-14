@@ -366,6 +366,12 @@ const char *Room::getText(uint16 textId) {
 		break;
 	}
 
+	// Some texts only exist in some versions of the game
+	if (offset == 0) {
+		warning("Text %d doesn't exist in this version", textId);
+		return nullptr;
+	}
+
 	const char *text = textId < 5000 ? (const char *)_rdfData + offset : (const char *)_commonRdfData + offset;
 	//return patchRoomMessage(text).c_str();	// TODO
 	return text;
@@ -381,6 +387,12 @@ int Room::showMultipleTexts(const TextRef *textIDs) {
 
 	for (int i = 0; i < numIDs; i++) {
 		text[i] = textIDs[i] == TX_EMPTY ? "" : getText(textIDs[i]);
+		if (!text[i] && i == 0) {
+			text[i] = "";
+		} else if (!text[i]) {
+			free(text);
+			return 0;
+		}
 	}
 
 	text[numIDs] = "";	// terminator

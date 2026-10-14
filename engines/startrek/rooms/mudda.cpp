@@ -31,18 +31,17 @@ enum muddTextIds {
 	TX_MUD0N002, TX_MUD0N006, TX_MUD0N011
 };
 
-// TODO: Finish floppy offsets
 extern const RoomTextOffsets muddTextOffsets[] = {
-	{ TX_SPEAKER_KIRK, 2941, 0, 0, 2954 },
-	{ TX_SPEAKER_MCCOY, 2966, 0, 0, 2979 },
-	{ TX_SPEAKER_SPOCK, 2976, 0, 0, 2989 },
-	{ TX_MUD0_002, 8651, 0, 0, 8997 },
-	{ TX_MUD0_018, 2523, 0, 0, 2536 },
-	{ TX_MUD0_019, 2473, 0, 0, 2487 },
-	{ TX_MUD0_020, 2423, 0, 0, 2438 },
-	{ TX_MUD0N002, 5513, 0, 0, 5612 },
-	{ TX_MUD0N006, 2573, 0, 0, 2585 },
-	{ TX_MUD0N011, 6036, 0, 0, 6121 },
+	{ TX_SPEAKER_KIRK, 2941, 2778, 0, 2954 },
+	{ TX_SPEAKER_MCCOY, 2966, 2803, 0, 2979 },
+	{ TX_SPEAKER_SPOCK, 2976, 2813, 0, 2989 },
+	{ TX_MUD0_002, 8651, 7823, 0, 8997 },
+	{ TX_MUD0_018, 2523, 2405, 0, 2536 },
+	{ TX_MUD0_019, 2473, 2370, 0, 2487 },
+	{ TX_MUD0_020, 2423, 2335, 0, 2438 },
+	{ TX_MUD0N002, 5513, 5166, 0, 5612 },
+	{ TX_MUD0N006, 2573, 2440, 0, 2585 },
+	{ TX_MUD0N011, 6036, 5629, 0, 6121 },
 	{          -1, 0,    0, 0, 0 }
 };
 

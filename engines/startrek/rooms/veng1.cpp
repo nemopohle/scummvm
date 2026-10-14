@@ -144,10 +144,10 @@ enum veng1TextIds {
 
 // TODO: Finish floppy offsets
 extern const RoomTextOffsets veng1TextOffsets[] = {
-	{ TX_SPEAKER_KIRK, 7612, 0, 0, 8129 },
-	{ TX_SPEAKER_MCCOY, 7623, 0, 0, 8140 },
-	{ TX_SPEAKER_SPOCK, 7633, 0, 0, 8150 },
-	{ TX_SPEAKER_KIJE, 7643, 0, 0, 8160 },
+	{ TX_SPEAKER_KIRK, 7612, 1500, 0, 8129 },
+	{ TX_SPEAKER_MCCOY, 7623, 1511, 0, 8140 },
+	{ TX_SPEAKER_SPOCK, 7633, 1521, 0, 8150 },
+	{ TX_SPEAKER_KIJE, 7643, 1531, 0, 8160 },
 	{ TX_VEN0_016, 7429, 0, 0, 7940 },
 	//{ TX_VEN0_016, 7370, 0, 0, 0 },	// ignore duplicate line
 	{ TX_VEN1_001, 2202, 0, 0, 2375 },
@@ -173,7 +173,7 @@ extern const RoomTextOffsets veng1TextOffsets[] = {
 	{ TX_VENA_F32, 6006, 0, 0, 6443 },
 	{ TX_VENA_F34, 6276, 0, 0, 6740 },
 	{ TX_VENA_F40, 5871, 0, 0, 6308 },
-	{ TX_DEM3_019, 7133, 0, 0, 7633 },
+	{ TX_DEM3_019, 7133, 466, 0, 7633 },
 	//{ TX_G_014, 7256, 0, 0, 0 },
 	//{ TX_G_014, 7313, 0, 0, 0 },
 	{ TX_MUD4_018, 6580, 0, 0, 7059 },

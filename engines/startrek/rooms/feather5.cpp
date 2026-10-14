@@ -126,13 +126,12 @@ enum feather5TextIds {
 	TX_FEA5N013, TX_FEA5N014, TX_FEA5N015, TX_FEA5_001
 };
 
-// TODO: Finish floppy offsets
 // TODO: Finish offsets
 extern const RoomTextOffsets feather5TextOffsets[] = {
-	{ TX_SPEAKER_KIRK, 2385, 0, 0, 2385 },
-	{ TX_SPEAKER_MCCOY, 2396, 0, 0, 2396 },
-	{ TX_SPEAKER_SPOCK, 2406, 0, 0, 2406 },
-	{ TX_SPEAKER_STRAGEY, 2416, 0, 0, 2416 },
+	{ TX_SPEAKER_KIRK, 2385, 2318, 0, 2385 },
+	{ TX_SPEAKER_MCCOY, 2396, 2329, 0, 2396 },
+	{ TX_SPEAKER_SPOCK, 2406, 2339, 0, 2406 },
+	{ TX_SPEAKER_STRAGEY, 2416, 2349, 0, 2416 },
 	{          -1, 0,    0, 0, 0 }
 };
 
