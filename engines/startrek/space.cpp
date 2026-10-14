@@ -488,7 +488,10 @@ void StarTrekEngine::updateShipSpeed(R3 *r3, int32 targetSpeed) {
 
 void StarTrekEngine::distributeEnergy(R3 *r3) {
 	r3->energy = r3->systems[13].strength + r3->systems[14].strength + r3->systems[15].strength;
-	// TODO: Emergency power
+	if (r3 == &_enterpriseR3 && _emergencyPowerTicks != 0) {
+		r3->energy += _emergencyPowerRate;
+		_emergencyPowerTicks--;
+	}
 
 	if (!r3->shieldsOn) {
 		r3->shieldsActive = false;
@@ -712,7 +715,52 @@ void StarTrekEngine::repairShipSystems(R3 *r3) {
 		ShipSystem &system = r3->systems[i];
 		system.strength = MIN<int16>(system.strength + 1, system.maxStrength);
 	}
-	// TODO: Damage control of the Enterprise
+	if (r3 != &_enterpriseR3)
+		return;
+
+	// Scotty repairs the chosen systems twice as fast
+	int first;
+	int count;
+	switch (_repairPriority) {
+	case kRepairHull:
+	case kRepairBridge:
+	case kRepairSensors:
+		first = 6 + _repairPriority;
+		count = 1;
+		break;
+	case kRepairTorpedoes:
+		first = 8;
+		count = 2;
+		break;
+	case kRepairPhasers:
+		first = 10;
+		count = 2;
+		break;
+	case kRepairEngines:
+		first = 13;
+		count = 3;
+		break;
+	case kRepairShields:
+		first = 0;
+		count = 6;
+		break;
+	default:
+		return;
+	}
+
+	int damaged = count;
+	for (int i = first; i < first + count; i++) {
+		ShipSystem &system = r3->systems[i];
+		if (system.strength == system.maxStrength)
+			damaged--;
+		else
+			system.strength = MIN<int16>(system.strength + 1, system.maxStrength);
+	}
+	if (damaged == 0) {
+		_spaceMessages |= kSpaceMessageRepaired;
+		_repairedGroup = _repairPriority;
+		_repairPriority = kRepairNone;
+	}
 }
 
 void StarTrekEngine::normalizeShipMatrices() {

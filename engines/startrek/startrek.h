@@ -213,7 +213,20 @@ struct ComputerTopic {
 
 enum SpaceMessage {
 	kSpaceMessageShieldsFalling = 1 << 0,
-	kSpaceMessageWeaponsOffline = 1 << 1
+	kSpaceMessageWeaponsOffline = 1 << 1,
+	kSpaceMessageRepaired = 1 << 2
+};
+
+// Groups of ship systems for damage control
+enum RepairGroup {
+	kRepairNone = -1,
+	kRepairHull = 0,
+	kRepairBridge = 1,
+	kRepairTorpedoes = 2,
+	kRepairPhasers = 4,
+	kRepairSensors = 6,
+	kRepairEngines = 7,
+	kRepairShields = 0xff
 };
 
 struct EnterpriseState {
@@ -857,6 +870,14 @@ public:
 	uint16 msRand();
 	void msSrand(uint16 seed);
 	int _spaceMessages;
+	int16 _repairPriority;
+	int16 _repairedGroup;
+	bool _emergencyPowerUsed;
+	int32 _emergencyPowerTicks;
+	int16 _emergencyPowerRate;
+	// Improved by good missions
+	int16 _emergencyPowerAmount;
+	int16 _emergencyPowerDuration;
 	byte _cloakLut[256];
 	int16 _cloakLutLevel;
 	byte *_planetSphereMap;

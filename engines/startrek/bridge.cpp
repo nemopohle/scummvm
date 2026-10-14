@@ -702,7 +702,7 @@ void StarTrekEngine::bridgeCrewAction(int crewId) {
 		}
 		break;
 	case kBridgeTalkerKirk:
-		if (_enterpriseState.shields) {
+		if (_enterpriseR3.shieldsActive) {
 			showTextboxBridge(kBridgeTalkerSulu, shieldsUpText);
 		} else if (!_enterpriseState.inOrbit) {
 			showTextboxBridge(kBridgeTalkerSulu, notInOrbitText);
@@ -713,10 +713,10 @@ void StarTrekEngine::bridgeCrewAction(int crewId) {
 				// Chapter 2, disallow beaming down until the correct code is set
 				showTextboxBridge(kBridgeTalkerSulu, 28); // Captain, the Masada's shields are still up
 			} else {
-				if (_missionToLoad != "FEATHER")
-					showTextboxBridge(kBridgeTalkerKirk, transporterText);
-				else
+				if (_missionToLoad == "FEATHER")
 					showTextboxBridge(kBridgeTalkerKirk, transporterTextFeather);
+				else if (_missionToLoad != "VENG")
+					showTextboxBridge(kBridgeTalkerKirk, transporterText);
 				_gameMode = GAMEMODE_BEAMDOWN;
 			}
 		}
@@ -873,7 +873,7 @@ void StarTrekEngine::showMissionPerformance(int score, int missionScoreTextId, i
 		performanceDescription = "#BRID\\B_199#I'll be frank, Kirk. Starfleet expects more of you than that. Try to do better on your next assignment.";
 		commendationPoints = 0;
 		midiTrack = MIDITRACK_13;
-	} else if (score >= 60 && score <= 70) {
+	} else if (score >= 51 && score <= 70) {
 		performanceDescription = "#BRID\\B_197#A satisfactory performance, Captain, but there's still room for improvement.";
 		commendationPoints = 1;
 		midiTrack = MIDITRACK_13;
@@ -892,6 +892,14 @@ void StarTrekEngine::showMissionPerformance(int score, int missionScoreTextId, i
 	}
 
 	_sound->playMidiMusicTracks(midiTrack);
+
+	// Good missions improve the emergency power, weapons and shields
+	_emergencyPowerAmount += commendationPoints >> 1;
+	_emergencyPowerDuration += commendationPoints * 15;
+	for (int i = 0; i < 6; i++)
+		_enterpriseR3.systems[i].maxStrength += commendationPoints >> 1;
+	for (int i = 8; i < 12; i++)
+		_enterpriseR3.systems[i].maxStrength += commendationPoints >> 2;
 
 	Common::String speechIdPerformance = getSpeechSampleForNumber(score);
 	Common::String speechIdCommendationPoints = getSpeechSampleForNumber(commendationPoints);
@@ -1272,12 +1280,17 @@ void StarTrekEngine::setViewscreenZoom(int16 zoom) {
 	initViewscreenStarfield();
 }
 
+// Ship system groups that Scotty repairs first, for each item of the repair menu
+static const int16 kRepairGroups[] = {
+	kRepairShields, kRepairPhasers, kRepairTorpedoes, kRepairSensors, kRepairBridge, kRepairHull, kRepairEngines
+};
+
 void StarTrekEngine::handleBridgeMenu(int menuEvent) {
 	const char *raiseShieldsText = "#BRID\\B_340#Raising shields.";
 	const char *lowerShieldsText = "#BRID\\B_337#Lowering shields, Captain.";
 	const char *armWeaponsText = "#BRID\\B_351#Arming weapons.";
 	const char *disarmWeaponsText = "#BRID\\B_354#Disarming weapons.";
-	//const char *emergencyPowerText = "#BRID\\BRID_S32#I don't know how long she can take it, Captain.";
+	const char *emergencyPowerText = "#BRID\\BRID_S32#I don't know how long she can take it, Captain.";
 	const char *noEmergencyPowerText = "#BRID\\BRID_S41#She can't take it, Captain.";
 	const char *targetAnalysisOnText = "#BRID\\B_344#Target Analysis On.";
 	const char *targetAnalysisOffText = "#BRID\\B_343#Target Analysis Off.";
@@ -1315,8 +1328,14 @@ void StarTrekEngine::handleBridgeMenu(int menuEvent) {
 		showBridgeMenu("repair", 30, 30);
 		break;
 	case kBridgeScottyEmergencyPower: // Scotty, emergency power
-		// TODO: check for emergency power
-		showTextboxBridge(kBridgeTalkerScotty, noEmergencyPowerText);
+		if (!_emergencyPowerUsed) {
+			_emergencyPowerUsed = true;
+			_emergencyPowerTicks = _emergencyPowerDuration;
+			_emergencyPowerRate = _emergencyPowerAmount;
+			showTextboxBridge(kBridgeTalkerScotty, emergencyPowerText);
+		} else {
+			showTextboxBridge(kBridgeTalkerScotty, noEmergencyPowerText);
+		}
 		break;
 	case kBridgeUhura: // Uhura, communications
 		bridgeCrewAction(kBridgeTalkerUhura);
@@ -1343,13 +1362,19 @@ void StarTrekEngine::handleBridgeMenu(int menuEvent) {
 	case kBridgeChekovRepairBridge:
 	case kBridgeChekovRepairHull:
 	case kBridgeChekovRepairWarpDrives:
-		// TODO: Repair ship part (-1, 4, 2, 6, 1, 0, 7)
+		_repairPriority = kRepairGroups[menuEvent - kBridgeChekovRepairShields];
 		showTextboxBridge(kBridgeTalkerScotty, ayeSirText);
 		break;
 	case kBridgeSuluTargetAnalysis: // Chekov, target analysis
 		_enterpriseState.targetAnalysis = !_enterpriseState.targetAnalysis;
 		showTextboxBridge(kBridgeTalkerSulu, _enterpriseState.targetAnalysis ? targetAnalysisOnText : targetAnalysisOffText);
-		// TODO: Target analysis
+		_targetShip = nullptr;
+		if (_enterpriseState.targetAnalysis) {
+			for (int i = 0; i < NUM_ENEMY_SHIPS && !_targetShip; i++) {
+				if (_enemyShips[i].field1e != 0)
+					_targetShip = &_enemyShips[i];
+			}
+		}
 		break;
 	default:
 		break;
@@ -1599,10 +1624,33 @@ void StarTrekEngine::showSpaceMessages() {
 	const char *shieldsFallingText = "#BRID\\BRID_S45#The shields are falling!";
 	const char *weaponsOfflineText = "#BRID\\BRID_S37#Our weapons are off-line!";
 
+	// The original shows both messages when the shields fall
 	if (_spaceMessages & kSpaceMessageShieldsFalling)
 		showTextbox("Mr. Scott", shieldsFallingText, 0, 160, 161, 0);
-	if (_spaceMessages & kSpaceMessageWeaponsOffline)
+	if (_spaceMessages & (kSpaceMessageShieldsFalling | kSpaceMessageWeaponsOffline))
 		showTextbox("Mr. Scott", weaponsOfflineText, 0, 160, 161, 0);
+
+	if (_spaceMessages & kSpaceMessageRepaired) {
+		static const struct {
+			int16 group;
+			const char *name;
+		} kRepairNames[] = {
+			{ kRepairShields, "#BRID\\SCOTSHIE#Shields" },
+			{ kRepairHull, "#BRID\\SCOTHULL#Hull" },
+			{ kRepairBridge, "#BRID\\SCOTBRID#Bridge" },
+			{ kRepairSensors, "#BRID\\SCOTSENS#Sensors" },
+			{ kRepairTorpedoes, "#BRID\\SCOTTORP#Torpedoes" },
+			{ kRepairPhasers, "#BRID\\SCOTPHAS#Phasers" },
+			{ kRepairEngines, "#BRID\\SCOTENGI#Engines" }
+		};
+		for (int i = 0; i < ARRAYSIZE(kRepairNames); i++) {
+			if (kRepairNames[i].group == _repairedGroup) {
+				Common::String text = Common::String::format(localizeText("%s repaired, Captain."), localizeText(kRepairNames[i].name));
+				showTextbox("Mr. Scott", text, 64, 100, 161, 0);
+				break;
+			}
+		}
+	}
 	_spaceMessages = 0;
 }
 

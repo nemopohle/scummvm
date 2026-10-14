@@ -106,6 +106,13 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_msRandState = 1;
 	_spaceMessages = 0;
 	_cloakLutLevel = -1;
+	_repairPriority = kRepairNone;
+	_repairedGroup = kRepairNone;
+	_emergencyPowerUsed = false;
+	_emergencyPowerTicks = 0;
+	_emergencyPowerRate = 0;
+	_emergencyPowerAmount = 30;
+	_emergencyPowerDuration = 450;
 	_restoreFullscreenView = false;
 	_heldKey = Common::KEYCODE_INVALID;
 	Common::fill(_r3List, _r3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);
