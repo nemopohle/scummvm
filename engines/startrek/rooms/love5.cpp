@@ -122,6 +122,7 @@ enum love5TextIds {
 	TX_LOV5N003, TX_LOV5N004, TX_LOV5N005, TX_LOV5N006, TX_LOV5N007,
 	TX_LOV5N008, TX_LOV5N009, TX_LOV5N010, TX_LOV5N011, TX_LOV5N012,
 	TX_LOV5N013, TX_LOV5N014, TX_LOV5N016, TX_LOV5N017, TX_LOV5N018,
+	TX_LOV5N001_BOUND,
 	/*TX_LOV5C001,*/ TX_DEM0N009, TX_G_024, TX_DIALOG_ERROR
 };
 
@@ -228,7 +229,7 @@ extern const RoomTextOffsets love5TextOffsets[] = {
 	{ TX_FEA5_008,   706, 0, 0, 703 },
 	{ TX_G_024,    11501, 0, 0, 12015 },
 	{ TX_LOV5N000, 10294, 0, 0, 10788 },
-	{ TX_LOV5N001, 9732, 0, 0, 10243 },
+	{ TX_LOV5N001_BOUND, 9732, 0, 0, 10243 },
 	{ TX_LOV5N001, 9890, 0, 0, 10414 },
 	{ TX_LOV5N002, 10571, 0, 0, 11073 },
 	{ TX_LOV5N003, 10691, 0, 0, 11186 },
@@ -348,10 +349,8 @@ void Room::love5LookAtDrMarcus() {
 	if (_awayMission->love.freedMarcusAndCheever)
 		showDescription(TX_LOV5N001);
 	else {
-		// BUGFIX: originally played audio "LOV5N001", which is only the first sentence of
-		// what should be spoken.
-		//showDescription(TX_LOV5N015);	// TODO
-
+		// NOTE: The audio LOV5N001 only has the first sentence, LOV5N015 may fit better
+		showDescription(TX_LOV5N001_BOUND);
 		showText(TX_SPEAKER_MARCUS, TX_LOV5_046);
 	}
 }
@@ -596,8 +595,6 @@ void Room::love5CuredPreax() {
 
 	// BUG: says he's dehydrated, but doesn't check whether you've given water to him
 	// already (like it does in LOVE4).
-	// TODO: make the whole "giving water to romulans" thing consistent between LOVE4 and
-	// LOVE5?
 	showText(TX_SPEAKER_MCCOY, TX_LOV5_017);
 
 	loadActorAnim2(OBJECT_PREAX, "s3r6r1", 0x116, 0xba);

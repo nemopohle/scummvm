@@ -509,6 +509,8 @@ void Room::tug0BombExploded() {
 
 	_awayMission->tug.field2d = 1;
 	_awayMission->disableInput = true;
+	if (_awayMission->tug.missionScore < 0)
+		_awayMission->tug.missionScore = 0;
 	endMission(_awayMission->tug.missionScore, _awayMission->tug.field2b, _awayMission->tug.field2d);
 }
 

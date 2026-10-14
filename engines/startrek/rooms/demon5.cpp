@@ -216,7 +216,7 @@ void Room::demon5UseSTricorderOnCrate() {
 	showText(TX_SPEAKER_SPOCK, TX_DEM5_006);
 }
 
-// FIXME: should work when used on people as well, but doesn't
+// Like in the original, the engine handles phasers used on crewmen itself
 void Room::demon5UsePhaserOnAnything() {
 	showText(TX_SPEAKER_SPOCK, TX_DEM5_007);
 }

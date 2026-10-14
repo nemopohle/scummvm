@@ -542,7 +542,6 @@ void Room::love1TalkToRedshirt() {
 
 void Room::love1UseMTricorderOnDishes() {
 	mccoyScan(DIR_W, TX_SPEAKER_MCCOY, TX_LOV1_017, false);
-	// TODO: only works in this room, despite being inventory item?
 }
 
 void Room::love1UseMTricorderAnywhere() {
@@ -570,7 +569,6 @@ void Room::love1UseSTricorderAnywhere() {
 
 void Room::love1UseSTricorderOnDishes() {
 	spockScan(DIR_W, TX_SPEAKER_SPOCK, TX_LOV1_004, false);
-	// TODO: only works in this room, despite being inventory item?
 }
 
 void Room::love1UseSTricorderOnDistillator() {
@@ -764,7 +762,7 @@ void Room::love1UseDishesOnChamber() {
 
 void Room::love1KirkReachedChamberToPut() {
 	if (_awayMission->love.chamberHasDish)
-		showText(TX_SPEAKER_MCCOY, TX_LOV1_014); // TODO: test
+		showDescription(TX_LOV1_014); // No speaker in the original
 	else {
 		loadActorAnim(OBJECT_CHAMBER, "s3r2d5", 0xb4, 0x75, 1);
 		playSoundEffectIndex(kSfxDoor);

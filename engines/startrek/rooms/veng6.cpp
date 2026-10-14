@@ -253,7 +253,6 @@ void Room::veng6Tick1() {
 
 	if (_awayMission->veng.impulseEnginesOn) {
 		loadActorAnim(OBJECT_IMPULSE_ENGINES, "s7r6i1", IMPULSE_ENGINE_X, IMPULSE_ENGINE_Y);
-		// FIXME: doesn't loop
 		playVoc("VEN6LON");
 	} else
 		playVoc("VEN6LOFF");

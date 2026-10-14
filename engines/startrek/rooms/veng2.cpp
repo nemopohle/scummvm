@@ -120,7 +120,7 @@ extern const RoomAction veng2ActionList[] = {
 	{ {ACTION_DONE_WALK, 3,                             0, 0, 0}, &Room::veng2CrewmanInPositionToBeamOut },
 	{ {ACTION_DONE_WALK, 4,                             0, 0, 0}, &Room::veng2CrewmanInPositionToBeamOut },
 
-	{ {ACTION_USE, OBJECT_ISTRICOR, OBJECT_TORPEDO_BUTTON,   0, 0}, &Room::veng2UseSTricorderOnTorpedoButton }, // FIXME: hotspots?
+	{ {ACTION_USE, OBJECT_ISTRICOR, OBJECT_TORPEDO_BUTTON,   0, 0}, &Room::veng2UseSTricorderOnTorpedoButton },
 	{ {ACTION_USE, OBJECT_ISTRICOR, OBJECT_MIDDLE_CONSOLE,   0, 0}, &Room::veng2UseSTricorderOnMiddleConsole },
 	{ {ACTION_USE, OBJECT_ISTRICOR, HOTSPOT_MIDDLE_CONSOLE,  0, 0}, &Room::veng2UseSTricorderOnMiddleConsole },
 
@@ -176,8 +176,6 @@ extern const RoomAction veng2ActionList[] = {
 
 	// ENHANCEMENTs
 	{ {ACTION_USE, OBJECT_KIRK, HOTSPOT_TORPEDO_CONTROL,     0, 0}, &Room::veng2UseKirkOnTorpedoButton },
-	// TODO: uncomment
-//	{ {ACTION_USE, OBJECT_ISTRICOR, HOTSPOT_DECK_IO_CONSOLE, 0, 0}, &Room::veng2UseSTricorderOnDeckIOConsole },
 	{ {ACTION_LIST_END, 0, 0, 0, 0}, nullptr }
 };
 
@@ -418,12 +416,13 @@ extern const RoomTextOffsets veng2TextOffsets[] = {
 	{ TX_VEN2_HAIL_ELASI, 9004, 0, 0, 10073 },
 	{ TX_VEN2_HAIL_ENT, 9031, 0, 0, 10115 },
 	{ TX_VEN2_CANCEL, 9063, 0, 0, 10159 },
-	//TODO: TX_VEN2_090
 	{          -1, 0,    0, 0, 0 }
 };
 
 extern const RoomText veng2Texts[] = {
-	  { -1, Common::UNK_LANG, "" }
+	{ TX_VEN2_090, Common::EN_ANY, "#VEN2\\VEN2_090#Power has already been allocated to the transporter systems, Captain." }, // The original uses "#VEN6_090#"
+	{ TX_VEN2_090, Common::DE_DEU, "#VEN2\\VEN2_090#Es ist bereits Energie in die Transportersysteme eingespeist worden, Sir." },
+	{ -1, Common::UNK_LANG, "" }
 };
 
 #define STRICORDER_POS_X 0x45
@@ -476,7 +475,6 @@ void Room::veng2Tick1() {
 		loadActorAnim2(OBJECT_DECK_IO_CONSOLE, "s7r2o6", 0x131, 0x86);
 		loadActorAnim2(OBJECT_CEILING_PANEL, "s7r2o7", 0x9b, 0x14);
 
-		// FIXME: this doesn't loop
 		playVoc("VEN2LOFF");
 	} else
 		playVoc("VEN2LON");
@@ -589,8 +587,6 @@ void Room::veng2LookAtTorpedoButton() {
 	showDescription(TX_VEN2N033);
 }
 
-// TODO: Consider merging "veng2LookAtTorpedoButton" with "veng2LookAtTorpedoControl"
-// (and the same for use actions)
 void Room::veng2LookAtTorpedoControl() {
 	showDescription(TX_VEN2N033);
 
@@ -870,7 +866,7 @@ void Room::veng2UseSTricorderOnMiddleConsole() {
 
 void Room::veng2UseSTricorderOnTorpedoControl() {
 	showText(TX_SPEAKER_KIRK, TX_VEN2_001);
-	spockScan(DIR_N, TX_SPEAKER_SPOCK, -1); // FIXME: delete this since Spock might not have his tricorder?
+	spockScan(DIR_N, TX_SPEAKER_SPOCK, -1);
 
 	if (_awayMission->veng.poweredSystem != 1) { // No power to weapons
 		if (!_awayMission->veng.scannedMainComputer)
@@ -880,7 +876,7 @@ void Room::veng2UseSTricorderOnTorpedoControl() {
 	} else if (_awayMission->veng.tricordersPluggedIntoComputer != 3)
 		showText(TX_SPEAKER_SPOCK, TX_VEN2_055);
 #if 0
-	// FIXME: Unused, since the same condition is above. Fix needed?
+	// Unreachable, since the same condition is above (also in the original)
 	else if (_awayMission->veng.poweredSystem != 1)
 		showText(TX_SPEAKER_SPOCK, TX_VEN2_065);
 #endif
@@ -891,9 +887,6 @@ void Room::veng2UseSTricorderOnTorpedoControl() {
 		else
 			showText(TX_SPEAKER_SPOCK, TX_VEN2_037);
 		_awayMission->veng.examinedTorpedoControl = true;
-		// TODO: consider making it easier to trigger the above flag? (using spock on it
-		// won't work once the elasi are there, since you can't power the system; you need
-		// to look at it instead.)
 	} else
 		showText(TX_SPEAKER_SPOCK, TX_VEN2_050);
 }

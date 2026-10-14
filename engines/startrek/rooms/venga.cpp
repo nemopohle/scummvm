@@ -139,15 +139,13 @@ void Room::vengaUseCommunicator() {
 void Room::vengaUseMccoyOnDeadGuy() {
 	showText(TX_SPEAKER_MCCOY, TX_VEN0_016);
 
-	// TODO: Implement the random description again?
+	// TODO: The original shows the random texts below. They are embedded in each
+	// room, not in VENG0.RDF, so they can't be looked up as common texts.
 #if 0
 	int val = getRandomWordInRange(0, 5);
 
 	switch (val) {
 	case 0:
-		// NOTE: The exact text differs from the text used in DEM3. But, in order for this
-		// text indexing scheme to work, two rooms can't use the same audio with different
-		// text. Original was "He's dead, jim." instead of "He's dead, Jim...".
 		showText(TX_SPEAKER_MCCOY, TX_DEM3_019);
 		break;
 

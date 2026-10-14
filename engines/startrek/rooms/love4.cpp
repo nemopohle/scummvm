@@ -356,12 +356,8 @@ void Room::love4LookAtKirk() {
 }
 
 void Room::love4LookAtMccoy() {
-	// BUGFIX: original game plays audio "LOV4/LOV4_025". This is mccoy saying something.
-	// It doesn't match up with the actual text, which is the narrator saying that mccoy
-	// is thinking it.
-	// Not sure if this was an intentional decision, but there is another unused audio
-	// file which matches with the text more accurately, so I'm using that instead.
-	//showDescription(TX_LOV4N012);	// TODO
+	// NOTE: The audio is McCoy's voice; the unused audio LOV4N012 may fit the text better
+	showDescription(TX_LOV4_025);
 }
 
 void Room::love4LookAtSpock() {

@@ -297,7 +297,7 @@ void Room::tug2Tick1() {
 	if (_awayMission->tug.guard2Status == 0)
 		loadActorAnim2(OBJECT_GUARD_2, "p6draw", 0xfb, 0xc5, 0);
 	if (_awayMission->tug.guard2Status == 2)
-		loadActorAnim2(OBJECT_GUARD_2, "p5hat", 0xfb, 0xc5, 0); // FIXME
+		loadActorAnim2(OBJECT_GUARD_2, "p5hat", 0xfb, 0xc5, 0); // There is no "p6hat"
 
 
 	if (_awayMission->tug.field4e == 0)
@@ -565,7 +565,7 @@ void Room::tug2TurnedOffForceField() {
 		loadActorAnim2(OBJECT_BRIG, "zap", 0, 0, 1);
 		playVoc("NM8EXPLO");
 		loadActorAnim2(OBJECT_BOMB, "t2bbo", -3, 1, 0);
-		// FIXME: doesn't play "PHASSHOT" sound effect like when kirk removes wires?
+		// Unlike tug2KirkGotWires(), the original plays no phaser sound here
 		_awayMission->tug.field35 = 6;
 	} else if (_awayMission->tug.field35 == 4 && !_awayMission->tug.brigForceFieldDown) {
 		_awayMission->tug.brigForceFieldDown = true;

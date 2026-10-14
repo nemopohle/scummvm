@@ -704,7 +704,8 @@ void Room::demon1TalkToRedshirt() {
 		showText(TX_SPEAKER_EVERTS, TX_DEM1_026);
 }
 
-// FIXME: this doesn't happen in actual game? (does the event get blocked from higher up?)
+// Same as in the original, but probably unreachable, since the engine doesn't allow
+// talking to downed crewmen (see isObjectUnusable())
 void Room::demon1TalkToUnconsciousCrewman() {
 	const char *text[] = {
 	    nullptr,

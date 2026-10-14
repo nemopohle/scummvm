@@ -133,7 +133,7 @@ void Room::muddaTick() {
 			// NOTE: "kgetdn" (kirk, north) doesn't work properly; files in the animation
 			// are missing. It's replaced with 'e' (east) in MUDD1, MUDD3, MUDD5. Only
 			// applies to Kirk, others seem fine...
-			// TODO: check if this is the case across all versions...
+			// The English and German CD versions are affected as well.
 			const char *directions[] = {
 				"weseee", // KIRK
 				"sewene", // SPOCK

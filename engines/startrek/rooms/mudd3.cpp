@@ -221,7 +221,6 @@ void Room::mudd3Tick1() {
 	if (_awayMission->mudd.databaseDestroyed) {
 		loadActorAnim(OBJECT_9, "s4lbpb", 0xa2, 0x9f);
 
-		// FIXME: is this supposed to be in this if statement?
 		if (!_awayMission->mudd.tookRepairTool)
 			loadActorAnim(OBJECT_REPAIR_TOOL, "s4lbdv", 0xb7, 0xa8);
 	}
@@ -233,7 +232,7 @@ void Room::mudd3Tick1() {
 		loadActorAnim(OBJECT_MUDD, "s4lbhs", 0xa2, 0x9f);
 		playMidiMusicTracks(MIDITRACK_3);
 		_awayMission->mudd.muddInDatabaseRoom = true;
-		_awayMission->timers[2] = 10;
+		_awayMission->timers[2] = 16;
 	}
 }
 

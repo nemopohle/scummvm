@@ -136,7 +136,8 @@ extern const RoomTextOffsets tug3TextOffsets[] = {
 };
 
 extern const RoomText tug3Texts[] = {
-	{ TX_TUG3_012, Common::EN_ANY, "" },
+	{ TX_TUG3_012, Common::EN_ANY, "#TUG3\\TUG3_012#I'm a doctor, not a space jockey. Talk to Mr. Sulu about fixing our orbit." },
+	{ TX_TUG3_012, Common::DE_DEU, "#TUG3\\TUG3_012#Ich bin Arzt, kein Weltraum-Jockey. Hol dir Mr. Sulu wenn du Probleme mit der Umlaufbahn hast." },
 	{ -1, Common::UNK_LANG, "" }
 };
 
@@ -442,10 +443,9 @@ void Room::tug3TalkToMccoy() {
 		if (_awayMission->tug.orbitalDecayCounter >= 10) {
 			if (_awayMission->tug.orbitalDecayCounter < 16)
 				showText(TX_SPEAKER_MCCOY, TX_TUG3_011);
-		} else if (_awayMission->tug.orbitalDecayCounter != 0) {
-			// BUGFIX: original game displays a blank textbox. An appropriate audio file
-			// exists, but the corresponding text was written from scratch for ScummVM.
-			// TODO: check if original floppy version has text for this.
+		} else {
+			// BUGFIX: the English CD version displays a blank textbox. Use the text
+			// of the floppy version, for which the CD has an audio file.
 			showText(TX_SPEAKER_MCCOY, TX_TUG3_012);
 		}
 	} else
@@ -494,6 +494,8 @@ void Room::tug3UseCommunicator() {
 			playMidiMusicTracks(MIDITRACK_NONE);
 
 			_awayMission->disableInput = true;
+			if (_awayMission->tug.missionScore < 0)
+				_awayMission->tug.missionScore = 0;
 			endMission(_awayMission->tug.missionScore, _awayMission->tug.field2b, _awayMission->tug.field2d);
 		}
 	}
@@ -584,6 +586,8 @@ void Room::tug3SecurityTeamBeamedIn() {
 
 	playMidiMusicTracks(MIDITRACK_NONE);
 	_awayMission->disableInput = true;
+	if (_awayMission->tug.missionScore < 0)
+		_awayMission->tug.missionScore = 0;
 	endMission(_awayMission->tug.missionScore, _awayMission->tug.field2b, _awayMission->tug.field2d);
 }
 

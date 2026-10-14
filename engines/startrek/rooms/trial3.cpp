@@ -295,7 +295,7 @@ void Room::trial3CheckShowUhuraText() {
 
 		if (choice == 0) { // Don't beam out
 		} else if (choice == 1) { // Beam to enterprise
-			endMission(_awayMission->trial.missionScore, _awayMission->trial.field2b, 1); // FIXME: inconsistent
+			endMission(_awayMission->trial.missionScore, _awayMission->trial.field2b, 1);
 		} else if (choice == 2) { // Beam to Vlict
 			trial3BeamToVlict();
 		}
@@ -469,7 +469,7 @@ void Room::trial3UseCommunicator() {
 
 		if (choice == 0) { // "Beam us back to the enterprise"
 			_awayMission->trial.missionEndMethod = 1;
-			endMission(_awayMission->trial.missionScore, _awayMission->trial.field2b, 1); // FIXME: inconsistent
+			endMission(_awayMission->trial.missionScore, _awayMission->trial.field2b, 1);
 		} else if (choice == 1) { // "Beam us to Vlict's position"
 			trial3BeamToVlict();
 		} // Else don't transport anywhere

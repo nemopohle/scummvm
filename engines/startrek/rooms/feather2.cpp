@@ -108,7 +108,7 @@ void Room::feather2UseCommunicator() {
 }
 
 void Room::feather2UsePhaser() {
-	// FIXME: Why does McCoy say "They're dead, Jim"?
+	// NOTE: The original uses this odd line as well
 	showText(TX_SPEAKER_MCCOY, TX_FEA2_003);
 }
 

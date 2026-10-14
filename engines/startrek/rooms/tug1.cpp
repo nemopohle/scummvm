@@ -368,7 +368,6 @@ void Room::tug1TalkToKirk() {
 	showText(TX_SPEAKER_MCCOY, TX_TUG1_008);
 }
 
-// FIXME: not working
 void Room::tug1UseCommunicator() {
 	showText(TX_SPEAKER_SPOCK, TX_TUG1_011);
 }

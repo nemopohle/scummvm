@@ -469,7 +469,7 @@ void Room::trial2UseSTricorderOnGlob() {
 }
 
 void Room::trial2UseCommunicator() {
-	if (_awayMission->trial.forceFieldDown) { // TODO: Refactor this between rooms?
+	if (_awayMission->trial.forceFieldDown) {
 		showText(TX_SPEAKER_UHURA, TX_TRI2U091);
 
 		const TextRef choices[] = {
@@ -481,7 +481,7 @@ void Room::trial2UseCommunicator() {
 
 		if (choice == 0) { // "Beam us back to the enterprise"
 			_awayMission->trial.missionEndMethod = 1;
-			endMission(_awayMission->trial.missionScore, 1, 1); // FIXME: Inconsistent with TRIAL1
+			endMission(_awayMission->trial.missionScore, 1, 1); // NOTE: Differs from TRIAL1 in the original, too
 		} else if (choice == 1) { // "Beam us to Vlict's position"
 			showText(TX_SPEAKER_UHURA, TX_TRI1U080); // NOTE: Original didn't show text here
 			_awayMission->disableInput = true;

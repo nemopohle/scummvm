@@ -309,7 +309,6 @@ void Room::trial0ReachedRoomCenter() {
 		showText(TX_SPEAKER_VLICT, TX_TRI0_044);
 		_awayMission->trial.missionEndMethod = 0;
 
-		// FIXME: Are these parameters in the right order?
 		endMission(_awayMission->trial.missionScore, _awayMission->trial.field2b, 0);
 	}
 }

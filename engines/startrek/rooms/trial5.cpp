@@ -348,7 +348,7 @@ void Room::trial5VlictAppeared() {
 		showText(TX_SPEAKER_BIALBI, TX_TRI5_032);
 
 		_awayMission->trial.missionEndMethod = 3;
-		endMission(1, 1, 3); // FIXME: Are these parameters correct?
+		endMission(1, 1, 3);
 	}
 }
 

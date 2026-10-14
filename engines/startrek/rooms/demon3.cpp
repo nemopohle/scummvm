@@ -350,7 +350,7 @@ void Room::demon3FireAtBoulder() {
 	_roomVar.demon.shootingBoulder = false;
 
 	switch (_roomVar.demon.boulderBeingShot) {
-	case 1: // FIXME: animation overlaps on Kirk, probably due to sprite sorting inaccuracy
+	case 1: // Same as in the original. Overlapping Kirk is probably a sprite sorting issue
 		loadActorAnim2(9, "sbldr1", 0x22, 0, 0);
 		break;
 	case 2:
@@ -670,8 +670,8 @@ void Room::demon3TalkToMccoy() {
 }
 
 void Room::demon3TalkToRedshirt() {
-	// FIXME: this shouldn't work if he's dead. Should it check higher up whether that's
-	// the case?
+	// No check for a dead redshirt here, as in the original. The engine doesn't allow
+	// talking to him then (see isObjectUnusable()).
 	showText(TX_SPEAKER_EVERTS, TX_DEM3_036);
 	showText(TX_SPEAKER_KIRK, TX_DEM3_004);
 }

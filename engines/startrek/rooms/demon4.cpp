@@ -186,9 +186,6 @@ extern const RoomText demon4Texts[] = {
 	{ -1, Common::UNK_LANG, "" }
 };
 
-// TODO: this room should have animations on computer terminals, but this isn't where
-// they're implemented. Could be related to ".BAN" files which rooms can load?
-
 void Room::demon4Tick1() {
 	playVoc("DEM4LOOP");
 

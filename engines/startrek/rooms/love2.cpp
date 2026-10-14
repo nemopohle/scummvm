@@ -1238,7 +1238,7 @@ void Room::love2ReachedDishes() {
 
 void Room::love2GotDishes() {
 	loadActorStandAnim(OBJECT_VIRUSSAMPLE);
-	showDescription(TX_LOV2N036); // FIXME: text doesn't match audio
+	showDescription(TX_LOV2N036);
 	giveItem(OBJECT_IDISHES);
 	_awayMission->love.synthesizerContents = 0;
 	loadActorAnim(OBJECT_SYNTHESIZER_DOOR, "s3r3d5", 0x8a, 0x8d, 0);

@@ -402,7 +402,7 @@ void Room::demon6FinishedMakingHypoDytoxin() {
 
 void Room::demon6UseHandOnWorkspace() {
 	if (_awayMission->demon.repairedHand) {
-		showText(TX_SPEAKER_SPOCK, TX_DEM6N018); // FIXME
+		showText(TX_SPEAKER_SPOCK, TX_DEM6N018); // Spock speaks a narration text, as in the original
 	} else {
 		_awayMission->disableInput = true;
 		showText(TX_SPEAKER_KIRK, TX_DEM6_005);
@@ -422,7 +422,8 @@ void Room::demon6SpockFinishedRepairingHand() {
 	_awayMission->disableInput = false;
 }
 
-// FIXME: doesn't work
+// Like in the original, this isn't reached for crewmen and for items with a default
+// behavior (tricorders, phasers, medkit, communicator)
 void Room::demon6UseAnythingOnWorkspace() {
 	showDescription(TX_DEM6N020);
 }

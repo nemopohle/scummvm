@@ -332,16 +332,23 @@ const char *Room::getText(uint16 textId) {
 		index++;
 	} while (textList[index].id != -1);
 
-	// Check if we got a hardcoded text
+	// Check if we got a hardcoded text, preferably in the language of the game
 	index = 0;
 	if (offsets == nullptr && _roomStaticTextList != nullptr) {
+		const char *englishText = nullptr;
 		do {
-			if (_roomStaticTextList[index].id == textId) {
-				// TODO: Add non-English languages
-				return _roomStaticTextList[index].text;
+			const RoomText &roomText = _roomStaticTextList[index];
+			if (roomText.id == textId) {
+				if (roomText.language == _vm->getLanguage())
+					return roomText.text;
+				if (roomText.language == Common::EN_ANY)
+					englishText = roomText.text;
 			}
 			index++;
 		} while (_roomStaticTextList[index].id != -1);
+
+		if (englishText)
+			return englishText;
 	}
 
 	if (offsets == nullptr)
