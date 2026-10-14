@@ -384,6 +384,8 @@ const char *Room::getText(uint16 textId) {
 			offset = offsets->offsetAmigaEnglish;
 			break;
 		}
+	} else if (_vm->getPlatform() == Common::kPlatformMacintosh) {
+		offset = isCD ? offsets->offsetMacCD : offsets->offsetMacFloppy;
 	} else {
 		switch (_vm->getLanguage()) {
 		case Common::FR_FRA:
