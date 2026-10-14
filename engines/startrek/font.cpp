@@ -27,8 +27,7 @@
 
 namespace StarTrek {
 
-static const byte CHARACTER_COUNT = 0x80;
-static const byte CHARACTER_SIZE = 0x40;
+static const int CHARACTER_WIDTH = 8;
 
 // Maps Latin-1 characters to the extra glyphs of the German and French fonts
 static const byte kAccentCharMapping[][2] = {
@@ -50,10 +49,17 @@ static const byte kFrenchCharMapping[][2] = {
 Font::Font(StarTrekEngine *vm) : _vm(vm) {
 	Common::MemoryReadStreamEndian *fontStream = _vm->_resource->loadFile("FONT.FNT");
 
-	_characters = new Character[CHARACTER_COUNT];
+	// The Mac CD font has 256 characters of 8x9 pixels in the Mac Roman encoding
+	if (fontStream->size() == 256 * CHARACTER_WIDTH * 9) {
+		_charCount = 256;
+		_charHeight = 9;
+	} else {
+		_charCount = 128;
+		_charHeight = 8;
+	}
 
-	for (byte i = 0; i < CHARACTER_COUNT; i++)
-		fontStream->read(_characters[i].data, CHARACTER_SIZE);
+	_characters = new byte[_charCount * CHARACTER_WIDTH * _charHeight];
+	fontStream->read(_characters, _charCount * CHARACTER_WIDTH * _charHeight);
 
 	delete fontStream;
 
@@ -78,10 +84,10 @@ byte *Font::getCharData(int i) {
 	byte c = _charMapping[i & 0xff];
 
 	// The original reads past the end of the font here
-	if (c >= CHARACTER_COUNT)
+	if (c >= _charCount)
 		c = ' ';
 
-	return _characters[c].data;
+	return _characters + c * CHARACTER_WIDTH * _charHeight;
 }
 
 bool Font::isDisplayableCharacter(char c) {

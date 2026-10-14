@@ -34,14 +34,15 @@ public:
 	~Font();
 
 	byte *getCharData(int i);
+	int getCharHeight() const { return _charHeight; }
 	static bool isDisplayableCharacter(char c);
 
 private:
 	StarTrekEngine *_vm;
 
-	struct Character {
-		byte data[0x40];
-	} *_characters;
+	byte *_characters;
+	int _charCount;
+	int _charHeight;
 
 	byte _charMapping[256];
 

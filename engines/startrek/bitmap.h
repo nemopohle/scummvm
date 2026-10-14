@@ -54,7 +54,7 @@ protected:
  * (since width/height still reflect the actual size when drawn).
  */
 struct TextBitmap : Bitmap {
-	TextBitmap(int w, int h);
+	TextBitmap(int w, int h, int charHeight = 8);
 
 	// The Amiga version draws the header (line 0) and the text lines with a proportional font
 	Common::StringArray amigaLines;

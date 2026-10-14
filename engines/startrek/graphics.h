@@ -151,6 +151,7 @@ public:
 	void popSprites();
 
 	byte *getFontGfx(char c);
+	int getFontHeight() const;
 
 	void copyBackgroundScreen();
 	void loadEGAData(const char *egaFile);

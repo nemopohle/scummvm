@@ -84,6 +84,7 @@ const char *StarTrekEngine::getNextTextLine(const char *text, char *lineOutput, 
 
 void StarTrekEngine::drawTextLineToBitmap(const char *text, int textLen, int x, int y, Bitmap *bitmap) {
 	const int charWidth = 8;
+	const int charHeight = _gfx->getFontHeight();
 
 	if (_gfx->_amigaFont) {
 		::Graphics::Surface surface;
@@ -99,11 +100,11 @@ void StarTrekEngine::drawTextLineToBitmap(const char *text, int textLen, int x, 
 	int textOffset = 0;
 
 	while (textOffset < textLen) {
-		Common::Rect destRect(x, y, x + 8, y + 8);
+		Common::Rect destRect(x, y, x + charWidth, y + charHeight);
 		Common::Rect bitmapRect(bitmap->width, bitmap->height);
 
 		if (destRect.intersects(bitmapRect)) {
-			// drawRect = the rectangle within the 8x8 font character that will be drawn
+			// drawRect = the rectangle within the font character that will be drawn
 			// (part of it may be clipped)
 			Common::Rect drawRect;
 			drawRect.left = bitmapRect.left - destRect.left;
@@ -607,7 +608,7 @@ TextBitmap *StarTrekEngine::initTextSprite(int *xoffsetPtr, int *yoffsetPtr, byt
 		bitmap = new TextBitmap(TEXTBOX_WIDTH * 8, numTextLines * 8 + 4 + (withHeader ? 11 : 0));
 		bitmap->amigaLines.resize(numTextLines + 1);
 	} else {
-		bitmap = new TextBitmap(TEXTBOX_WIDTH * 8, textHeight * 8);
+		bitmap = new TextBitmap(TEXTBOX_WIDTH * 8, textHeight * _gfx->getFontHeight(), _gfx->getFontHeight());
 	}
 
 	*sprite = Sprite();
@@ -1000,8 +1001,9 @@ void StarTrekEngine::initTextInputSprite(int16 textboxX, int16 textboxY, const C
 		row++;
 	} while (headerPos != 0 && row < 11);
 
+	const int charHeight = _gfx->getFontHeight();
 	const int16 width = headerLen * 8 + 8;
-	const int16 height = row * 8 + 8;
+	const int16 height = row * charHeight + charHeight;
 
 
 	_textInputSprite.bitmap = new Bitmap(width, height);
@@ -1031,7 +1033,7 @@ void StarTrekEngine::initTextInputSprite(int16 textboxX, int16 textboxY, const C
 	// Draw header text
 	for (int r = 0; r < row; r++) {
 		char *text = textBuf + r * TEXTBOX_WIDTH;
-		drawTextLineToBitmap(text, strlen(text), 4, r * 8 + 4, _textInputSprite.bitmap);
+		drawTextLineToBitmap(text, strlen(text), 4, r * charHeight + 4, _textInputSprite.bitmap);
 	}
 
 	_textInputSprite.drawMode = 2;

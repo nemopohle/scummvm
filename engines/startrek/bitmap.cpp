@@ -63,13 +63,13 @@ Bitmap::~Bitmap() {
 }
 
 
-TextBitmap::TextBitmap(int w, int h) {
+TextBitmap::TextBitmap(int w, int h, int charHeight) {
 	width = w;
 	height = h;
-	// Width and Height are the total dimensions. Since each character takes 8 pixels in
-	// each dimension, the "pixels" array (which actually stores character indices) must
-	// be smaller.
-	pixelsArraySize = width / 8 * height / 8;
+	// Width and Height are the total dimensions. Since each character takes 8 pixels
+	// horizontally and charHeight pixels vertically, the "pixels" array (which actually
+	// stores character indices) must be smaller.
+	pixelsArraySize = width / 8 * (height / charHeight);
 	pixels = new byte[pixelsArraySize];
 }
 

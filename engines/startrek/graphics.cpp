@@ -402,17 +402,18 @@ void Graphics::drawSprite(const Sprite &sprite, ::Graphics::Surface *surface, co
 		// Units of this rect are "characters" instead of pixels. This contains all
 		// characters to be drawn.
 		Common::Rect rectangle1;
+		const int charHeight = _font->getCharHeight();
 
 		rectangle1.left   = (rect.left   - sprite.drawX) / 8;
-		rectangle1.top    = (rect.top    - sprite.drawY) / 8;
+		rectangle1.top    = (rect.top    - sprite.drawY) / charHeight;
 		rectangle1.right  = (rect.right  - sprite.drawX + 7) / 8;
-		rectangle1.bottom = (rect.bottom - sprite.drawY + 7) / 8;
+		rectangle1.bottom = (rect.bottom - sprite.drawY + charHeight - 1) / charHeight;
 
 		int drawWidth = rectangle1.width();
 		int drawHeight = rectangle1.height();
 
 		dest = (byte *)surface->getPixels() + sprite.drawY * SCREEN_WIDTH + sprite.drawX
-		       + rectangle1.top * 8 * SCREEN_WIDTH + rectangle1.left * 8;
+		       + rectangle1.top * charHeight * SCREEN_WIDTH + rectangle1.left * 8;
 
 		byte *src = sprite.bitmap->pixels + rectangle1.top * sprite.bitmap->width / 8 + rectangle1.left;
 
@@ -428,7 +429,7 @@ void Graphics::drawSprite(const Sprite &sprite, ::Graphics::Surface *surface, co
 
 				byte *fontData = _font->getCharData(c);
 
-				for (int i = 0; i < 8; i++) {
+				for (int i = 0; i < charHeight; i++) {
 					for (int j = 0; j < 8; j++) {
 						byte b = *fontData;
 
@@ -445,12 +446,12 @@ void Graphics::drawSprite(const Sprite &sprite, ::Graphics::Surface *surface, co
 					dest += SCREEN_WIDTH - 8;
 				}
 
-				dest -= (SCREEN_WIDTH * 8 - 8);
+				dest -= (SCREEN_WIDTH * charHeight - 8);
 				src++;
 			}
 
 			src += (sprite.bitmap->width / 8) - drawWidth;
-			dest += (SCREEN_WIDTH * 8) - drawWidth * 8;
+			dest += (SCREEN_WIDTH * charHeight) - drawWidth * 8;
 
 		}
 
@@ -765,6 +766,10 @@ void Graphics::drawAmigaTextbox(const Sprite &sprite, byte *dest, const Common::
 
 byte *Graphics::getFontGfx(char c) {
 	return _font->getCharData(c & 0xff);
+}
+
+int Graphics::getFontHeight() const {
+	return _font->getCharHeight();
 }
 
 void Graphics::copyBackgroundScreen() {
