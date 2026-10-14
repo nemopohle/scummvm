@@ -229,7 +229,10 @@ void ProtrackerStream::updateRow() {
 			break;
 
 		case 0xF:
-			if (exy < 0x20) {
+			if (exy == 0) {
+				// Speed 0 stops the song
+				stopPaula();
+			} else if (exy < 0x20) {
 				_speed = exy;
 			} else {
 				_bpm = exy;
