@@ -165,16 +165,10 @@ void StarTrekEngine::bridgeCrewAction(int crewId) {
 
 	switch (crewId) {
 	case kBridgeTalkerSpock:
-		if (_randomEncounterType != 0)
-			showTextboxBridge(crewId, 7);
-		else
-			showTextboxBridge(crewId, nothingToReportText);
+		showTextboxBridge(crewId, nothingToReportText);
 		break;
 	case kBridgeTalkerUhura:
-		if (_randomEncounterType != 0)
-			showTextboxBridge(crewId, 8);
-		else
-			showTextboxBridge(crewId, hailingFrequenciesOpenText);
+		showTextboxBridge(crewId, hailingFrequenciesOpenText);
 		break;
 	case kBridgeTalkerSulu:
 		// Leaving orbit is only possible in the mission scripts
@@ -1082,12 +1076,42 @@ void StarTrekEngine::wrongDestinationRandomEncounter() {
 	}
 	_enterpriseState.underAttack = true;
 	_sound->loadMusicFile(count >= 3 ? "bridgeb" : "bridge");
+	_randomEncounterCountdown = 10;
+}
 
-	// The enemies hail the Enterprise after a short while
-	uint32 hailTime = _frameIndex + 10;
-	while (_frameIndex < hailTime && !_resetGameMode && !shouldQuit())
-		handleBridgeEvents();
+// Replaces the mission script during a random encounter
+bool StarTrekEngine::handleRandomEncounterEvent(int type, int value) {
+	// The enemies hail the Enterprise after a few events
+	if (_randomEncounterCountdown > 0) {
+		_randomEncounterCountdown--;
+		return false;
+	}
 
+	if (_randomEncounterCountdown == 0) {
+		_randomEncounterCountdown--;
+		showRandomEncounterHail();
+	}
+
+	if (type == kMissionEventMenu && value == kBridgeSpock) {
+		showTextboxBridge(kBridgeTalkerSpock, 7);
+		return true;
+	}
+	if (type == kMissionEventMenu && value == kBridgeUhura) {
+		showTextboxBridge(kBridgeTalkerUhura, 8);
+		return true;
+	}
+
+	if (!_enterpriseState.underAttack) {
+		_randomEncounterType = 0;
+		_resource->setTxtFileName(_missionName);
+		_sound->loadMusicFile("bridge");
+		if (isFloppyVersion())
+			_sound->playMidiMusicTracks(MIDITRACK_0, kLoopTypeRepeat);
+	}
+	return false;
+}
+
+void StarTrekEngine::showRandomEncounterHail() {
 	showTextbox("Mr. Chekov", _resource->getLoadedText(0), 196, 116, 176, 0);
 	showTextbox("Mr. Spock", _resource->getLoadedText(1), 294, 106, 44, 0);
 	// In the floppy version, Sulu always says this
@@ -1109,15 +1133,6 @@ void StarTrekEngine::wrongDestinationRandomEncounter() {
 	showBridgeScreenTalkerWithMessage(6, "Captain", talker);
 	_sound->playMidiMusicTracks(MIDITRACK_2, kLoopTypeRepeat);
 	_sound->playSoundEffectIndex(kSfxRedAlert);
-
-	while (hasEnemyShips() && !_resetGameMode && !shouldQuit())
-		handleBridgeEvents();
-
-	_randomEncounterType = 0;
-	_resource->setTxtFileName(_missionName);
-	_sound->loadMusicFile("bridge");
-	if (isFloppyVersion())
-		_sound->playMidiMusicTracks(MIDITRACK_0, kLoopTypeRepeat);
 }
 
 // Approaches a structure in space and orbits it: ark7, derelict, masada or republic

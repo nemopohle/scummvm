@@ -34,7 +34,7 @@ namespace StarTrek {
 bool StarTrekEngine::handleMissionEvent(int type, int value) {
 	// Random encounters have their own script
 	if (_randomEncounterType != 0)
-		return false;
+		return handleRandomEncounterEvent(type, value);
 
 	if (_missionState >= kMissionDemonStart && _missionState <= kMissionDemonEnd)
 		return handleDemonEvent(type, value);

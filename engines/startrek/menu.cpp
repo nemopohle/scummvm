@@ -19,6 +19,7 @@
  *
  */
 
+#include "common/config-manager.h"
 #include "common/events.h"
 #include "common/stream.h"
 #include "graphics/cursorman.h"
@@ -228,7 +229,6 @@ void StarTrekEngine::showOptionsMenu(int x, int y) {
 		break;
 	case 1: // Load
 		showLoadMenu();
-		_resetGameMode = true;
 		break;
 	case 2: // Enable music
 		_sound->setMusicEnabled(true);
@@ -657,6 +657,9 @@ int StarTrekEngine::handleMenuEvents(uint32 ticksUntilClickingEnabled, bool inTe
 	uint32 tickWhenClickingEnabled = _clockTicks + ticksUntilClickingEnabled;
 
 	while (true) {
+		if (_resetGameMode)
+			return inTextbox ? TEXTBUTTON_CONFIRM : MENUEVENT_RCLICK_OFFBUTTON;
+
 		TrekEvent event;
 		while (popNextEvent(&event)) {
 			switch (event.type) {
@@ -991,6 +994,10 @@ void StarTrekEngine::showGameOverMenu() {
 		""
 	};
 
+	// The game is already being left
+	if (_resetGameMode)
+		return;
+
 	while (true) {
 		_inQuitGameMenu = true;
 		int selected = showText(&StarTrekEngine::readTextFromArray, (uintptr)options, 20, 20, TEXTCOLOR_YELLOW, true, false, true);
@@ -998,13 +1005,14 @@ void StarTrekEngine::showGameOverMenu() {
 
 		switch (selected) {
 		case 0: // Load game
-			_gfx->fadeoutScreen();
-			showLoadMenu(); // TODO: this probably manipulates the stack to jump out of this function...
-			_resetGameMode = true;
-			return;
+			if (showLoadMenu()) {
+				_gfx->fadeoutScreen();
+				return;
+			}
+			break;
 		case 1: // Restart
 			_gfx->fadeoutScreen();
-			restartGame();
+			_pendingRestart = true;
 			_resetGameMode = true;
 			return;
 		case 2: // Quit
@@ -1018,7 +1026,7 @@ void StarTrekEngine::showGameOverMenu() {
 }
 
 void StarTrekEngine::showTextConfigurationMenu(bool fromOptionMenu) {
-	const char *options[] = { // TODO: languages...
+	const char *options[] = {
 		"Text display",
 		"Text subtitles.",
 		"Display text until you press enter.",
@@ -1026,8 +1034,8 @@ void StarTrekEngine::showTextConfigurationMenu(bool fromOptionMenu) {
 		""
 	};
 
-	int val;
-	if (fromOptionMenu || (val = loadTextDisplayMode()) == -1) {
+	int val = fromOptionMenu ? -1 : loadTextDisplayMode();
+	if (val == -1) {
 		val = showText(&StarTrekEngine::readTextFromArray, (uintptr)options, 20, 30, TEXTCOLOR_YELLOW, true, 0, true);
 		saveTextDisplayMode(val);
 	}
@@ -1047,11 +1055,18 @@ void StarTrekEngine::showTextConfigurationMenu(bool fromOptionMenu) {
 	}
 }
 
+// The original stores this in INTRPLAY.CFG
 int StarTrekEngine::loadTextDisplayMode() {
-	return -1; // TODO
+	if (!ConfMan.hasKey("text_display_mode"))
+		return -1;
+	return ConfMan.getInt("text_display_mode");
 }
+
 void StarTrekEngine::saveTextDisplayMode(int value) {
-	// TODO;
+	if (value < 0)
+		return;
+	ConfMan.setInt("text_display_mode", value);
+	ConfMan.flushToDisk();
 }
 
 void StarTrekEngine::showRepublicMap(int16 arg0, int16 turbolift) {

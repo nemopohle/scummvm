@@ -309,6 +309,8 @@ private:
 	void showBridgeScreenTalkerWithMessages(Common::String texts[], Common::String talkerHeader, Common::String talkerId, bool removeTalker = true);
 	void showMissionStartEnterpriseFlyby(Common::String sequence, Common::String name);
 	void wrongDestinationRandomEncounter();
+	bool handleRandomEncounterEvent(int type, int value);
+	void showRandomEncounterHail();
 	void bridgeCrewAction(int crewId);
 	void handleBridgeMenu(int menuEvent);
 	void dispatchBridgeMenu(int menuEvent);
@@ -359,6 +361,8 @@ private:
 	bool _gameIsPaused;
 	bool _bridgeInputLocked;
 	int16 _randomEncounterType;	// 1: Klingon, 2: Romulan, 3: Elasi
+	// Events until the enemies hail the Enterprise, -1 after the hail
+	int16 _randomEncounterCountdown;
 	int16 _lastMissionId;
 	int16 _missionPoints[7];
 
@@ -839,7 +843,11 @@ public:
 public:
 	int _gameMode;
 	int _lastGameMode;
+	// Leaves all loops up to the main loop, like the longjmp of the original
 	bool _resetGameMode;
+	// Done by the main loop after the reset
+	int _pendingLoadSlot;
+	bool _pendingRestart;
 
 	// NOTE: this has a different meaning than the original game. When non-empty, a new
 	// room load is triggered, as opposed to original behaviour where this was only read

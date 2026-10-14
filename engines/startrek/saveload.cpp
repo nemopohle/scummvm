@@ -70,12 +70,14 @@ bool StarTrekEngine::showLoadMenu() {
 	delete dialog;
 
 	if (slot < 0)
-		return true;
+		return false;
 
-	return loadGame(slot);
+	_pendingLoadSlot = slot;
+	_resetGameMode = true;
+	return true;
 }
 
-const uint32 CURRENT_SAVEGAME_VERSION = 3;
+const uint32 CURRENT_SAVEGAME_VERSION = 4;
 
 bool StarTrekEngine::saveGame(int slot, Common::String desc) {
 	Common::String filename = getSavegameFilename(slot);
@@ -156,11 +158,9 @@ bool StarTrekEngine::loadGame(int slot) {
 	} else if (_gameMode == -1) {
 		initBridge(true);
 		_lastGameMode = GAMEMODE_BRIDGE;
-		// TODO: mode change
 	} else {
 		_resource->setTxtFileName(_missionToLoad);
 		initBridge(false);
-		// TODO: mode change
 	}
 
 	return true;
@@ -177,7 +177,6 @@ bool StarTrekEngine::saveOrLoadGameData(Common::SeekableReadStream *in, Common::
 	}
 
 	ser.syncAsUint16LE(_gameMode);
-	// TODO: sub_1d8eb (save) / sub_1d958 (load) (probably bridge / space combat state)
 
 	Common::String midiFilename = _sound->_loadedMidiFilename;
 	ser.syncString(midiFilename);
@@ -201,24 +200,22 @@ bool StarTrekEngine::saveOrLoadGameData(Common::SeekableReadStream *in, Common::
 		ser.syncAsSint16LE(_enterpriseState.underAttack);
 		ser.syncAsSint16LE(_randomEncounterType);
 
-		int16 unkFlag1 = 0; // TODO: word_5082e (either 0 or 1)
-		ser.syncAsSint16LE(unkFlag1);
-
-		int unkVar1 = 0;	// TODO: dword_519b0
-		ser.syncAsSint32LE(unkVar1);
-
+		ser.syncAsSint16LE(_randomEncounterCountdown);
+		// Older savegames have no countdown, and the hail was shown already
+		if (ser.isLoading() && meta->version < 4)
+			_randomEncounterCountdown = -1;
+		ser.syncAsSint32LE(_missionTicks);
 		ser.syncAsSint16LE(_currentPlanet);
 		ser.syncAsSint16LE(_targetPlanet);
-
-		int16 unkFlag2 = 0; // TODO: word_45ab8 (either 0 or -1)
-		ser.syncAsSint16LE(unkFlag2);
+		ser.syncAsSint16LE(_viewDirection);
 	}
 
 	ser.syncString(_missionToLoad);
 
 	if (meta->version >= 1) {
-		int16 unkFlag3 = 0; // TODO: word_4b032 (either 0 or 1)
-		ser.syncAsSint16LE(unkFlag3);
+		int16 emergencyPowerUsed = _emergencyPowerUsed;
+		ser.syncAsSint16LE(emergencyPowerUsed);
+		_emergencyPowerUsed = emergencyPowerUsed != 0;
 
 		uint16 hailedTarget = 0;
 		ser.syncAsUint16LE(hailedTarget);
