@@ -211,7 +211,7 @@ void StarTrekEngine::updateStarfieldAndShips(bool arg0) {
 	}
 
 	if (enterpriseDestroyed) {
-		showTextbox("", "GENE\\SPACE000#The Enterprise has been destroyed!", 20, 20, TEXTCOLOR_YELLOW, 0);
+		showTextbox("", "#GENE\\SPACE000#The Enterprise has been destroyed!", 20, 20, TEXTCOLOR_YELLOW, 0);
 		showGameOverMenu();
 		// FIXME: original game manipulates stack to jump somewhere...
 		return;

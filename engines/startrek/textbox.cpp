@@ -153,7 +153,7 @@ void StarTrekEngine::getTextboxHeader(Common::String *headerTextOutput, Common::
 	Common::String header = speakerText;
 
 	if (choiceIndex != 0)
-		header += Common::String::format(" choice %d", choiceIndex);
+		header += Common::String::format(localizeText(" choice %d"), choiceIndex);
 
 	*headerTextOutput = centerTextboxHeader(header);
 }
@@ -186,7 +186,7 @@ Common::String StarTrekEngine::readTextFromRdf(int choiceIndex, uintptr data, Co
 
 void StarTrekEngine::showTextbox(Common::String headerText, const Common::String &mainText, int xoffset, int yoffset, byte textColor, int maxTextLines) {
 	if (!headerText.empty())
-		headerText = centerTextboxHeader(headerText);
+		headerText = centerTextboxHeader(localizeText(headerText.c_str()));
 
 	int actionParam = (maxTextLines < 0 ? 0 : maxTextLines);
 
@@ -654,8 +654,8 @@ Common::String StarTrekEngine::readLineFormattedText(TextGetterFunc textGetter, 
 Common::String StarTrekEngine::readTextFromArray(int choiceIndex, uintptr data, Common::String *headerTextOutput) {
 	const char **textArray = (const char **)data;
 
-	const char *headerText = textArray[0];
-	const char *mainText = textArray[choiceIndex + 1];
+	const char *headerText = textArray[0] ? localizeText(textArray[0]) : nullptr;
+	const char *mainText = localizeText(textArray[choiceIndex + 1]);
 
 	if (*mainText == '\0')
 		return Common::String(); // Technically should be nullptr...
@@ -670,8 +670,8 @@ Common::String StarTrekEngine::readTextFromArray(int choiceIndex, uintptr data, 
 Common::String StarTrekEngine::readTextFromArrayWithChoices(int choiceIndex, uintptr data, Common::String *headerTextOutput) {
 	const char **textArray = (const char **)data;
 
-	const char *headerText = textArray[0];
-	const char *mainText = textArray[choiceIndex + 1];
+	const char *headerText = textArray[0] ? localizeText(textArray[0]) : nullptr;
+	const char *mainText = textArray[choiceIndex + 1] ? localizeText(textArray[choiceIndex + 1]) : nullptr;
 
 	if (mainText == nullptr || *mainText == '\0')
 		return Common::String(); // Technically should be nullptr...

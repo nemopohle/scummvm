@@ -19,6 +19,8 @@
  *
  */
 
+#include "common/str-array.h"
+
 #include "startrek/bridge.h"
 #include "startrek/iwfile.h"
 #include "startrek/resource.h"
@@ -616,7 +618,7 @@ void StarTrekEngine::bridgeCrewAction(int crewId) {
 	const char *underAttackText = "#BRID\\B_348#Unable to comply, Captain.  We're under attack.";
 	const char *missionNotOverText = "#BRID\\B_338#May I respectfully remind the Captain that we haven't accomplished our mission, Sir.";
 	const char *leaveOrbitText = "#BRID\\B_349#We must first leave orbit, Sir.";
-	const char *nothingToReportText = "#BRID\\B_155 #Nothing to report, Captain.";
+	const char *nothingToReportText = "#BRID\\B_155#Nothing to report, Captain.";
 	const char *hailingFrequenciesOpenText = "#BRID\\BRIDU016#Hailing frequencies open.";
 	const char *shieldsUpText = "#BRID\\B_332#Captain, the shields are up.";
 	const char *notInOrbitText = "#BRID\\B_350#We're not in orbit, Captain.";
@@ -745,32 +747,27 @@ void StarTrekEngine::contactTargetAction() {
 	}
 }
 
+int StarTrekEngine::showKirkChoices(const int *textIds) {
+	Common::StringArray texts;
+	for (int i = 0; textIds[i] != -1; i++)
+		texts.push_back(_resource->getLoadedText(textIds[i]));
+
+	Common::Array<const char *> options;
+	options.push_back("Captain Kirk");
+	for (uint i = 0; i < texts.size(); i++)
+		options.push_back(texts[i].c_str());
+	options.push_back("");
+
+	return showText(&StarTrekEngine::readTextFromArrayWithChoices, (uintptr)options.data(), 160, 130, 176, true, false, false);
+}
+
 void StarTrekEngine::negotiateWithElasiCereth() {
-	// TODO: Read these from tug.txt
-	const char *options1[] = {
-	    "Captain Kirk",
-		"#BRID\\C_074#This is Captain James T. Kirk of the U.S.S. Enterprise. You are illegally in possession of Starfleet property.",
-		"#BRID\\C_072#This is Captain James T. Kirk of the U.S.S. Enterprise. Listen, Elasi, hand over the ship and hostages now or things are going to get very nasty.",
-		"#BRID\\C_073#This is Captain James T. Kirk of the U.S.S. Enterprise. Mr. Elasi, it appears that you have found something that Starfleet lost.",
-		""
-	};
+	// Kirk's choices, from tug.txt
+	const int options1[] = { 66, 67, 68, -1 };
+	const int options2[] = { 48, 49, -1 };
+	const int options3[] = { 55, 56, 57, -1 };
 
-	const char *options2[] = {
-	    "Captain Kirk",
-		"#BRID\\C_026#Freeing the prisoners you requested will take time. We have to track down their current locations, and Starfleet will have to grant permission to move them here. I will get that started - you should tender a show of good faith on your part. Will you beam over so we can discuss negotiations face to face?",
-		"#BRID\\C_091#We can work together on this, Elasi. How about beaming some of the hostages over as a show of good faith?",
-		""
-	};
-
-	const char *options3[] = {
-	    "Captain Kirk",
-		"#BRID\\C_077#Very well, we'll do it your way. I will put together the data packet.  Kirk out.",
-		"#BRID\\C_102#Your fellow Elasi have been tried in Federation courts of law, and found guilty of their crimes. We'll listen to your complaints if you discuss them reasonably.",
-	    "#BRID\\C_014#Forget it. Elasi Cereth, you'll be the next one languishing on a Federation penal planet unless you drop your shields and surrender to me immediately.",
-		""
-	};
-
-	int choice = showText(&StarTrekEngine::readTextFromArrayWithChoices, (uintptr)options1, 160, 130, 176, true, false, false);
+	int choice = showKirkChoices(options1);
 	if (choice == 0) {
 		showTextboxBridge(kBridgeTalkerElasiCereth, 44);	// Ah, the infamous captain Kirk...
 		showTextboxBridge(kBridgeTalkerUhura, 45);
@@ -784,14 +781,14 @@ void StarTrekEngine::negotiateWithElasiCereth() {
 		showTextboxBridge(kBridgeTalkerUhura, 45);
 	}
 
-	showText(&StarTrekEngine::readTextFromArrayWithChoices, (uintptr)options2, 160, 130, 176, true, false, false);
+	showKirkChoices(options2);
 	// The choice here makes no difference
 	showTextboxBridge(kBridgeTalkerElasiCereth, 51);
 	showTextboxBridge(kBridgeTalkerScotty, 52);
 	showTextboxBridge(kBridgeTalkerSulu, 53);
 	showTextboxBridge(kBridgeTalkerElasiCereth, 54);
 
-	choice = showText(&StarTrekEngine::readTextFromArrayWithChoices, (uintptr)options3, 160, 130, 176, true, false, false);
+	choice = showKirkChoices(options3);
 	if (choice == 0) {
 		// End of dialog
 	} else if (choice == 1) {
@@ -808,15 +805,10 @@ void StarTrekEngine::negotiateWithElasiCereth() {
 }
 
 void StarTrekEngine::hailTheMasada() {
-	// TODO: Read these from tug.txt
-	const char *options[] = {
-		"Captain Kirk",
-	    "Hail the Masada.",
-	    "Send prefix code.",
-	    ""
-	};
+	// Kirk's choices, from tug.txt: "Hail the masada.", "Send prefix code."
+	const int options[] = { 18, 19, -1 };
 
-	int choice = showText(&StarTrekEngine::readTextFromArrayWithChoices, (uintptr)options, 160, 130, 176, true, false, false);
+	int choice = showKirkChoices(options);
 	if (choice == 0) {
 		showTextboxBridge(kBridgeTalkerUhura, 21);
 		showBridgeScreenTalkerWithMessage(22, "Elasi Cereth", "pira", false);
@@ -1318,24 +1310,24 @@ void StarTrekEngine::captainsLog() {
 	Common::String captainsLogMessage = "";
 
 	if (_lastMissionId > -1) {
-		captainsLogMessage = Common::String::format(
-			"#BRID\\C_007#We have earned %d point",
-			totalPoints
-		);
+		captainsLogMessage = localizeText("#BRID\\C_007#We have earned ");
 
-		if (totalPoints > 1)
-			captainsLogMessage += "s";
+		if (totalPoints == 1)
+			captainsLogMessage += localizeText("1 point ");
+		else
+			captainsLogMessage += Common::String::format(localizeText("%d points "), totalPoints);
 
-		captainsLogMessage += " for the following recently completed missions:\n";
+		captainsLogMessage += localizeText("for the following recently completed missions:\n\n");
 
 		for (int i = 6; i >= 0; i--) {
-			captainsLogMessage += missionNames[i] + Common::String::format(":   %d point", _missionPoints[i]);
-			if (_missionPoints[i] > 1)
-				captainsLogMessage += "s";
-			captainsLogMessage += ".\n\n";
+			captainsLogMessage += localizeText(missionNames[i]);
+			if (_missionPoints[i] == 1)
+				captainsLogMessage += localizeText(":  1 point.\n\n");
+			else
+				captainsLogMessage += Common::String::format(localizeText(":  %d points.\n\n"), _missionPoints[i]);
 		}
 	} else {
-		captainsLogMessage = "#BRID\\C_007#No recent missions have been completed.";
+		captainsLogMessage = localizeText("#BRID\\C_007#No recent missions have been completed.");
 	}
 
 	showTextboxBridge(kBridgeTalkerCaptainsLog, captainsLogMessage);

@@ -1,7 +1,145 @@
 #include "common/scummsys.h"
 #include "common/str.h"
 
+#include "startrek/startrek.h"
+
 namespace StarTrek {
+
+struct TranslatedText {
+	const char *english;
+	const char *translated;
+};
+
+// Texts that are stored in the game executable rather than in the data
+// files. These are the German texts of the German DOS executable, keyed
+// by the text of the English executable.
+static const TranslatedText germanTexts[] = {
+	{ "Captain's Log",
+	  "Logbuch des Captains" },
+	{ "Autobeacon",
+	  "Funkboje" },
+	{ "Voice",
+	  "Stimme" },
+	{ "#BRID\\B_336#Lowering shields and disarming weapons.",
+	  "#BRID\\B_336#Fahre Schilde herunter und entsichere Waffen." },
+	{ "#BRID\\B_160#Romulan ship decloaking, Captain.",
+	  "#BRID\\B_160#Romulanisches Schiff wird sichtbar, Captain." },
+	{ "Romulan Captain",
+	  "Romulanischer Captain" },
+	{ "#BRID\\B_348#Unable to comply, Captain.  We're under attack.",
+	  "#BRID\\B_348#Kann ich nicht ausf\xfchren, Captain.  Wir werden angegriffen." },
+	{ "#BRID\\B_338#May I respectfully remind the Captain that we haven't accomplished our mission, Sir.",
+	  "#BRID\\B_338#Darf ich unseren Captain respektvoll erinnern, da\xdf wir die Mission nicht beendet haben, Sir." },
+	{ "#BRID\\B_349#We must first leave orbit, Sir.",
+	  "#BRID\\B_349#Wir m\xfcssen erst den Orbit verlassen, Sir." },
+	{ "#BRID\\B_155#Nothing to report, Captain.",
+	  "#BRID\\B_155#Keine besonderen Vorkomnisse, Captain." },
+	{ "#BRID\\BRIDU016#Hailing frequencies open.",
+	  "#BRID\\BRIDU016#Ruf-Frequenzen ge\xf6" "ffnet." },
+	{ "#BRID\\B_332#Captain, the shields are up.",
+	  "#BRID\\B_332#Captain, die Schutzschilde sind noch aktiv." },
+	{ "#BRID\\B_350#We're not in orbit, Captain.",
+	  "#BRID\\B_350#Wir sind nicht im Orbit, Captain." },
+	{ "#BRID\\B_346#This isn't our destination.",
+	  "#BRID\\B_346#Das ist nicht unser Ziel." },
+	{ "#BRID\\C_060#Spock, come with me. Mr Scott, you have the conn.",
+	  "#BRID\\C_060#Spock, Sie kommen mit. Scott, Sie \xfc" "bernehmen hier." },
+	{ "#BRID\\C_006#Assemble a landing party. Unless we find this so-called criminal, we're going to war.",
+	  "#BRID\\C_006#Stellen Sie einen Landetrupp zusammen. Solange wir nicht diesen sogenannten Kriminellen finden, besteht das Risiko eines Krieges." },
+	{ "Centurion Preax",
+	  "Zenturio Preax" },
+	{ "#BRID\\B_199#I'll be frank, Kirk. Starfleet expects more of you than that. Try to do better on your next assignment.",
+	  "#BRID\\B_199#Ich bin ehrlich, Kirk, Starfleet hat mehr von Ihnen erwartet. Wir erwarten bessere Leistungen bei der n\xe4" "chsten Mission." },
+	{ "#BRID\\B_197#A satisfactory performance, Captain, but there's still room for improvement.",
+	  "#BRID\\B_197#Eine annehmbare Leistung, Captain, aber Sie k\xf6nnen sich durchaus verbessern." },
+	{ "#BRID\\B_214#Well done, Captain. Keep up the good work.",
+	  "#BRID\\B_214#Gut gemacht, Captain. Weiter so." },
+	{ "#BRID\\B_414#The top brass at Starfleet are impressed. Outstanding work, Jim.",
+	  "#BRID\\B_414#Der Oberbefehlsstab von Star Fleet ist beeindruckt. Ganz hervorragende Arbeit, Jim." },
+	{ "#BRID\\B_195#A perfect mission, Jim! You are a model for all Starfleet!",
+	  "#BRID\\B_195#Einfach perfekt, Jim! Ganz Star Fleet wird davon reden!" },
+	{ "#BRID\\B_340#Raising shields.",
+	  "#BRID\\B_340#Schutzschilde aktiviert." },
+	{ "#BRID\\B_337#Lowering shields, Captain.",
+	  "#BRID\\B_337#Schutzschilde deaktiviert." },
+	{ "#BRID\\B_351#Arming weapons.",
+	  "#BRID\\B_351#Waffen scharf." },
+	{ "#BRID\\B_354#Disarming weapons.",
+	  "#BRID\\B_354#Waffen gesichert.." },
+	{ "#BRID\\BRID_S32#I don't know how long she can take it, Captain.",
+	  "#BRID\\BRID_S32#Ich wei\xdf nicht, wie lang das Schiff das noch mitmacht, Captain." },
+	{ "#BRID\\BRID_S41#She can't take it, Captain.",
+	  "#BRID\\BRID_S41#Das Schiff macht nicht mehr mit, Captain." },
+	{ "#BRID\\B_344#Target Analysis On.",
+	  "#BRID\\B_344#Zielanalyse Ein." },
+	{ "#BRID\\B_343#Target Analysis Off.",
+	  "#BRID\\B_343#Zielanalyse Aus." },
+	{ "#BRID\\B_333#Entering standard orbit.",
+	  "#BRID\\B_333#Sind in Standard-Orbit." },
+	{ "#BRID\\B_335#Leaving orbit.",
+	  "#BRID\\B_335#Verlassen Orbit." },
+	{ "Demon World",
+	  "D\xe4monen" },
+	{ "Hijacked",
+	  "Entf\xfchrt" },
+	{ "Love's Labor Jeopardized",
+	  "Bakterienkrieg" },
+	{ "Another Fine Mess",
+	  "Ein sch\xf6ner Mist" },
+	{ "Feathered Serpent",
+	  "Gefiederte Schlange" },
+	{ "That Old Devil Moon",
+	  "T\xf6" "dlicher Mond" },
+	{ "Vengeance",
+	  "Rache" },
+	{ "#BRID\\C_007#We have earned ",
+	  "#BRID\\C_007#Wir erhielten " },
+	{ "for the following recently completed missions:\n\n",
+	  "f\xfcr die folgenden, abgeschlossenen Missionen:\n\n" },
+	{ "#BRID\\C_007#No recent missions have been completed.",
+	  "#BRID\\C_007#In letzter Zeit haben wir keine Mission beendet." },
+	{ "Quit Game",
+	  "Spiel beenden" },
+	{ "#GENE\\GENER028#Yes, quit the game.",
+	  "#GENE\\GENER028#Ja, Spiel beenden." },
+	{ "#GENE\\GENER008#No, do not quit the game.",
+	  "#GENE\\GENER008#Nein, Spiel noch nicht beenden." },
+	{ "#GENE\\GENER006#Load a previously saved game.",
+	  "#GENE\\GENER006#Spielstand laden." },
+	{ "#GENE\\GENER020#Restart the game.",
+	  "#GENE\\GENER020#Spiel neu starten." },
+	{ "#GENE\\GENER018#Quit the game.",
+	  "#GENE\\GENER018#Spiel beenden." },
+	{ "Text display",
+	  "Textanzeige" },
+	{ "Text subtitles.",
+	  "Textuntertitel." },
+	{ "Display text until you press enter.",
+	  "Text anzeigen, bis Enter gedr\xfc" "ckt wird." },
+	{ "No text displayed.",
+	  "Keinen Text anzeigen." },
+	{ "#GENE\\GENE_F14#Turbolift access is blocked by an extremely high radiation level.",
+	  "#GENE\\GENE_F14#Der Zugang zum Turbolift ist durch extrem hohe Strahlenwerte blockiert." },
+	{ "#GENE\\GENE_F15#This Turbolift cannot reach that area of the ship.",
+	  "#GENE\\GENE_F15#Dieser Turbolift erm\xf6glicht keinen Zugang in diesen Schiffsbereich.." },
+	{ "#GENE\\SPACE000#The Enterprise has been destroyed!",
+	  "#GENE\\SPACE000#Die Enterprise wurde zerst\xf6rt!" },
+	{ " choice %d",
+	  " Auswahl %d" },
+	{ nullptr, nullptr }
+};
+
+const char *StarTrekEngine::localizeText(const char *text) const {
+	if (getLanguage() != Common::DE_DEU)
+		return text;
+
+	for (const TranslatedText *t = germanTexts; t->english; t++) {
+		if (!strcmp(t->english, text))
+			return t->translated;
+	}
+
+	return text;
+}
 
 struct TypoFix {
 	Common::String origText;

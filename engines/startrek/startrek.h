@@ -275,6 +275,7 @@ private:
 	void bridgeCrewAction(int crewId);
 	void contactTargetAction();
 	void orbitPlanetSequence(int sequenceId);
+	int showKirkChoices(const int *textIds);
 	void negotiateWithElasiCereth();
 	void hailTheMasada();
 
@@ -515,6 +516,11 @@ public:
 	void showTextbox(Common::String headerText, const Common::String &mainText, int xoffset, int yoffset, byte textColor, int maxTextLines); // TODO: better name. (return type?)
 
 	Common::String skipTextAudioPrompt(const Common::String &str);
+	/**
+	 * Returns the translation of a text that the original stores in its
+	 * executable, or the text itself if there is none.
+	 */
+	const char *localizeText(const char *text) const;
 	/**
 	 * Plays an audio prompt, if it exists, and returns the string starting at the end of the
 	 * prompt.
