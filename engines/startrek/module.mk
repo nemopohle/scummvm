@@ -16,6 +16,7 @@ MODULE_OBJS = \
 	intro.o \
 	iwfile.o \
 	lzss.o \
+	macsound.o \
 	menu.o \
 	resource.o \
 	metaengine.o \

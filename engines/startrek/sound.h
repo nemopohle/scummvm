@@ -33,6 +33,11 @@ namespace Common {
 class MacResManager;
 }
 
+namespace Audio {
+class HalestormDriver;
+class RewindableAudioStream;
+}
+
 namespace StarTrek {
 
 class StarTrekEngine;
@@ -74,6 +79,7 @@ public:
 	void setSfxEnabled(bool enable);
 	void toggleMusic();
 	void toggleSfx();
+	void syncSoundSettings();
 	void checkLoopMusic();
 	MidiTracks getPlayingMidiTrack();
 	bool isPlayingSpeech() const;
@@ -85,6 +91,12 @@ private:
 	void loadPCMusicFile(const Common::String &baseSoundName);
 	void clearMidiSlot(int slot);
 
+	/**
+	 * Opens a sound of the CD versions, given as "<dir>\\<name>": a VOC file in "voc",
+	 * or a QuickTime movie in "Voice Data" on the Mac. Sets loop if a VOC file repeats.
+	 */
+	Audio::RewindableAudioStream *openCDSound(const Common::String &name, bool *loop);
+
 	// The Amiga version plays songs of "The Player 4.1A" and sampled sound effects
 	void loadAmigaMusicFile(const Common::String &baseSoundName);
 	void playAmigaTrack(int track, bool music);
@@ -92,6 +104,20 @@ private:
 	void playAmigaSoundEffect(int effect, Audio::SoundHandle *handle);
 	void stopAmigaSounds(bool music, bool soundEffects);
 	bool isAmigaMusicPlaying() const;
+
+	// The Mac versions play the songs and sound effects of "Star Trek Audio"
+	bool initMacSound();
+	void deinitMacSound();
+	void loadMacMusicFile(const Common::String &baseSoundName);
+	void playMacTrack(int track, bool music);
+	void stopMacSounds(bool music, bool soundEffects);
+	bool isMacMusicPlaying() const;
+
+	class MacSoundLoader *_macLoader;
+	Audio::HalestormDriver *_macDriver;
+	const int16 *_macTracks;
+	int _macTrackCount;
+	int _macMusicTrack;
 
 	const int8 *_amigaTracks;
 	int _amigaTrackCount;

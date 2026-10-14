@@ -27,6 +27,7 @@
 #include "common/tokenizer.h"
 
 #include "audio/audiostream.h"
+#include "audio/decoders/quicktime.h"
 #include "audio/decoders/raw.h"
 #include "audio/decoders/voc.h"
 #include "audio/mods/protracker.h"
@@ -60,7 +61,7 @@ Sound::Sound(StarTrekEngine *vm) : _vm(vm) {
 		}
 
 		_midiDriver->setTimerCallback(this, Sound::midiDriverCallback);
-	} else if (_vm->getPlatform() != Common::kPlatformAmiga) {
+	} else if (_vm->getPlatform() != Common::kPlatformAmiga && _vm->getPlatform() != Common::kPlatformMacintosh) {
 		_vm->_musicWorking = false;
 	}
 
@@ -68,6 +69,14 @@ Sound::Sound(StarTrekEngine *vm) : _vm(vm) {
 		for (int i = 0; i < NUM_MIDI_SLOTS; i++)
 			_midiSlots[i].midiParser = nullptr;
 	}
+	_macLoader = nullptr;
+	_macDriver = nullptr;
+	_macTracks = nullptr;
+	_macTrackCount = 0;
+	_macMusicTrack = -1;
+	if (_vm->getPlatform() == Common::kPlatformMacintosh && !(_vm->getFeatures() & GF_DEMO))
+		_vm->_musicWorking = initMacSound();
+
 	_amigaTracks = nullptr;
 	_amigaTrackCount = 0;
 	_amigaMusicTrack = -1;
@@ -84,7 +93,12 @@ Sound::Sound(StarTrekEngine *vm) : _vm(vm) {
 
 	if (!(_vm->getFeatures() & GF_CDROM))
 		_vm->_sfxWorking = false;
-	else if (!SearchMan.hasFile("voc/speech.mrk")) {
+	else if (_vm->getPlatform() == Common::kPlatformMacintosh) {
+		if (!SearchMan.hasFile("Voice Data/SFX/LOGO")) {
+			warning("Couldn't find the 'Voice Data' folder of the CD. Continuing without CD audio");
+			_vm->_sfxWorking = false;
+		}
+	} else if (!SearchMan.hasFile("voc/speech.mrk")) {
 		warning("Couldn't find 'voc/speech.mrk'. The 'trekcd/voc/' directory should be dumped from the CD. Continuing without CD audio");
 		_vm->_sfxWorking = false;
 	}
@@ -99,6 +113,7 @@ Sound::~Sound() {
 	delete _soundHandle;
 	delete[] _loadedSoundData;
 	delete[] _amigaBank;
+	deinitMacSound();
 }
 
 
@@ -118,6 +133,10 @@ void Sound::playMidiTrack(MidiTracks track) {
 
 	if (_vm->getPlatform() == Common::kPlatformAmiga) {
 		playAmigaTrack(track, false);
+		return;
+	}
+	if (_vm->getPlatform() == Common::kPlatformMacintosh) {
+		playMacTrack(track, false);
 		return;
 	}
 
@@ -151,6 +170,12 @@ void Sound::playMidiTrackInSlot(int slot, MidiTracks track) {
 			playAmigaTrack(track, slot == 0);
 		return;
 	}
+	if (_vm->getPlatform() == Common::kPlatformMacintosh) {
+		clearMidiSlot(slot);
+		if (track != -1)
+			playMacTrack(track, slot == 0);
+		return;
+	}
 
 	assert(_loadedSoundData != nullptr);
 	debugC(6, kDebugSound, "Playing MIDI track %d (slot %d)", track, slot);
@@ -177,6 +202,8 @@ bool Sound::isMidiPlaying() {
 		}
 		return false;
 	}
+	if (_vm->getPlatform() == Common::kPlatformMacintosh)
+		return isMacMusicPlaying();
 
 	for (int i = 0; i < NUM_MIDI_SLOTS; i++) {
 		if (_midiSlots[i].midiParser->isPlaying())
@@ -208,7 +235,7 @@ void Sound::loadMusicFile(const Common::String &baseSoundName) {
 	} else if (_vm->getPlatform() == Common::kPlatformAmiga) {
 		loadAmigaMusicFile(baseSoundName);
 	} else if (_vm->getPlatform() == Common::kPlatformMacintosh) {
-		//playMacSMFSound(baseSoundName);
+		loadMacMusicFile(baseSoundName);
 	}
 }
 
@@ -275,20 +302,16 @@ void Sound::playVoc(const Common::String &baseSoundName) {
 		if (_vm->_system->getMixer()->isSoundHandleActive(_sfxHandles[i]))
 			continue;
 
-		Common::Path soundName = Common::Path("voc/sfx/").appendComponent(baseSoundName + ".voc");
-		Common::SeekableReadStream *readStream = SearchMan.createReadStreamForMember(soundName);
-		if (readStream == nullptr)
-			error("Couldn't open '%s'", soundName.toString().c_str());
-
-		debugC(5, kDebugSound, "Playing sound effect '%s'", soundName.toString().c_str());
+		debugC(5, kDebugSound, "Playing sound effect '%s'", baseSoundName.c_str());
 
 		// Sounds with a repeat block loop, like the ones named "....loop"
-		if (!loop && hasVocRepeatBlock(readStream)) {
+		bool repeats = false;
+		Audio::RewindableAudioStream *srcStream = openCDSound("sfx\\" + baseSoundName, &repeats);
+		if (!loop && repeats) {
 			_loopingAudioName = baseSoundName;
 			loop = true;
 		}
 
-		Audio::RewindableAudioStream *srcStream = Audio::makeVOCStream(readStream, Audio::FLAG_UNSIGNED, DisposeAfterUse::YES);
 		Audio::AudioStream *audioStream;
 		if (loop)
 			audioStream = new Audio::LoopingAudioStream(srcStream, 0, DisposeAfterUse::YES);
@@ -309,13 +332,9 @@ void Sound::playSpeech(const Common::String &basename) {
 
 	// Play a list of comma-separated audio files in sequence (usually there's only one)
 	while (!tok.empty()) {
-		Common::Path filename = Common::Path("voc/").append(Common::Path(tok.nextToken() + ".voc", '\\'));
-		debugC(5, kDebugSound, "Playing speech '%s'", filename.toString().c_str());
-		Common::SeekableReadStream *readStream = SearchMan.createReadStreamForMember(filename);
-		if (readStream == nullptr)
-			error("Couldn't open '%s'", filename.toString().c_str());
-
-		Audio::AudioStream *audioStream = Audio::makeVOCStream(readStream, Audio::FLAG_UNSIGNED, DisposeAfterUse::YES);
+		Common::String name = tok.nextToken();
+		debugC(5, kDebugSound, "Playing speech '%s'", name.c_str());
+		Audio::AudioStream *audioStream = openCDSound(name, nullptr);
 		if (audioStream != nullptr) {
 			if (audioQueue == nullptr)
 				audioQueue = Audio::makeQueuingAudioStream(audioStream->getRate(), audioStream->isStereo());
@@ -328,6 +347,24 @@ void Sound::playSpeech(const Common::String &basename) {
 		_vm->_system->getMixer()->playStream(Audio::Mixer::kSpeechSoundType, &_speechHandle, audioQueue);
 		_playingSpeech = true;
 	}
+}
+
+Audio::RewindableAudioStream *Sound::openCDSound(const Common::String &name, bool *loop) {
+	if (_vm->getPlatform() == Common::kPlatformMacintosh) {
+		Common::Path filename = Common::Path("Voice Data/").append(Common::Path(name, '\\'));
+		Audio::RewindableAudioStream *stream = Audio::makeQuickTimeStream(filename);
+		if (stream == nullptr)
+			error("Couldn't open '%s'", filename.toString().c_str());
+		return stream;
+	}
+
+	Common::Path filename = Common::Path("voc/").append(Common::Path(name + ".voc", '\\'));
+	Common::SeekableReadStream *readStream = SearchMan.createReadStreamForMember(filename);
+	if (readStream == nullptr)
+		error("Couldn't open '%s'", filename.toString().c_str());
+	if (loop)
+		*loop = hasVocRepeatBlock(readStream);
+	return Audio::makeVOCStream(readStream, Audio::FLAG_UNSIGNED, DisposeAfterUse::YES);
 }
 
 void Sound::stopAllVocSounds() {
@@ -462,7 +499,13 @@ void Sound::setSfxEnabled(bool enable) {
 void Sound::checkLoopMusic() {
 	if (!_vm->_musicWorking || !_vm->_musicEnabled || _loopingMidiTrack == MIDITRACK_NONE)
 		return;
-	bool playing = _vm->getPlatform() == Common::kPlatformAmiga ? isAmigaMusicPlaying() : _midiSlots[0].midiParser->isPlaying();
+	bool playing;
+	if (_vm->getPlatform() == Common::kPlatformAmiga)
+		playing = isAmigaMusicPlaying();
+	else if (_vm->getPlatform() == Common::kPlatformMacintosh)
+		playing = isMacMusicPlaying();
+	else
+		playing = _midiSlots[0].midiParser->isPlaying();
 	if (!playing)
 		playMidiTrackInSlot(0, _loopingMidiTrack);
 }
@@ -470,6 +513,8 @@ void Sound::checkLoopMusic() {
 MidiTracks Sound::getPlayingMidiTrack() {
 	if (_vm->getPlatform() == Common::kPlatformAmiga)
 		return isAmigaMusicPlaying() ? (MidiTracks)_amigaMusicTrack : MIDITRACK_NONE;
+	if (_vm->getPlatform() == Common::kPlatformMacintosh)
+		return isMacMusicPlaying() ? (MidiTracks)_macMusicTrack : MIDITRACK_NONE;
 	if (!_vm->_musicWorking || !_midiSlots[0].midiParser->isPlaying())
 		return MIDITRACK_NONE;
 	return (MidiTracks)_midiSlots[0].track;
@@ -528,6 +573,10 @@ void Sound::clearMidiSlot(int slot) {
 
 	if (_vm->getPlatform() == Common::kPlatformAmiga) {
 		stopAmigaSounds(slot == 0, slot != 0);
+		return;
+	}
+	if (_vm->getPlatform() == Common::kPlatformMacintosh) {
+		stopMacSounds(slot == 0, slot != 0);
 		return;
 	}
 

@@ -23,6 +23,7 @@
 #include "base/plugins.h"
 #include "base/version.h"
 #include "common/archive.h"
+#include "common/compression/stuffit.h"
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
 #include "common/error.h"
@@ -177,6 +178,14 @@ Common::Error StarTrekEngine::run() {
 
 	bool isDemo = getFeatures() & GF_DEMO;
 	bool isCd = getFeatures() & GF_CDROM;
+
+	if (getPlatform() == Common::kPlatformMacintosh && isCd) {
+		// "Star Trek Audio" is only in the installer of the CD, if it wasn't installed
+		Common::SeekableReadStream *installer = Common::MacResManager::openFileOrDataFork("Star Trek\xc2\xae CD-ROM Installer");
+		Common::Archive *archive = installer ? Common::createStuffItArchive(installer, true) : nullptr;
+		if (archive)
+			SearchMan.add("Star Trek CD-ROM Installer", archive, -1);
+	}
 
 	_resource = new Resource(getPlatform(), isDemo);
 	_gfx = new Graphics(this);
@@ -530,6 +539,12 @@ void StarTrekEngine::playMovieMac(Common::String filename) {
 
 	// Swap back to 8bpp mode
 	initGraphics(SCREEN_WIDTH, SCREEN_HEIGHT);
+}
+
+void StarTrekEngine::syncSoundSettings() {
+	Engine::syncSoundSettings();
+	if (_sound)
+		_sound->syncSoundSettings();
 }
 
 void StarTrekEngine::showMacLogo(uint32 ticks) {

@@ -263,6 +263,7 @@ public:
 	friend class Console;
 
 	Common::Error run() override;
+	void syncSoundSettings() override;
 	Common::Error runGameMode(int mode, bool resume);
 	void restartGame();
 
