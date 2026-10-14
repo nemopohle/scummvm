@@ -1449,10 +1449,10 @@ void StarTrekEngine::endGame() {
 		points += _missionPoints[i];
 	int percent = CLIP(points * 100 / 28, 0, 100);
 	Common::String review = Common::String::format(_resource->getLoadedText(45).c_str(), getSpeechSampleForNumber(percent).c_str(), percent);
-	showTextbox("Admiral", review, 160, 190, 44, 0);
+	showTextbox("Admiral", review, 160, 190, 44, -7);
 
 	int epilogue = percent <= 50 ? 0 : (percent <= 85 ? 1 : 2);
-	showTextbox("Admiral", _resource->getLoadedText(kAdmiralTexts[epilogue]), 160, 190, 44, 0);
+	showTextbox("Admiral", _resource->getLoadedText(kAdmiralTexts[epilogue]), 160, 190, 44, -7);
 	removeBridgeScreenTalker();
 	for (int i = 0; i < 7 && kEpilogues[epilogue][i][0] != kBridgeTalkerNone; i++)
 		showTextboxBridge(kEpilogues[epilogue][i][0], kEpilogues[epilogue][i][1]);

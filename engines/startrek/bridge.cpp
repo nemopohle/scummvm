@@ -127,10 +127,10 @@ void StarTrekEngine::showTextboxBridge(int talker, Common::String text) {
 		showTextbox("Captain's Log", text, 160, 130, 176, 0);
 		break;
 	case kBridgeTalkerElasiCaptain:
-		showTextbox("Elasi Captain", text, 160, 190, 44, 0);
+		showTextbox("Elasi Captain", text, 160, 190, 44, -7);
 		break;
 	case kBridgeTalkerElasiCereth:
-		showTextbox("Elasi Cereth", text, 160, 190, 44, 0);
+		showTextbox("Elasi Cereth", text, 160, 190, 44, -7);
 		break;
 	case kBridgeTalkerAutobeacon:
 		showTextbox("Autobeacon", text, 160, 130, 161, 0);
@@ -139,19 +139,19 @@ void StarTrekEngine::showTextboxBridge(int talker, Common::String text) {
 		showTextbox("Voice", text, 160, 130, 44, 0);
 		break;
 	case kBridgeTalkerHarryMudd:
-		showTextbox("Harry Mudd", text, 160, 190, 44, 0);
+		showTextbox("Harry Mudd", text, 160, 190, 44, -7);
 		break;
 	case kBridgeTalkerTaraz:
-		showTextbox("Taraz", text, 160, 190, 44, 0);
+		showTextbox("Taraz", text, 160, 190, 44, -7);
 		break;
 	case kBridgeTalkerAdmiralKenka:
-		showTextbox("Admiral Kenka", text, 160, 190, 44, 0);
+		showTextbox("Admiral Kenka", text, 160, 190, 44, -7);
 		break;
 	case kBridgeTalkerKallarax:
-		showTextbox("KALLARAX", text, 160, 190, 44, 0);
+		showTextbox("KALLARAX", text, 160, 190, 44, -7);
 		break;
 	case kBridgeTalkerBredell:
-		showTextbox("Bredell", text, 160, 190, 44, 0);
+		showTextbox("Bredell", text, 160, 190, 44, -7);
 		break;
 	}
 }
@@ -337,8 +337,9 @@ void StarTrekEngine::showBridgeScreenTalkerWithMessage(int textId, Common::Strin
 
 void StarTrekEngine::showBridgeScreenTalkerWithMessages(Common::String texts[], Common::String talkerHeader, Common::String talkerId, bool removeTalker) {
 	showBridgeScreenTalker(talkerId);
+	// Texts on the viewscreen have at most 7 lines
 	for (int i = 0; texts[i] != ""; i++)
-		showTextbox(talkerHeader, texts[i], 160, 190, 44, 0);
+		showTextbox(talkerHeader, texts[i], 160, 190, 44, -7);
 
 	if (removeTalker)
 		removeBridgeScreenTalker();
