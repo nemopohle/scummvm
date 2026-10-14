@@ -25,6 +25,16 @@
 namespace StarTrek {
 
 void StarTrekEngine::playIntro() {
+	const bool isMac = getPlatform() == Common::kPlatformMacintosh;
+
+	// The Mac CD shows a QuickTime movie instead of the starfield
+	if (isMac && (getFeatures() & GF_CDROM)) {
+		showMacLogo(60);
+		playMovieMac("Intro Movie");
+		_gfx->clearBackgroundImage();
+		return;
+	}
+
 	_frameIndex = 0;
 	_shipDitheringEnabled = false;
 
@@ -49,13 +59,20 @@ void StarTrekEngine::playIntro() {
 
 	_gfx->clearScreenAndPriBuffer();
 	_gfx->fadeoutScreen();
-	_gfx->loadPalette("gold");
-	_gfx->setBackgroundImage("goldlogo");
-	_sound->playVoc("logo");
-	_gfx->copyBackgroundScreen();
-	_system->updateScreen();
-	_system->delayMillis(10);
-	_gfx->fadeinScreen();
+	if (isMac) {
+		// The Mac loads the title music before its MacPlay logo
+		_sound->loadMusicFile("title");
+		showMacLogo(36);
+		_gfx->clearBackgroundImage();
+	} else {
+		_gfx->loadPalette("gold");
+		_gfx->setBackgroundImage("goldlogo");
+		_sound->playVoc("logo");
+		_gfx->copyBackgroundScreen();
+		_system->updateScreen();
+		_system->delayMillis(10);
+		_gfx->fadeinScreen();
+	}
 
 	uint32 clockTicks = _clockTicks;
 
@@ -95,7 +112,7 @@ void StarTrekEngine::playIntro() {
 
 	clockTicks += 540;
 
-	while (_clockTicks < clockTicks && _sound->isMidiPlaying()) {
+	while (!isMac && _clockTicks < clockTicks && _sound->isMidiPlaying()) {
 		waitForNextTick(true);
 	}
 
@@ -108,7 +125,8 @@ void StarTrekEngine::playIntro() {
 	_gfx->fadeoutScreen();
 	_gfx->loadPalette("bridge");
 	_gfx->clearScreenAndPriBuffer();
-	_sound->loadMusicFile("title");
+	if (!isMac)
+		_sound->loadMusicFile("title");
 	clockTicks = _clockTicks;
 
 	int32 starfieldZoomSpeed = 0;

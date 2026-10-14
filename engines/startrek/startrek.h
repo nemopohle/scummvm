@@ -371,6 +371,11 @@ private:
 public:
 	void playMovie(Common::String filename);
 	void playMovieMac(Common::String filename);
+	/**
+	 * Shows the MacPlay logo of the Mac application for the given number of
+	 * ticks (1/20 seconds), or until a key or mouse button is pressed.
+	 */
+	void showMacLogo(uint32 ticks);
 
 	uint16 getRandomWord();
 

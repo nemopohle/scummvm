@@ -30,10 +30,12 @@
 #include "common/file.h"
 #include "common/macresman.h"
 
+#include "graphics/paletteman.h"
 #include "graphics/pixelformat.h"
 #include "graphics/surface.h"
 
 #include "engines/util.h"
+#include "image/pict.h"
 #include "video/qt_decoder.h"
 
 #include "startrek/bridge.h"
@@ -175,6 +177,7 @@ Common::Error StarTrekEngine::run() {
 
 	bool isDemo = getFeatures() & GF_DEMO;
 	bool isCd = getFeatures() & GF_CDROM;
+
 	_resource = new Resource(getPlatform(), isDemo);
 	_gfx = new Graphics(this);
 	_sound = new Sound(this);
@@ -209,7 +212,11 @@ Common::Error StarTrekEngine::run() {
 		initSpaceObjects();
 	}
 
-	if (isCd) {
+	if (isCd && getPlatform() == Common::kPlatformMacintosh) {
+		// The Mac only has the text display mode in the options menu
+		if (loadTextDisplayMode() != -1)
+			showTextConfigurationMenu(false);
+	} else if (isCd) {
 		// The text display mode is asked for once
 		bool askTextDisplayMode = !loadedSave && loadTextDisplayMode() == -1;
 		if (askTextDisplayMode) {
@@ -513,7 +520,7 @@ void StarTrekEngine::playMovieMac(Common::String filename) {
 
 		Common::Event event;
 		while (g_system->getEventManager()->pollEvent(event))
-			if (event.type == Common::EVENT_KEYDOWN && event.kbd.keycode == Common::KEYCODE_ESCAPE)
+			if (event.type == Common::EVENT_KEYDOWN || event.type == Common::EVENT_LBUTTONDOWN)
 				continuePlaying = false;
 
 		_system->delayMillis(10);
@@ -522,6 +529,51 @@ void StarTrekEngine::playMovieMac(Common::String filename) {
 	delete qtDecoder;
 
 	// Swap back to 8bpp mode
+	initGraphics(SCREEN_WIDTH, SCREEN_HEIGHT);
+}
+
+void StarTrekEngine::showMacLogo(uint32 ticks) {
+	const char *appName;
+	if (getFeatures() & GF_DEMO)
+		appName = "Star Trek\xc2\xae Demo";
+	else if (getFeatures() & GF_CDROM)
+		appName = "Star Trek\xc2\xae Enhanced CD-ROM";
+	else
+		appName = "Star Trek\xc2\xae";
+
+	Common::MacResManager appFork;
+	Common::SeekableReadStream *stream = nullptr;
+	if (appFork.open(Common::Path(appName)))
+		stream = appFork.getResource(MKTAG('P', 'I', 'C', 'T'), 128);
+	if (!stream) {
+		warning("Could not load the logo of '%s'", appName);
+		return;
+	}
+
+	Image::PICTDecoder pict;
+	bool loaded = pict.loadStream(*stream);
+	delete stream;
+	if (!loaded || pict.getSurface()->format.bytesPerPixel != 1)
+		return;
+
+	const ::Graphics::Surface *logo = pict.getSurface();
+	initGraphics(512, 384);
+	_system->getPaletteManager()->setPalette(pict.getPalette());
+	_system->fillScreen(pict.getPalette().findBestColor(0, 0, 0));
+	_system->copyRectToScreen(logo->getPixels(), logo->pitch, (512 - logo->w) / 2, (384 - logo->h) / 2, logo->w, logo->h);
+	_system->updateScreen();
+
+	const uint32 endTime = _system->getMillis() + ticks * 50;
+	bool skip = false;
+	while (!skip && !shouldQuit() && _system->getMillis() < endTime) {
+		Common::Event event;
+		while (_eventMan->pollEvent(event)) {
+			if (event.type == Common::EVENT_KEYDOWN || event.type == Common::EVENT_LBUTTONDOWN)
+				skip = true;
+		}
+		_system->delayMillis(10);
+	}
+
 	initGraphics(SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 

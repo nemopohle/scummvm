@@ -55,6 +55,7 @@ public:
 	~Graphics();
 
 	void setBackgroundImage(Common::String imageName);
+	void clearBackgroundImage();
 	/**
 	 * @param origRect The rectangle containing the original bitmap (must contain the
 	 *                 whole bitmap, even if some is outside the drawable space)

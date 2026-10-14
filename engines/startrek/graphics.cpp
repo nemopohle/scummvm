@@ -87,6 +87,12 @@ void Graphics::setBackgroundImage(Common::String imageName) {
 	_backgroundImage = new Bitmap(_vm->_resource->loadBitmapFile(imageName));
 }
 
+void Graphics::clearBackgroundImage() {
+	delete _backgroundImage;
+	_backgroundImage = new Bitmap(SCREEN_WIDTH, SCREEN_HEIGHT);
+	memset(_backgroundImage->pixels, 0, SCREEN_WIDTH * SCREEN_HEIGHT);
+}
+
 void Graphics::drawBitmapToBackground(const Common::Rect &origRect, const Common::Rect &drawRect, Bitmap *bitmap) {
 	byte *dest = _backgroundImage->pixels + drawRect.top * SCREEN_WIDTH + drawRect.left;
 	byte *src = bitmap->pixels + (drawRect.left - origRect.left)
