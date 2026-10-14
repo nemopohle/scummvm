@@ -1515,15 +1515,29 @@ void StarTrekEngine::orbitPlanetSequence(int sequenceId) {
 }
 
 void StarTrekEngine::orbitPlanet() {
+	playOrbitSequence(!_enterpriseState.inOrbit, true);
+}
+
+void StarTrekEngine::playOrbitSequence(bool enterOrbit, bool showText) {
 	const char *enteringOrbitText = "#BRID\\B_333#Entering standard orbit.";
 	const char *leavingOrbitText = "#BRID\\B_335#Leaving orbit.";
 
-	// TODO: Show starfield
-	// TODO: Warp to planet, if needed
-	// TODO: Update sprites
+	int16 zoom = _viewscreenZoom;
+	_viewscreenZoom = 6;
+	_gfx->fadeoutScreen();
+	enterFullscreenView();
+	if (enterOrbit)
+		playOrbitArrivalSequence();
+	else
+		playOrbitDepartureSequence();
+	leaveFullscreenView();
+	updateStarfieldAndShips(false);
+	_gfx->drawAllSprites();
 
-	_enterpriseState.inOrbit = !_enterpriseState.inOrbit;
-	showTextboxBridge(kBridgeTalkerSulu, _enterpriseState.inOrbit ? enteringOrbitText : leavingOrbitText);
+	if (showText)
+		showTextboxBridge(kBridgeTalkerSulu, enterOrbit ? enteringOrbitText : leavingOrbitText);
+	_enterpriseState.inOrbit = enterOrbit;
+	_viewscreenZoom = zoom;
 }
 
 void StarTrekEngine::captainsLog() {

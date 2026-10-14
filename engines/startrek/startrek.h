@@ -377,6 +377,9 @@ private:
 	void updateShipSpeed(R3 *r3, int32 targetSpeed);
 	void rotateR3(R3 *r3, int axis, int16 angle);
 	void playWarpSequence();
+	void turnCameraTowards(const Point3 &target);
+	void playOrbitArrivalSequence();
+	void playOrbitDepartureSequence();
 	void resetShipControls(R3 *r3);
 	void distributeEnergy(R3 *r3);
 	void repairShipSystems(R3 *r3);
@@ -633,6 +636,7 @@ public:
 	void initSystemPlanet(int system);
 	void arrivedAtTargetPlanet();
 	void orbitPlanet();
+	void playOrbitSequence(bool enterOrbit, bool showText);
 	void captainsLog();
 
 	/**
