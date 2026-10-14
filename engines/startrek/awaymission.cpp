@@ -43,6 +43,13 @@ void StarTrekEngine::initAwayMission() {
 	initAwayCrewPositions(4);
 }
 
+// The floppy version has no texts for the items of the CD version's last mission
+Common::String StarTrekEngine::getGroundText(int textId) {
+	if (isFloppyVersion() && textId >= GROUNDTX_LOOK_KIRK)
+		textId -= GROUNDTX_LOOK_KIRK - 0x40;
+	return _resource->getLoadedText(textId);
+}
+
 void StarTrekEngine::runAwayMission() {
 	while (_gameMode == GAMEMODE_AWAYMISSION && !_resetGameMode) {
 		// Original game manipulates the stack when the room changes to return execution
@@ -579,7 +586,7 @@ void StarTrekEngine::handleAwayMissionAction() {
 				// BUGFIX: Don't allow the "use" action to bypass the "disableWalking" variable
 				if (!(!_awayMission.disableWalking && _room->handleAction(ACTION_WALK, action.passiveObject(), 0, 0))
 						&& !_room->handleAction(ACTION_GET, action.passiveObject(), 0, 0)) {
-					showTextbox("Capt. Kirk", _resource->getLoadedText(GROUNDTX_KIRK_USE), 20, 20, TEXTCOLOR_YELLOW, 0);
+					showTextbox("Capt. Kirk", getGroundText(GROUNDTX_KIRK_USE), 20, 20, TEXTCOLOR_YELLOW, 0);
 				}
 				break;
 
@@ -588,7 +595,7 @@ void StarTrekEngine::handleAwayMissionAction() {
 					// BUGFIX: Original game has just "Spock" instead of "Mr. Spock" as the
 					// speaker. That's inconsistent.
 					// Same applies to other parts of this function.
-					showTextbox("Mr. Spock", _resource->getLoadedText(GROUNDTX_SPOCK_USE), 20, 20, TEXTCOLOR_BLUE, 0);
+					showTextbox("Mr. Spock", getGroundText(GROUNDTX_SPOCK_USE), 20, 20, TEXTCOLOR_BLUE, 0);
 				}
 				break;
 
@@ -596,68 +603,70 @@ void StarTrekEngine::handleAwayMissionAction() {
 				if (!_room->handleAction(ACTION_USE, OBJECT_IMEDKIT, action.passiveObject(), 0)
 						&& !_room->handleAction(ACTION_USE, OBJECT_IMTRICOR, action.passiveObject(), 0)) {
 					// BUGFIX: Original game has just "McCoy" instead of "Dr. McCoy".
-					showTextbox("Dr. McCoy", _resource->getLoadedText(GROUNDTX_MCCOY_USE), 20, 20, TEXTCOLOR_BLUE, 0);
+					showTextbox("Dr. McCoy", getGroundText(GROUNDTX_MCCOY_USE), 20, 20, TEXTCOLOR_BLUE, 0);
 				}
 				break;
 
 			case OBJECT_REDSHIRT:
-				showTextbox(NULL, _resource->getLoadedText(GROUNDTX_REDSHIRT_USE), 20, 20, TEXTCOLOR_YELLOW, 0);
+				showTextbox(NULL, getGroundText(GROUNDTX_REDSHIRT_USE), 20, 20, TEXTCOLOR_YELLOW, 0);
 				break;
 
 			case OBJECT_IPHASERS:
 			case OBJECT_IPHASERK:
 				if (action.passiveObject() == OBJECT_SPOCK) {
 					int text = GROUNDTX_PHASER_ON_SPOCK + getRandomWord() % 8;
-					showTextbox("Mr. Spock", _resource->getLoadedText(text), 20, 20, TEXTCOLOR_BLUE, 0);
+					showTextbox("Mr. Spock", getGroundText(text), 20, 20, TEXTCOLOR_BLUE, 0);
 				} else if (action.passiveObject() == OBJECT_MCCOY) {
 					int text = GROUNDTX_PHASER_ON_MCCOY + getRandomWord() % 8;
-					showTextbox("Dr. McCoy", _resource->getLoadedText(text), 20, 20, TEXTCOLOR_BLUE, 0);
+					showTextbox("Dr. McCoy", getGroundText(text), 20, 20, TEXTCOLOR_BLUE, 0);
 				} else if (action.passiveObject() == OBJECT_REDSHIRT) {
-					Common::String text = _resource->getLoadedText(GROUNDTX_PHASER_ON_REDSHIRT + getRandomWord() % 8);
+					Common::String text = getGroundText(GROUNDTX_PHASER_ON_REDSHIRT + getRandomWord() % 8);
 					// Replace audio filename with start of mission name (to load the
 					// audio for the crewman specific to the mission))
-					text.setChar(_missionName[0], 6);
-					text.setChar(_missionName[1], 7);
-					text.setChar(_missionName[2], 8);
+					if (!isFloppyVersion()) {
+						text.setChar(_missionName[0], 6);
+						text.setChar(_missionName[1], 7);
+						text.setChar(_missionName[2], 8);
+					}
 					showTextbox("Security Officer", text, 20, 20, TEXTCOLOR_RED, 0);
 					// TODO: replace "Security Officer" string with their actual name as
 					// an enhancement?
 				} else if (!_room->handleActionWithBitmask(action)) {
 					int index = getRandomWord() % 7;
 					if (index & 1)
-						showTextbox("Dr. McCoy", _resource->getLoadedText(GROUNDTX_PHASER_ANYWHERE + index), 20, 20, TEXTCOLOR_BLUE, 0);
+						showTextbox("Dr. McCoy", getGroundText(GROUNDTX_PHASER_ANYWHERE + index), 20, 20, TEXTCOLOR_BLUE, 0);
 					else
-						showTextbox("Mr. Spock", _resource->getLoadedText(GROUNDTX_PHASER_ANYWHERE + index), 20, 20, TEXTCOLOR_BLUE, 0);
+						showTextbox("Mr. Spock", getGroundText(GROUNDTX_PHASER_ANYWHERE + index), 20, 20, TEXTCOLOR_BLUE, 0);
 				}
 				break;
 
 			case OBJECT_ISTRICOR:
-				showTextbox("Mr. Spock", _resource->getLoadedText(GROUNDTX_SPOCK_SCAN), 20, 20, TEXTCOLOR_BLUE, 0);
+				showTextbox("Mr. Spock", getGroundText(GROUNDTX_SPOCK_SCAN), 20, 20, TEXTCOLOR_BLUE, 0);
 				break;
 
 			case OBJECT_IMTRICOR:
-				showTextbox("Dr. McCoy", _resource->getLoadedText(GROUNDTX_MCCOY_SCAN), 20, 20, TEXTCOLOR_BLUE, 0);
+				showTextbox("Dr. McCoy", getGroundText(GROUNDTX_MCCOY_SCAN), 20, 20, TEXTCOLOR_BLUE, 0);
 				break;
 
 			case OBJECT_ICOMM:
 				if (!_room->handleAction(ACTION_USE, OBJECT_ICOMM, 0xff, 0))
-					showTextbox("Lt. Uhura", _resource->getLoadedText(GROUNDTX_USE_COMMUNICATOR), 20, 20, TEXTCOLOR_RED, 0);
+					showTextbox("Lt. Uhura", getGroundText(GROUNDTX_USE_COMMUNICATOR), 20, 20, TEXTCOLOR_RED, 0);
 				break;
 
 			case OBJECT_IMEDKIT:
-				showTextbox("Dr. McCoy", _resource->getLoadedText(GROUNDTX_USE_MEDKIT), 20, 20, TEXTCOLOR_BLUE, 0);
+				showTextbox("Dr. McCoy", getGroundText(GROUNDTX_USE_MEDKIT), 20, 20, TEXTCOLOR_BLUE, 0);
 				break;
 
 			default:
 				if (!_room->handleActionWithBitmask(action.type, action.b1, action.b2, action.b3))
-					showTextbox("", _resource->getLoadedText(GROUNDTX_NOTHING_HAPPENS), 20, 20, TEXTCOLOR_YELLOW, 0);
+					showTextbox("", getGroundText(GROUNDTX_NOTHING_HAPPENS), 20, 20, TEXTCOLOR_YELLOW, 0);
 			}
 		}
 		break;
 
 	case ACTION_GET:
 		if (!_room->handleActionWithBitmask(action.type, action.b1, action.b2, action.b3))
-			showTextbox("", _resource->getLoadedText(GROUNDTX_FAIL_TO_OBTAIN_ANYTHING), 20, 20, TEXTCOLOR_YELLOW, 0);
+			showTextbox("", getGroundText(GROUNDTX_FAIL_TO_OBTAIN_ANYTHING), 20, 20, TEXTCOLOR_YELLOW, 0);
 		break;
 
 	case ACTION_LOOK:
@@ -666,19 +675,19 @@ void StarTrekEngine::handleAwayMissionAction() {
 			Common::String text = _resource->getLoadedText(_itemList[i].textIndex);
 			showTextbox("", text, 20, 20, TEXTCOLOR_YELLOW, 0);
 		} else if (action.activeObject() == OBJECT_KIRK)
-			showTextbox("", _resource->getLoadedText(GROUNDTX_LOOK_KIRK), 20, 20, TEXTCOLOR_YELLOW, 0);
+			showTextbox("", getGroundText(GROUNDTX_LOOK_KIRK), 20, 20, TEXTCOLOR_YELLOW, 0);
 		else if (action.activeObject() == OBJECT_SPOCK)
-			showTextbox("", _resource->getLoadedText(GROUNDTX_LOOK_SPOCK), 20, 20, TEXTCOLOR_YELLOW, 0);
+			showTextbox("", getGroundText(GROUNDTX_LOOK_SPOCK), 20, 20, TEXTCOLOR_YELLOW, 0);
 		else if (action.activeObject() == OBJECT_MCCOY)
-			showTextbox("", _resource->getLoadedText(GROUNDTX_LOOK_MCCOY), 20, 20, TEXTCOLOR_YELLOW, 0);
+			showTextbox("", getGroundText(GROUNDTX_LOOK_MCCOY), 20, 20, TEXTCOLOR_YELLOW, 0);
 		else if (action.activeObject() == OBJECT_REDSHIRT)
-			showTextbox("", _resource->getLoadedText(GROUNDTX_LOOK_REDSHIRT), 20, 20, TEXTCOLOR_YELLOW, 0);
+			showTextbox("", getGroundText(GROUNDTX_LOOK_REDSHIRT), 20, 20, TEXTCOLOR_YELLOW, 0);
 		else
 			// Show generic "nothing of note" text.
 			// BUGFIX: originally this was shown after the redshirt's text as well.
 			// Though, the original game may not have used this default implementation
 			// anywhere...
-			showTextbox("", _resource->getLoadedText(GROUNDTX_LOOK_ANYWHERE), 20, 20, TEXTCOLOR_YELLOW, 0);
+			showTextbox("", getGroundText(GROUNDTX_LOOK_ANYWHERE), 20, 20, TEXTCOLOR_YELLOW, 0);
 		break;
 
 	case ACTION_TALK:
@@ -687,11 +696,11 @@ void StarTrekEngine::handleAwayMissionAction() {
 		case OBJECT_SPOCK:
 		case OBJECT_MCCOY:
 		case OBJECT_REDSHIRT:
-			showTextbox("", _resource->getLoadedText(GROUNDTX_TALK_TO_CREWMAN), 20, 20, TEXTCOLOR_YELLOW, 0);
+			showTextbox("", getGroundText(GROUNDTX_TALK_TO_CREWMAN), 20, 20, TEXTCOLOR_YELLOW, 0);
 			break;
 
 		default:
-			showTextbox("", _resource->getLoadedText(GROUNDTX_NO_RESPONSE), 20, 20, TEXTCOLOR_YELLOW, 0);
+			showTextbox("", getGroundText(GROUNDTX_NO_RESPONSE), 20, 20, TEXTCOLOR_YELLOW, 0);
 			break;
 		}
 		break;

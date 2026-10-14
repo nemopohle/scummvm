@@ -370,6 +370,7 @@ public:
 	// awaymission.cpp
 	void initAwayMission();
 	void runAwayMission();
+	Common::String getGroundText(int textId);
 	void cleanupAwayMission();
 	void loadRoom(const Common::String &missionName, int roomIndex);
 	void initAwayCrewPositions(int warpEntryIndex);

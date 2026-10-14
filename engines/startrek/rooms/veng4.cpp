@@ -110,7 +110,6 @@ enum veng4TextIds {
 	TX_VEN4N014, TX_VEN4N015, TX_VEN4N016, TX_VEN4N017
 };
 
-// TODO: Finish floppy offsets
 extern const RoomTextOffsets veng4TextOffsets[] = {
 	{ TX_SPEAKER_KIRK, 4347, 0, 0, 4522 },
 	{ TX_SPEAKER_MCCOY, 4358, 0, 0, 4533 },
