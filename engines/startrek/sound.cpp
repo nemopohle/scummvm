@@ -188,6 +188,24 @@ void Sound::playMidiMusicTracks(MidiTracks startTrack, MidiLoopType loopType) {
 		playMidiTrackInSlot(0, startTrack);
 }
 
+static bool hasVocRepeatBlock(Common::SeekableReadStream *stream) {
+	bool found = false;
+	stream->seek(0x14);
+	uint32 pos = stream->readUint16LE();
+	while (!found && pos + 4 <= stream->size()) {
+		stream->seek(pos);
+		byte type = stream->readByte();
+		if (type == 0)
+			break;
+		uint32 size = stream->readByte();
+		size |= stream->readUint16LE() << 8;
+		found = type == 6;
+		pos += 4 + size;
+	}
+	stream->seek(0);
+	return found;
+}
+
 /**
  * TODO: original game had some caching of loaded voc files.
  */
@@ -224,6 +242,12 @@ void Sound::playVoc(const Common::String &baseSoundName) {
 			error("Couldn't open '%s'", soundName.toString().c_str());
 
 		debugC(5, kDebugSound, "Playing sound effect '%s'", soundName.toString().c_str());
+
+		// Sounds with a repeat block loop, like the ones named "....loop"
+		if (!loop && hasVocRepeatBlock(readStream)) {
+			_loopingAudioName = baseSoundName;
+			loop = true;
+		}
 
 		Audio::RewindableAudioStream *srcStream = Audio::makeVOCStream(readStream, Audio::FLAG_UNSIGNED, DisposeAfterUse::YES);
 		Audio::AudioStream *audioStream;
