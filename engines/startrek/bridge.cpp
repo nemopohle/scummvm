@@ -672,7 +672,7 @@ void StarTrekEngine::bridgeCrewAction(int crewId) {
 		} else if (_enterpriseState.inOrbit) {
 			showTextboxBridge(kBridgeTalkerSulu, leaveOrbitText);
 		} else {
-			_currentPlanet = showStarMap();
+			_currentPlanet = chooseDestination();
 			if (_currentPlanet != _targetPlanet) {
 				wrongDestinationRandomEncounter();
 				// TODO: Redraw sprites
@@ -1430,14 +1430,25 @@ int StarTrekEngine::showStarMap() {
 	_gfx->popSprites();
 	setBridgeMouseCursor();
 
-	// TODO: Warp animation
+	playWarpSequence();
+	_gfx->loadPalette("bridge");
 	initSystemPlanet(star);
 
-	_gfx->loadPalette("bridge");
-	_gfx->setBackgroundImage("bridge");
-	_gfx->copyBackgroundScreen();
-	_gfx->forceDrawAllSprites();
+	return star;
+}
 
+int StarTrekEngine::chooseDestination() {
+	bool wasFullscreen = _viewscreenFullscreen;
+	_gfx->fadeoutScreen();
+	enterFullscreenView();
+	_mouseControllingShip = false;
+
+	int star = showStarMap();
+
+	setMouseControllingShip(true);
+	if (!wasFullscreen)
+		leaveFullscreenView();
+	_gfx->fadeoutScreen();
 	return star;
 }
 

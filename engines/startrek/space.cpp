@@ -572,6 +572,85 @@ void StarTrekEngine::rotateR3(R3 *r3, int axis, int16 angle) {
 	rotateMatrix(r3->matrix, axis, angleSin(angle), angleCos(angle));
 }
 
+// The Enterprise flies away from the camera and jumps to warp
+void StarTrekEngine::playWarpSequence() {
+	// TODO: Remove the projectiles
+	_gfx->fadeoutScreen();
+
+	_enterpriseR3.pos = Point3(0, 0, 0);
+	_enterpriseR3.matrix = initMatrix();
+	rotateR3(&_enterpriseR3, 1, 0x100);
+
+	_gfx->fillBackgroundRect(Common::Rect(SCREEN_WIDTH, SCREEN_HEIGHT), 0);
+	_gfx->copyBackgroundScreen();
+
+	const Matrix &shipMatrix = _enterpriseR3.matrix;
+	for (int i = 0; i < 3; i++) {
+		_starfieldPosition[i] = _enterpriseR3.pos[i] + fixedMult(2000, shipMatrix[2][i].raw())
+			+ fixedMult(500, shipMatrix[0][i].raw());
+	}
+	_someMatrix = shipMatrix;
+	Point3 relative = _enterpriseR3.pos - _starfieldPosition;
+
+	_sound->stopAllVocSounds();
+	_sound->playMidiMusicTracks(MIDITRACK_12);
+
+	R3 warpFlash = R3();
+	for (int frame = 0; frame < 64; frame++) {
+		// The camera turns to follow the Enterprise
+		Point3 direction = multPointMatrix(relative, _someMatrix.invert());
+		int16 angle = angleAtan2((int16)direction.x, (int16)direction.z);
+		rotateMatrix(_someMatrix, 1, angleSin(angle), angleCos(angle));
+
+		if (frame < 48)
+			rotateR3(&_enterpriseR3, 1, -1);
+
+		for (int i = 0; i < 3; i++) {
+			int16 step = fixedMult(100, _enterpriseR3.matrix[2][i].raw());
+			_enterpriseR3.pos[i] += step;
+			relative[i] += step;
+		}
+
+		if (frame == 44)
+			_sound->playSoundEffectIndex(kSfxWarp);
+		if (frame == 52)
+			delR3(&_enterpriseR3);
+
+		if (frame == 48) {
+			warpFlash.field1e = 3;
+			warpFlash.field22 = 225;
+			warpFlash.field24 = 21;
+			warpFlash.pos = _enterpriseR3.pos;
+			warpFlash.bitmap = new Bitmap(_resource->loadBitmapFile("warp00"));
+			addR3(&warpFlash);
+		} else if (frame > 48) {
+			delete warpFlash.bitmap;
+			warpFlash.pos = _enterpriseR3.pos;
+			warpFlash.bitmap = new Bitmap(_resource->loadBitmapFile(Common::String::format("warp%02d", frame - 48)));
+		}
+
+		_gfx->incPaletteFadeLevel();
+		// TODO: Enemy ships
+		updateStarfieldAndShips(false);
+		_gfx->drawAllSprites();
+		_frameIndex++;
+		waitForNextTick(false);
+	}
+
+	_gfx->fadeoutScreen();
+	_gfx->fillBackgroundRect(Common::Rect(SCREEN_WIDTH, SCREEN_HEIGHT), 0);
+	_gfx->copyBackgroundScreen();
+
+	initStarfieldPosition();
+	_enterpriseR3.pos = _starfieldPosition;
+	_enterpriseR3.matrix = _someMatrix;
+	addR3(&_enterpriseR3);
+	_enterpriseR3.field1e = 2;
+	delR3(&warpFlash);
+
+	_sound->playVoc("bridloop");
+}
+
 void StarTrekEngine::resetShipControls(R3 *r3) {
 	r3->commandedSpeed = 0;
 	r3->targetTurnRate = Point3(0, 0, 0);

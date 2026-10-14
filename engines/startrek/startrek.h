@@ -376,6 +376,7 @@ private:
 	void moveR3(R3 *r3);
 	void updateShipSpeed(R3 *r3, int32 targetSpeed);
 	void rotateR3(R3 *r3, int axis, int16 angle);
+	void playWarpSequence();
 	void resetShipControls(R3 *r3);
 	void distributeEnergy(R3 *r3);
 	void repairShipSystems(R3 *r3);
@@ -628,6 +629,7 @@ public:
 	void showBridgeMenu(Common::String menu, int x, int y);
 	void handleBridgeMenu(int menuEvent);
 	int showStarMap();
+	int chooseDestination();
 	void initSystemPlanet(int system);
 	void arrivedAtTargetPlanet();
 	void orbitPlanet();
