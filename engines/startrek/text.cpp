@@ -13,7 +13,7 @@ struct TranslatedText {
 // Texts that are stored in the game executable rather than in the data
 // files. These are the German texts of the German DOS executable, keyed
 // by the text of the English executable.
-static const TranslatedText germanTexts[] = {
+static const TranslatedText kGermanTexts[] = {
 	{ "Captain's Log",
 	  "Logbuch des Captains" },
 	{ "Autobeacon",
@@ -133,7 +133,7 @@ const char *StarTrekEngine::localizeText(const char *text) const {
 	if (getLanguage() != Common::DE_DEU)
 		return text;
 
-	for (const TranslatedText *t = germanTexts; t->english; t++) {
+	for (const TranslatedText *t = kGermanTexts; t->english; t++) {
 		if (!strcmp(t->english, text))
 			return t->translated;
 	}

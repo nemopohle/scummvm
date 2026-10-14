@@ -453,8 +453,10 @@ bool StarTrekEngine::calcShipViewTransform(R3 *r3, double scale, double forward[
 		i = 1;
 	}
 
-	int16 vi0 = v[i][0].raw(), vi1 = v[i][1].raw();
-	int16 vj0 = v[j][0].raw(), vj1 = v[j][1].raw();
+	int16 vi0 = v[i][0].raw();
+	int16 vi1 = v[i][1].raw();
+	int16 vj0 = v[j][0].raw();
+	int16 vj1 = v[j][1].raw();
 	int16 a1 = fixedMult2(vj1, m[i][0].raw(), -vi1, m[j][0].raw());
 	int16 a2 = fixedMult2(vj1, m[i][1].raw(), -vi1, m[j][1].raw());
 	int16 a3 = fixedMult2(vj1, m[i][2].raw(), -vi1, m[j][2].raw());
@@ -752,15 +754,15 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 					}
 				} else {
 					// Ordered dithering of the position in the shape
-					static const byte ditherOffsets[] = { 0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0 };
+					static const byte kDitherOffsets[] = { 0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0 };
 					int phase = (leftBound + y + ditherSeed) & 7;
-					cx += ditherOffsets[phase];
-					bx += ditherOffsets[phase];
+					cx += kDitherOffsets[phase];
+					bx += kDitherOffsets[phase];
 
 					for (int a = 0; a < rowWidth; a++) {
 						byte b = tmpBitmap.pixels[(bx & 0xff00) + (cx >> 8)];
 						int nextPhase = (phase + 1) & 7;
-						int16 offsetDiff = ditherOffsets[nextPhase] - ditherOffsets[phase];
+						int16 offsetDiff = kDitherOffsets[nextPhase] - kDitherOffsets[phase];
 						cx += xDiff + offsetDiff;
 						bx += yDiff + offsetDiff;
 						phase = nextPhase;
@@ -809,12 +811,12 @@ bool StarTrekEngine::sub_1c022(R3 *r3) {
 }
 
 // Name prefixes of the ship shapes (*.r3s), indexed by R3::field20
-static const char *const shipShapeNames[] = { "ENT", "KLING", "ORION", "ROM" };
+static const char *const kShipShapeNames[] = { "ENT", "KLING", "ORION", "ROM" };
 
 // Views of the ship shapes, indexed by azimuth (30 degree steps) and elevation
 // (from above to below). Bits 1-3 select the elevation and bits 5-7 the azimuth
 // of the shape file. Bit 15 marks views that are mirrored.
-static const uint16 shipViews[12][7] = {
+static const uint16 kShipViews[12][7] = {
 	{ 0, 0x0002, 0x0004, 0x0006, 0x0008, 0x000a, 0x000c },
 	{ 0, 0x0022, 0x0024, 0x0026, 0x0028, 0x002a, 0x000c },
 	{ 0, 0x0042, 0x0044, 0x0046, 0x0048, 0x004a, 0x000c },
@@ -865,10 +867,10 @@ void StarTrekEngine::loadShipView(R3 *r3) {
 		azimuth -= 0x400;
 	int column = (azimuth * 12) / 0x400;
 
-	uint16 view = shipViews[column][row];
+	uint16 view = kShipViews[column][row];
 
 	freeShipView(r3);
-	Common::String filename = Common::String::format("%s%02x.r3s", shipShapeNames[r3->field20], (view >> 1) & 0x77);
+	Common::String filename = Common::String::format("%s%02x.r3s", kShipShapeNames[r3->field20], (view >> 1) & 0x77);
 	debugC(6, kDebugSpace, "loadShipView: azimuth %d, elevation %d -> %s", azimuth, elevation, filename.c_str());
 	Common::MemoryReadStreamEndian *file = _resource->loadFile(filename);
 	for (int i = 0; i < 3; i++) {

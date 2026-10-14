@@ -671,7 +671,7 @@ void StarTrekEngine::bridgeCrewAction(int crewId) {
 				wrongDestinationRandomEncounter();
 				// TODO: Redraw sprites
 
-				// HACK: Random encounters end in a space battle, which isn't
+				// FIXME: Random encounters end in a space battle, which isn't
 				// implemented yet. End it right away, so that the player isn't
 				// stuck under attack.
 				_enterpriseState.underAttack = false;
@@ -1224,7 +1224,7 @@ void StarTrekEngine::handleBridgeMenu(int menuEvent) {
 // Positions of the selectable stars on the star map. The first 20 are the
 // star systems, in the order of the planet IDs (kPlanetCenturius to
 // kPlanetChristgen). The others are stars without a destination.
-static const int16 starMapPositions[][2] = {
+static const int16 kStarMapPositions[][2] = {
 	{  14,  16 }, {  28,  59 }, {  62,  32 }, { 102,  38 }, { 116,  33 },
 	{ 167,  18 }, { 245,  27 }, { 263,   8 }, { 294,  37 }, { 260,  63 },
 	{ 253, 118 }, { 230, 122 }, { 237,  93 }, { 220,  77 }, { 177,  62 },
@@ -1240,8 +1240,8 @@ static int getClosestStar(const Common::Point &pos) {
 	int closest = 0;
 	int closestDistance = 0x7fff;
 
-	for (int i = 0; i < ARRAYSIZE(starMapPositions); i++) {
-		int distance = ABS(starMapPositions[i][0] - pos.x) + ABS(starMapPositions[i][1] - pos.y);
+	for (int i = 0; i < ARRAYSIZE(kStarMapPositions); i++) {
+		int distance = ABS(kStarMapPositions[i][0] - pos.x) + ABS(kStarMapPositions[i][1] - pos.y);
 		if (distance < closestDistance) {
 			closest = i;
 			closestDistance = distance;
@@ -1260,7 +1260,7 @@ int StarTrekEngine::showStarMap() {
 	Sprite circleSprite;
 	_gfx->addSprite(&circleSprite);
 	circleSprite.setBitmap(_resource->loadBitmapFile("circle"));
-	circleSprite.setXYAndPriority(starMapPositions[star][0], starMapPositions[star][1], 14);
+	circleSprite.setXYAndPriority(kStarMapPositions[star][0], kStarMapPositions[star][1], 14);
 
 	_gfx->setBackgroundImage("starmap");
 	_gfx->copyBackgroundScreen();
@@ -1279,7 +1279,7 @@ int StarTrekEngine::showStarMap() {
 
 		case TREKEVENT_MOUSEMOVE:
 			star = getClosestStar(_gfx->getMousePos());
-			circleSprite.setXYAndPriority(starMapPositions[star][0], starMapPositions[star][1], 14);
+			circleSprite.setXYAndPriority(kStarMapPositions[star][0], kStarMapPositions[star][1], 14);
 			_gfx->drawAllSprites();
 			break;
 

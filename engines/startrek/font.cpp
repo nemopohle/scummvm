@@ -34,7 +34,7 @@ static const byte CHARACTER_SIZE = 0x40;
 // glyphs of its font. Its executable maps the Latin-1 text through this
 // table whenever a character is drawn. The English executable has no such
 // table and uses the character codes directly.
-static const byte germanCharMapping[][2] = {
+static const byte kGermanCharMapping[][2] = {
 	{ 0x89, 0x88 }, { 0x92, 0x0f }, { 0xb2, 0x0f },
 	{ 0xc0, 0x06 }, { 0xc2, 0x07 }, { 0xc4, 0x02 }, { 0xc7, 0x0e },
 	{ 0xc8, 0x08 }, { 0xc9, 0x09 }, { 0xca, 0x0a }, { 0xce, 0x0b },
@@ -60,8 +60,8 @@ Font::Font(StarTrekEngine *vm) : _vm(vm) {
 		_charMapping[i] = i;
 
 	if (_vm->getLanguage() == Common::DE_DEU) {
-		for (int i = 0; i < ARRAYSIZE(germanCharMapping); i++)
-			_charMapping[germanCharMapping[i][0]] = germanCharMapping[i][1];
+		for (int i = 0; i < ARRAYSIZE(kGermanCharMapping); i++)
+			_charMapping[kGermanCharMapping[i][0]] = kGermanCharMapping[i][1];
 	}
 }
 
