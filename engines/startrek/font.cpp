@@ -30,6 +30,22 @@ namespace StarTrek {
 static const byte CHARACTER_COUNT = 0x80;
 static const byte CHARACTER_SIZE = 0x40;
 
+// The German DOS version stores accented characters in otherwise unused
+// glyphs of its font. Its executable maps the Latin-1 text through this
+// table whenever a character is drawn. The English executable has no such
+// table and uses the character codes directly.
+static const byte germanCharMapping[][2] = {
+	{ 0x89, 0x88 }, { 0x92, 0x0f }, { 0xb2, 0x0f },
+	{ 0xc0, 0x06 }, { 0xc2, 0x07 }, { 0xc4, 0x02 }, { 0xc7, 0x0e },
+	{ 0xc8, 0x08 }, { 0xc9, 0x09 }, { 0xca, 0x0a }, { 0xce, 0x0b },
+	{ 0xd4, 0x0c }, { 0xd6, 0x03 }, { 0xd9, 0x3c }, { 0xdb, 0x3d },
+	{ 0xdc, 0x04 }, { 0xdf, 0x05 },
+	{ 0xe0, 0x06 }, { 0xe2, 0x07 }, { 0xe4, 0x02 }, { 0xe7, 0x0e },
+	{ 0xe8, 0x08 }, { 0xe9, 0x09 }, { 0xea, 0x0a }, { 0xee, 0x0b },
+	{ 0xf4, 0x0c }, { 0xf6, 0x03 }, { 0xf9, 0x3c }, { 0xfb, 0x3d },
+	{ 0xfc, 0x04 }, { 0xff, 0x05 }
+};
+
 Font::Font(StarTrekEngine *vm) : _vm(vm) {
 	Common::MemoryReadStreamEndian *fontStream = _vm->_resource->loadFile("FONT.FNT");
 
@@ -39,6 +55,14 @@ Font::Font(StarTrekEngine *vm) : _vm(vm) {
 		fontStream->read(_characters[i].data, CHARACTER_SIZE);
 
 	delete fontStream;
+
+	for (int i = 0; i < 256; i++)
+		_charMapping[i] = i;
+
+	if (_vm->getLanguage() == Common::DE_DEU) {
+		for (int i = 0; i < ARRAYSIZE(germanCharMapping); i++)
+			_charMapping[germanCharMapping[i][0]] = germanCharMapping[i][1];
+	}
 }
 
 Font::~Font() {
@@ -46,7 +70,14 @@ Font::~Font() {
 }
 
 byte *Font::getCharData(int i) {
-	return _characters[i].data;
+	byte c = _charMapping[i & 0xff];
+
+	// The font only has 128 glyphs. The original reads past the end of the
+	// font for higher character codes; draw a blank instead.
+	if (c >= CHARACTER_COUNT)
+		c = ' ';
+
+	return _characters[c].data;
 }
 
 bool Font::isDisplayableCharacter(char c) {

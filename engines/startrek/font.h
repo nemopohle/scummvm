@@ -43,6 +43,8 @@ private:
 		byte data[0x40];
 	} *_characters;
 
+	byte _charMapping[256];
+
 	static const byte _fontProperties[256];
 };
 
