@@ -63,7 +63,8 @@ void StarTrekEngine::initBridge(bool b) {
 }
 
 void StarTrekEngine::loadBridge() {
-	initStarfield(72, 30, 247, 102, 0x200 / _viewscreenZoom);
+	_viewscreenFullscreen = false;
+	initViewscreenStarfield();
 
 	_gfx->setBackgroundImage("bridge");
 	_gfx->loadPri("bridge");
@@ -1078,7 +1079,12 @@ void StarTrekEngine::handleBridgeEvents() {
 				// TODO
 				break;
 			case Common::KEYCODE_v:	// Toggle between the normal bridge view and full screen view
-				// TODO
+				if (_viewscreenFullscreen) {
+					leaveFullscreenView();
+				} else {
+					enterFullscreenView();
+					setMouseControllingShip(true);
+				}
 				break;
 			case Common::KEYCODE_TAB:	// Toggle between movement/fire mode and crew selection mode
 				setMouseControllingShip(!_mouseControllingShip);
@@ -1180,10 +1186,49 @@ void StarTrekEngine::updateBridgeSpace() {
 }
 
 void StarTrekEngine::setMouseControllingShip(bool enable) {
+	if (_mouseControllingShip || _viewscreenFullscreen)
+		_restoreFullscreenView = _viewscreenFullscreen;
 	_mouseControllingShip = enable;
 	setBridgeMouseCursor();
-	// TODO: Switch between the normal and the full screen view
+
+	// The full screen view is only available while steering
+	if (enable && _restoreFullscreenView)
+		enterFullscreenView();
+	else
+		leaveFullscreenView();
+
 	_gfx->warpMouse(160, enable ? _starfieldYVar1 : 166);
+}
+
+void StarTrekEngine::enterFullscreenView() {
+	if (_viewscreenFullscreen)
+		return;
+
+	_viewscreenZoom = 4;
+	removeDrawnActorsFromScreen();
+	if (_gfx->hasSprite(&_starfieldSprite))
+		_gfx->delSprite(&_starfieldSprite);
+	_gfx->fillBackgroundRect(Common::Rect(SCREEN_WIDTH, SCREEN_HEIGHT), 0);
+	_gfx->clearScreenAndPriBuffer();
+
+	_viewscreenFullscreen = true;
+	initViewscreenStarfield();
+	initStarfieldSprite(&_starfieldSprite, new StubBitmap(0, 0), _starfieldRect);
+}
+
+void StarTrekEngine::leaveFullscreenView() {
+	if (!_viewscreenFullscreen)
+		return;
+
+	_viewscreenZoom = 6;
+	loadBridge();
+}
+
+void StarTrekEngine::initViewscreenStarfield() {
+	if (_viewscreenFullscreen)
+		initStarfield(2, 2, 319, 199, 0x200 / _viewscreenZoom);
+	else
+		initStarfield(72, 30, 247, 102, 0x200 / _viewscreenZoom);
 }
 
 void StarTrekEngine::restrictBridgeMouse() {
@@ -1207,8 +1252,7 @@ void StarTrekEngine::setViewscreenZoom(int16 zoom) {
 
 	_viewscreenZoom = zoom;
 	showTextboxBridge(kBridgeTalkerSulu, Common::String::format(localizeText("Magnification %d"), zoom - 3));
-	// TODO: Full screen view
-	initStarfield(72, 30, 247, 102, 0x200 / _viewscreenZoom);
+	initViewscreenStarfield();
 }
 
 void StarTrekEngine::handleBridgeMenu(int menuEvent) {

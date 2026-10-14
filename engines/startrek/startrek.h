@@ -259,6 +259,9 @@ public:
 	void setMouseControllingShip(bool enable);
 	void restrictBridgeMouse();
 	void setViewscreenZoom(int16 zoom);
+	void enterFullscreenView();
+	void leaveFullscreenView();
+	void initViewscreenStarfield();
 	void handleBridgeComputer();
 	void showMissionPerformance(int score, int missionScoreTextId, int missionId);
 
@@ -822,6 +825,9 @@ public:
 	int16 _viewDirection;
 	// 4 to 8, shown as magnification 1 to 5
 	int16 _viewscreenZoom;
+	bool _viewscreenFullscreen;
+	// Restored when switching back to steering
+	bool _restoreFullscreenView;
 
 	Graphics *_gfx;
 	Sound *_sound;

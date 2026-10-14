@@ -96,6 +96,8 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_shipDitheringEnabled = true;
 	_viewDirection = 0;
 	_viewscreenZoom = 6;
+	_viewscreenFullscreen = false;
+	_restoreFullscreenView = false;
 	_heldKey = Common::KEYCODE_INVALID;
 	Common::fill(_r3List, _r3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);
 	Common::fill(_orderedR3List, _orderedR3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);
