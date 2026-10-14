@@ -167,10 +167,10 @@ void StarTrekEngine::bridgeCrewAction(int crewId) {
 	const char *leaveOrbitText = "#BRID\\B_349#We must first leave orbit, Sir.";
 	const char *nothingToReportText = "#BRID\\B_155#Nothing to report, Captain.";
 	const char *hailingFrequenciesOpenText = "#BRID\\BRIDU016#Hailing frequencies open.";
-	const char *shieldsUpText = "#BRID\\B_332#Captain, the shields are up.";
-	const char *notInOrbitText = "#BRID\\B_350#We're not in orbit, Captain.";
+	const char *shieldsUpText = isFloppyVersion() ? "Captain, the shield's are up." : "#BRID\\B_332#Captain, the shields are up.";
+	const char *notInOrbitText = isFloppyVersion() ? "We're not in orbit Captain." : "#BRID\\B_350#We're not in orbit, Captain.";
 	const char *wrongDestinationText = "#BRID\\B_346#This isn't our destination.";
-	const char *transporterText = "#BRID\\C_060#Spock, come with me. Mr Scott, you have the conn.";
+	const char *transporterText = isFloppyVersion() ? "Spock, come with me. Mr Scott, you have the con." : "#BRID\\C_060#Spock, come with me. Mr Scott, you have the conn.";
 	const char *transporterTextFeather = "#BRID\\C_006#Assemble a landing party. Unless we find this so-called criminal, we're going to war.";
 
 	switch (crewId) {
@@ -734,11 +734,11 @@ void StarTrekEngine::handleBridgeMenu(int menuEvent) {
 
 void StarTrekEngine::dispatchBridgeMenu(int menuEvent) {
 	const char *raiseShieldsText = "#BRID\\B_340#Raising shields.";
-	const char *lowerShieldsText = "#BRID\\B_337#Lowering shields, Captain.";
+	const char *lowerShieldsText = isFloppyVersion() ? "Lowering shields." : "#BRID\\B_337#Lowering shields, Captain.";
 	const char *armWeaponsText = "#BRID\\B_351#Arming weapons.";
 	const char *disarmWeaponsText = "#BRID\\B_354#Disarming weapons.";
-	const char *emergencyPowerText = "#BRID\\BRID_S32#I don't know how long she can take it, Captain.";
-	const char *noEmergencyPowerText = "#BRID\\BRID_S41#She can't take it, Captain.";
+	const char *emergencyPowerText = isFloppyVersion() ? "I don't know how long she can take it Captain." : "#BRID\\BRID_S32#I don't know how long she can take it, Captain.";
+	const char *noEmergencyPowerText = isFloppyVersion() ? "She can't take it Captain." : "#BRID\\BRID_S41#She can't take it, Captain.";
 	const char *targetAnalysisOnText = "#BRID\\B_344#Target Analysis On.";
 	const char *targetAnalysisOffText = "#BRID\\B_343#Target Analysis Off.";
 	const char *ayeSirText = "#BRID\\BRID_S22#Aye Sir.";
