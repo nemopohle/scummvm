@@ -24,19 +24,6 @@
 
 namespace StarTrek {
 
-// 2.14 fixed-point multiplications, with the products summed before shifting
-static int16 fixedMult(int16 a, int16 b) {
-	return (int16)(((int32)a * b) >> 14);
-}
-
-static int16 fixedMult2(int16 a, int16 b, int16 c, int16 d) {
-	return (int16)(((int32)a * b + (int32)c * d) >> 14);
-}
-
-static int16 fixedDiv(int16 a, int16 b) {
-	return (int16)(((int32)a << 14) / b);
-}
-
 // Multiplies a row vector with a matrix
 static Point3 multPointMatrix(const Point3 &p, const Matrix &m) {
 	Point3 result;
@@ -915,17 +902,14 @@ Matrix StarTrekEngine::initMatrix() {
 	return mat;
 }
 
-Matrix StarTrekEngine::initSpeedMatrixForXZMovement(Angle angle, const Matrix &matrix) {
-	Fixed14 sinVal = sin(angle.toDouble());
-	Fixed14 cosVal = cos(angle.toDouble());
+Matrix StarTrekEngine::initSpeedMatrixForXZMovement(int16 angle, const Matrix &matrix) {
+	Matrix rotation = initMatrix();
+	rotation[0].x = Fixed14::fromRaw(angleCos(angle));
+	rotation[0].z = Fixed14::fromRaw(-angleSin(angle));
+	rotation[2].x = Fixed14::fromRaw(angleSin(angle));
+	rotation[2].z = Fixed14::fromRaw(angleCos(angle));
 
-	Matrix matrix1 = initMatrix();
-	matrix1[0].x = cosVal;
-	matrix1[0].z = -sinVal;
-	matrix1[2].x = sinVal;
-	matrix1[2].z = cosVal;
-
-	return matrix * matrix1;
+	return multMatrix(matrix, rotation);
 }
 
 } // End of namespace StarTrek

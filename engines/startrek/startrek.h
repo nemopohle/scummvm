@@ -36,9 +36,6 @@
 
 #include "engines/engine.h"
 
-#include "math/cosinetables.h"
-#include "math/sinetables.h"
-
 #include "startrek/action.h"
 #include "startrek/awaymission.h"
 #include "startrek/graphics.h"
@@ -383,7 +380,7 @@ private:
 	 * Creates an identity matrix
 	 */
 	Matrix initMatrix();
-	Matrix initSpeedMatrixForXZMovement(Angle angle, const Matrix &matrix);
+	Matrix initSpeedMatrixForXZMovement(int16 angle, const Matrix &matrix);
 
 
 	// actors.cpp (handles actors and animations)
@@ -823,8 +820,6 @@ private:
 	void bridgeLeftClick();
 
 	Common::RandomSource _randomSource;
-	Math::SineTable _sineTable;
-	Math::CosineTable _cosineTable;
 	Room *_room;
 	Common::List<ComputerTopic> _computerTopics;
 };

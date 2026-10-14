@@ -52,9 +52,7 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_kirkActor(&_actorList[0]),
 	_spockActor(&_actorList[1]),
 	_mccoyActor(&_actorList[2]),
-	_redshirtActor(&_actorList[3]),
-	_sineTable(1024),
-	_cosineTable(1024) {
+	_redshirtActor(&_actorList[3]) {
 
 	if (getPlatform() == Common::kPlatformAmiga)
 		error("Amiga versions of Star Trek: 25th Anniversary are not yet supported");

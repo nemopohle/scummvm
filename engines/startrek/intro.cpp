@@ -301,6 +301,10 @@ void StarTrekEngine::playIntro() {
 		}
 
 		_starfieldPosition.z += starfieldZoomSpeed;
+		_enterpriseR3.pos.x += _enterpriseR3.speed.x;
+		_enterpriseR3.pos.z += _enterpriseR3.speed.z + starfieldZoomSpeed;
+		planetR3.pos.x += planetR3.speed.x;
+		planetR3.pos.z += planetR3.speed.z + starfieldZoomSpeed;
 
 		frame++;
 		if (frame >= 0x186)
@@ -329,31 +333,26 @@ void StarTrekEngine::showCreditsScreen(R3 *creditsBuffer, int index, bool delete
 }
 
 void StarTrekEngine::initIntroR3ObjectToMove(R3 *r3, int16 srcAngle, int16 srcDepth, int16 destAngle, int16 destDepth, int16 ticks) {
-	int32 srcAngleX = (int32)floor((double)_sineTable.at(srcAngle / 90) * srcDepth);
-	int32 srcAngleZ = (int32)floor((double)_cosineTable.at(srcAngle / 90) * srcDepth);
-	r3->pos = Point3(srcAngleX + _starfieldPosition.x, 0, srcAngleZ + _starfieldPosition.z);
+	// Angles are given in degrees
+	srcAngle = ((int32)srcAngle << 9) / 180;
+	destAngle = ((int32)destAngle << 9) / 180;
 
-	int32 destAngleX = (int32)floor((double)_sineTable.at(destAngle / 90) * destDepth);
-	int32 destAngleZ = (int32)floor((double)_cosineTable.at(destAngle / 90) * destDepth);
-	int32 deltaX = destAngleX + _starfieldPosition.x - r3->pos.x;
-	int32 deltaZ = destAngleZ + _starfieldPosition.z - r3->pos.z;
-	Angle angle = atan2(deltaX, deltaZ);
+	r3->pos.x = fixedMult(srcDepth, angleSin(srcAngle)) + _starfieldPosition.x;
+	r3->pos.y = 0;
+	r3->pos.z = fixedMult(srcDepth, angleCos(srcAngle)) + _starfieldPosition.z;
 
-	r3->matrix = initSpeedMatrixForXZMovement(angle, initMatrix());
-
-	debugCN(5, kDebugSpace, "initIntroR3ObjectToMove: pos %x,%x,%x; ", r3->pos.x, r3->pos.y, r3->pos.z);
+	int32 deltaX = fixedMult(destDepth, angleSin(destAngle)) + _starfieldPosition.x - r3->pos.x;
+	int32 deltaZ = fixedMult(destDepth, angleCos(destAngle)) + _starfieldPosition.z - r3->pos.z;
+	r3->matrix = initSpeedMatrixForXZMovement(angleAtan2(deltaX, deltaZ), initMatrix());
 
 	if (ticks != 0) {
-		debugC(5, kDebugSpace, "speed %x,%x,%x\n", r3->speed.x, r3->speed.y, r3->speed.z);
 		r3->speed.x = deltaX / ticks;
 		r3->speed.z = deltaZ / ticks;
-		r3->speed.y = 0;
 	} else {
-		debugC(5, kDebugSpace, "speed 0\n");
 		r3->speed.x = 0;
 		r3->speed.z = 0;
-		r3->speed.y = 0;
 	}
+	r3->speed.y = 0;
 }
 
 void StarTrekEngine::loadSubtitleSprite(int index, Sprite *sprite) {

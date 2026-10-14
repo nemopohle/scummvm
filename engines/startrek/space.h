@@ -175,6 +175,19 @@ struct R3 {
 	double field98; // 0x98
 };
 
+// 2.14 fixed-point multiplications, with the products summed before shifting
+inline int16 fixedMult(int16 a, int16 b) {
+	return (int16)(((int32)a * b) >> 14);
+}
+
+inline int16 fixedMult2(int16 a, int16 b, int16 c, int16 d) {
+	return (int16)(((int32)a * b + (int32)c * d) >> 14);
+}
+
+inline int16 fixedDiv(int16 a, int16 b) {
+	return (int16)(((int32)a << 14) / b);
+}
+
 // Maximum number of stars visible at once in the starfields
 #define NUM_STARS 16
 
