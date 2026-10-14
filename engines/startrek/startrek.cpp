@@ -95,6 +95,7 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_iwFile = nullptr;
 
 	_showSubtitles = true;
+	_shipDitheringEnabled = true;
 	Common::fill(_r3List, _r3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);
 	Common::fill(_orderedR3List, _orderedR3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);
 
@@ -150,6 +151,11 @@ Common::Error StarTrekEngine::run() {
 
 	initGraphics(SCREEN_WIDTH, SCREEN_HEIGHT);
 	initializeEventsAndMouse();
+	initTrigTables();
+
+	_enterpriseR3 = R3();
+	_enterpriseR3.matrix = initMatrix();
+	loadShipDescriptor(&_enterpriseR3, "enterpri");
 
 	if (!isDemo)
 		loadBridgeComputerTopics();

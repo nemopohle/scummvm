@@ -61,8 +61,8 @@ void StarTrekEngine::initBridge(bool b) {
 }
 
 void StarTrekEngine::loadBridge() {
-	// TODO: Check why the +1 is needed here
-	initStarfield(72 + 1, 30, 247 + 1, 102, 0);
+	// TODO: The view angle depends on the magnification of the main viewscreen
+	initStarfield(72, 30, 247, 102, 0x200 / 6);
 
 	_gfx->setBackgroundImage("bridge");
 	_gfx->loadPri("bridge");

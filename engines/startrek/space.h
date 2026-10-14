@@ -164,8 +164,11 @@ struct R3 {
 	int32 field54; // 0x54 (used for sorting by draw priority?)
 	int16 field58; // 0x58
 	int16 field5a; // 0x5a
+	int16 shipViewCode = 0; // 0x66: view of the ship shape in use, see loadShipView()
 	Bitmap *bitmap; // 0x68 (was: shpFile)
 	// 0x6a (was: bitmapOffset)
+	Matrix shipViewMatrix; // 0x6c: orientation the ship view was rendered with
+	bool shipViewMirrored = false; // 0x7e
 	double field80; // 0x80
 	double field88; // 0x88
 	double field90; // 0x90

@@ -352,7 +352,7 @@ private:
 
 	// space.cpp (pseudo-3d)
 	void initStarfieldPosition();
-	void initStarfield(int16 x, int16 y, int16 width, int16 height, int16 arg8);
+	void initStarfield(int16 left, int16 top, int16 right, int16 bottom, int16 viewAngle);
 	void addR3(R3 *r3);
 	void delR3(R3 *r3);
 	void clearStarfieldPixels();
@@ -361,6 +361,18 @@ private:
 	R3 *sub_19f24(R3 *r3);
 	void drawR3Shape(R3 *r3);
 	bool sub_1c022(R3 *r3);
+	void loadShipDescriptor(R3 *r3, const Common::String &name);
+	void loadShipView(R3 *r3);
+	bool calcShipViewTransform(R3 *r3, double scale, double forward[4], double inverse[4]);
+	void freeShipView(R3 *r3);
+
+	// Trigonometry with angles in 1/1024 of a full circle and 2.14 fixed-point values
+	void initTrigTables();
+	int16 angleSin(int16 angle);
+	int16 angleCos(int16 angle);
+	int16 angleAtan2(int16 x, int16 z);
+	int16 angleAcos(int16 value);
+	int16 angleAsin(int16 value);
 
 	Point3 constructPoint3ForStarfield(int16 x, int16 y, int16 z);
 	Point3 matrixMult(const Matrix &weight, const Point3 &point);
@@ -796,6 +808,11 @@ public:
 	Matrix _starPositionMatrix;
 	Matrix _someMatrix;
 	float _flt_50898;
+	int16 _sinTable[257];
+	int16 _cosTable[257];
+	int16 _tanTable[129];
+	// Allows ships to be drawn with dithering when they are close. Disabled during the intro.
+	bool _shipDitheringEnabled;
 
 	Graphics *_gfx;
 	Sound *_sound;

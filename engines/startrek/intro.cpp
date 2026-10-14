@@ -28,6 +28,7 @@ void StarTrekEngine::playIntro() {
 	// TODO: .MT audio file
 
 	_frameIndex = 0;
+	_shipDitheringEnabled = false;
 
 	initStarfieldPosition();
 	initStarfield(10, 20, 309, 169, 128);
@@ -308,6 +309,7 @@ void StarTrekEngine::playIntro() {
 
 	_gfx->fadeoutScreen();
 	_gfx->delSprite(&_starfieldSprite);
+	_shipDitheringEnabled = true;
 	// TODO: the rest
 }
 
