@@ -70,15 +70,6 @@ void StarTrekEngine::loadBridge() {
 	loadBridgeActors();
 	initStarfieldSprite(&_starfieldSprite, new StubBitmap(0, 0), _starfieldRect);
 	initBridgeDisplays();
-
-	//sub_1312C();	// TODO
-
-	// TODO
-	//initStarfieldSprite();
-	//initStarfieldSprite();
-	//initStarfieldSprite();
-	//initStarfieldSprite();
-	//initStarfieldSprite();
 }
 
 void StarTrekEngine::loadBridgeActors() {
@@ -88,7 +79,6 @@ void StarTrekEngine::loadBridgeActors() {
 	}
 }
 
-// TODO: 2 params, change Enterprise state
 void StarTrekEngine::setBridgeMouseCursor() {
 	if (!_mouseControllingShip)
 		_gfx->setMouseBitmap("pushbtn");
@@ -418,16 +408,14 @@ void StarTrekEngine::bridgeLeftClick() {
 }
 
 void StarTrekEngine::cleanupBridge() {
-	if (_gfx->hasSprite(&_starfieldSprite))
-		_gfx->delSprite(&_starfieldSprite);
-	removeBridgeDisplays();
-	// TODO
-	// if (!v_starfieldInitialized)
-	// sub_12691()
-	// else
-	// clearScreenAndDelSeveralSprites()
-	// v_mouseControllingShip = 0
-	// v_keyboardControlsMouse = 1
+	if (_viewscreenFullscreen) {
+		if (_gfx->hasSprite(&_starfieldSprite))
+			_gfx->delSprite(&_starfieldSprite);
+	} else {
+		clearBridgeScreen();
+	}
+	_mouseControllingShip = false;
+	_keyboardControlsMouse = true;
 }
 
 void StarTrekEngine::runBridge() {
@@ -671,16 +659,20 @@ void StarTrekEngine::enterFullscreenView() {
 		return;
 
 	_viewscreenZoom = 4;
+	clearBridgeScreen();
+
+	_viewscreenFullscreen = true;
+	initViewscreenStarfield();
+	initStarfieldSprite(&_starfieldSprite, new StubBitmap(0, 0), _starfieldRect);
+}
+
+void StarTrekEngine::clearBridgeScreen() {
 	removeDrawnActorsFromScreen();
 	removeBridgeDisplays();
 	if (_gfx->hasSprite(&_starfieldSprite))
 		_gfx->delSprite(&_starfieldSprite);
 	_gfx->fillBackgroundRect(Common::Rect(SCREEN_WIDTH, SCREEN_HEIGHT), 0);
 	_gfx->clearScreenAndPriBuffer();
-
-	_viewscreenFullscreen = true;
-	initViewscreenStarfield();
-	initStarfieldSprite(&_starfieldSprite, new StubBitmap(0, 0), _starfieldRect);
 }
 
 void StarTrekEngine::leaveFullscreenView() {

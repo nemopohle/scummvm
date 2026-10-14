@@ -41,7 +41,7 @@ enum SoundEffects {
 	kSfxPhaser2 = 36,
 	kSfxPhotonTorpedoes = 37,
 	kSfxShieldHit = 38,
-	kSfxUnk = 39,
+	kSfxBridgeMenu = 39,
 	kSfxRedAlert = 40,
 	kSfxWarp = 41
 };
@@ -89,7 +89,7 @@ enum MidiTracks {
 	MIDITRACK_SFX_PHASER2,
 	MIDITRACK_SFX_PHOTON_TORPEDOES,
 	MIDITRACK_SFX_SHIELD_HIT,
-	MIDITRACK_SFX_UNK,
+	MIDITRACK_SFX_BRIDGE_MENU,
 	MIDITRACK_SFX_RED_ALERT,
 	MIDITRACK_SFX_WARP
 };

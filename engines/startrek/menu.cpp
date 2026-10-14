@@ -256,6 +256,8 @@ void StarTrekEngine::showOptionsMenu(int x, int y) {
 void StarTrekEngine::showBridgeMenu(Common::String menu, int x, int y) {
 	bool tmpMouseControllingShip = _mouseControllingShip;
 	_mouseControllingShip = false;
+	_gfx->setMouseBitmap("pushbtn");
+	_sound->playSoundEffectIndex(kSfxBridgeMenu);
 
 	Common::Point oldMousePos = _gfx->getMousePos();
 	loadMenuButtons(menu, x, y);
@@ -265,6 +267,7 @@ void StarTrekEngine::showBridgeMenu(Common::String menu, int x, int y) {
 
 	unloadMenuButtons();
 	_mouseControllingShip = tmpMouseControllingShip;
+	_gfx->popMouseBitmap();
 
 	if (event != MENUEVENT_LCLICK_OFFBUTTON && event != MENUEVENT_RCLICK_OFFBUTTON)
 		_gfx->warpMouse(oldMousePos.x, oldMousePos.y);

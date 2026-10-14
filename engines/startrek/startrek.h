@@ -282,6 +282,7 @@ public:
 	void restrictBridgeMouse();
 	void setViewscreenZoom(int16 zoom);
 	void enterFullscreenView();
+	void clearBridgeScreen();
 	void leaveFullscreenView();
 	void initViewscreenStarfield();
 	void handleBridgeComputer();

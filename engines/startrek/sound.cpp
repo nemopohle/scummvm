@@ -320,7 +320,7 @@ void Sound::playSoundEffectIndex(SoundEffects index) {
 			{ kSfxPhaser2, (MidiTracks)5 },
 			{ kSfxPhotonTorpedoes, (MidiTracks)6 },
 			{ kSfxShieldHit, (MidiTracks)7 },
-			{ kSfxUnk, (MidiTracks)8 },
+			{ kSfxBridgeMenu, (MidiTracks)8 },
 			{ kSfxRedAlert, (MidiTracks)9 },
 			{ kSfxWarp, (MidiTracks)10 }
 		};
@@ -354,7 +354,7 @@ void Sound::playSoundEffectIndex(SoundEffects index) {
 			playVoc("TRANSENE");
 			break;
 		case kSfxSelection:
-			playMidiTrack(MIDITRACK_SFX_BUTTON);
+			playMidiTrack(MIDITRACK_SFX_SELECTION);
 			break;
 		case kSfxHailing:
 			playVoc("HAILING");
@@ -368,8 +368,8 @@ void Sound::playSoundEffectIndex(SoundEffects index) {
 		case kSfxShieldHit:
 			playVoc("HITSHIEL");
 			break;
-		case kSfxUnk:
-			playMidiTrack(MIDITRACK_SFX_UNK);
+		case kSfxBridgeMenu:
+			playMidiTrack(MIDITRACK_SFX_BRIDGE_MENU);
 			break;
 		case kSfxRedAlert:
 			playVoc("REDALERT");
