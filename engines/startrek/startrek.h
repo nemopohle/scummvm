@@ -369,8 +369,14 @@ private:
 	void loadShipView(R3 *r3);
 	bool calcShipViewTransform(R3 *r3, double scale, double forward[4], double inverse[4]);
 	void freeShipView(R3 *r3);
+	void generatePlanetTexture(uint16 seed, int16 colors);
+	void initPlanet(R3 *r3, const Common::String &name, uint16 seed, int16 colors);
+	void loadPlanetView(R3 *r3);
+	void freePlanetView(R3 *r3);
 	void moveR3(R3 *r3);
 	void updateShipSpeed(R3 *r3, int32 targetSpeed);
+	void rotateR3(R3 *r3, int axis, int16 angle);
+	void resetShipControls(R3 *r3);
 	void distributeEnergy(R3 *r3);
 	void repairShipSystems(R3 *r3);
 	void normalizeShipMatrices();
@@ -622,6 +628,7 @@ public:
 	void showBridgeMenu(Common::String menu, int x, int y);
 	void handleBridgeMenu(int menuEvent);
 	int showStarMap();
+	void initSystemPlanet(int system);
 	void arrivedAtTargetPlanet();
 	void orbitPlanet();
 	void captainsLog();
@@ -807,6 +814,10 @@ public:
 	int16 _starfieldXVar2, _starfieldYVar2;
 	Common::Rect _starfieldRect;
 	R3 _enterpriseR3;
+	R3 _planetR3;
+	byte *_planetSphereMap;
+	byte _planetTexture[PLANET_TEXTURE_SIZE * PLANET_TEXTURE_SIZE];
+	Common::String _planetTextureName;
 	R3 *_r3List[NUM_SPACE_OBJECTS];
 	R3 *_orderedR3List[NUM_SPACE_OBJECTS];
 	Matrix _starPositionMatrix;

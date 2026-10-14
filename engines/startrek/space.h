@@ -22,6 +22,8 @@
 #ifndef STARTREK_SPACE_H
 #define STARTREK_SPACE_H
 
+#include "common/str.h"
+
 #include "fixedint.h"
 
 namespace StarTrek {
@@ -193,6 +195,11 @@ struct R3 {
 	Point3 turnAngle; // 0x134
 	int16 field140; // 0x140
 	int16 energy; // 0x142
+	// Planets use the offsets of the ship systems
+	int16 planetSize; // 0xa0
+	Common::String planetName; // 0xa4
+	uint16 planetSeed; // 0xb0
+	int16 planetColors; // 0xb2
 };
 
 // 2.14 fixed-point multiplications, with the products summed before shifting
@@ -207,6 +214,8 @@ inline int16 fixedMult2(int16 a, int16 b, int16 c, int16 d) {
 inline int16 fixedDiv(int16 a, int16 b) {
 	return (int16)(((int32)a << 14) / b);
 }
+
+#define PLANET_TEXTURE_SIZE 128
 
 // Maximum number of stars visible at once in the starfields
 #define NUM_STARS 16

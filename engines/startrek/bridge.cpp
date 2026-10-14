@@ -1176,7 +1176,7 @@ void StarTrekEngine::updateBridgeSpace() {
 	// TODO: Enemy ships and projectiles
 	if ((_frameIndex & 0x3f) == 0)
 		normalizeShipMatrices();
-	// TODO: Rotate the planet
+	rotateR3(&_planetR3, 1, 4);
 	updateCamera();
 
 	// The viewscreen shows static depending on the damage of this system
@@ -1430,7 +1430,8 @@ int StarTrekEngine::showStarMap() {
 	_gfx->popSprites();
 	setBridgeMouseCursor();
 
-	// TODO: Warp animation, and the planet of the selected system on the viewscreen
+	// TODO: Warp animation
+	initSystemPlanet(star);
 
 	_gfx->loadPalette("bridge");
 	_gfx->setBackgroundImage("bridge");

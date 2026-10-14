@@ -48,7 +48,7 @@ static Matrix multMatrix(const Matrix &a, const Matrix &b) {
 // Matrix rows and columns changed by rotations around the X, Y and Z axis
 static const int kRotationAxes[3][2] = { { 1, 2 }, { 2, 0 }, { 0, 1 } };
 
-static void rotateMatrix(Matrix &matrix, int axis, int16 sinValue, int16 cosValue) {
+static Matrix axisRotation(int axis, int16 sinValue, int16 cosValue) {
 	int a = kRotationAxes[axis][0];
 	int b = kRotationAxes[axis][1];
 
@@ -59,7 +59,11 @@ static void rotateMatrix(Matrix &matrix, int axis, int16 sinValue, int16 cosValu
 	rotation[a][b] = Fixed14::fromRaw(sinValue);
 	rotation[b][a] = Fixed14::fromRaw(-sinValue);
 	rotation[b][b] = Fixed14::fromRaw(cosValue);
-	matrix = multMatrix(rotation, matrix);
+	return rotation;
+}
+
+static void rotateMatrix(Matrix &matrix, int axis, int16 sinValue, int16 cosValue) {
+	matrix = multMatrix(axisRotation(axis, sinValue, cosValue), matrix);
 }
 
 static Point_Fixed14 crossProduct(const Point_Fixed14 &a, const Point_Fixed14 &b) {
@@ -267,6 +271,235 @@ void StarTrekEngine::loadShipDescriptor(R3 *r3, const Common::String &name) {
 	delete file;
 }
 
+// Indices into the 25 heights of a planet, for each color scheme
+static const byte kPlanetColors[][25] = {
+	{ 0x73, 0x6e, 0x69, 0x64, 0xa2, 0xa3, 0xa4, 0xa5, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f, 0xcb, 0xca, 0xc9, 0xc8, 0xc7, 0xc6, 0xc5, 0xc4, 0xc3 },
+	{ 0x63, 0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xc8, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0xa7, 0x9d, 0x9e, 0xaf, 0xae, 0xad },
+	{ 0x8c, 0x8b, 0x8a, 0x89, 0x88, 0x87, 0x86, 0x85, 0x84, 0x83, 0x82, 0x81, 0x80, 0x7f, 0x80, 0x81, 0x82, 0x1d, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae },
+	{ 0x78, 0xd8, 0xd9, 0xda, 0xdb, 0xb0, 0xb1, 0xb2, 0xb3, 0xb4, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9c, 0x9d, 0x9e, 0x9f, 0x22, 0xa9, 0xab, 0xac, 0xad },
+	{ 0x8b, 0x89, 0x87, 0x86, 0x85, 0x84, 0x83, 0x07, 0x23, 0x0a, 0x0b, 0x28, 0x2e, 0x5f, 0x5a, 0xb0, 0xb1, 0x55, 0xb4, 0x38, 0x25, 0x22, 0xa9, 0xab, 0xac },
+	{ 0x8a, 0x88, 0x86, 0x4a, 0x48, 0x49, 0x46, 0x45, 0x41, 0x3f, 0x05, 0x24, 0x0b, 0x28, 0x2e, 0x5f, 0x5a, 0x42, 0xc6, 0x25, 0x22, 0xa9, 0xab, 0xac, 0xad },
+	{ 0x8c, 0x8b, 0x8a, 0x89, 0x88, 0x87, 0x86, 0x85, 0x84, 0x83, 0x82, 0x81, 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x88, 0x89, 0x8a, 0x8b },
+	{ 0xa5, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f, 0xbf, 0xbe, 0xbd, 0xbc, 0xbb, 0xba, 0xb9, 0xb8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf, 0xaf },
+	{ 0xa4, 0xa3, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa6, 0xa5, 0xa4, 0xa3, 0xa2, 0xa3, 0xa4, 0xa3, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa6, 0xa5, 0xa4 },
+	{ 0x89, 0x8a, 0x8b, 0x8c, 0x63, 0x31, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0xbf, 0xbe, 0xbd, 0xbc, 0xbb, 0xba, 0xb9, 0xb8, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xae },
+	{ 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f, 0x9e, 0x9d, 0x9c, 0x9b, 0x9a, 0x99, 0x98, 0x97, 0x96 },
+	{ 0xaf, 0x01, 0x01, 0x80, 0x80, 0x01, 0x01, 0xa7, 0x01, 0x01, 0x80, 0x80, 0x01, 0x01, 0xaf, 0x01, 0x01, 0x80, 0x80, 0x01, 0x01, 0xb7, 0x01, 0x01, 0x80 },
+	{ 0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf, 0xce, 0xcd, 0xcc, 0xcb, 0xca, 0xc9, 0xc8, 0xc7, 0xc6 },
+	{ 0xac, 0xab, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf, 0xae, 0xad, 0xac, 0xab, 0xaa, 0xab, 0xac, 0xab, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf, 0xae, 0xad, 0xac },
+	{ 0xb4, 0xb3, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb6, 0xb5, 0xb4, 0xb3, 0xb2, 0xb3, 0xb4, 0xb3, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb6, 0xb5, 0xb4 },
+	{ 0x79, 0x78, 0xd8, 0xd9, 0xda, 0xdb, 0xb0, 0xdb, 0xda, 0xd9, 0xd8, 0x78, 0x79, 0x78, 0xd8, 0xd9, 0xda, 0xdb, 0xb0, 0xdb, 0xda, 0xd9, 0xd8, 0x78, 0x79 },
+	{ 0x8c, 0x8c, 0x8c, 0x8c, 0x63, 0x63, 0x63, 0x31, 0x31, 0x63, 0x63, 0x63, 0x8c, 0x8c, 0x8c, 0x8c, 0x63, 0x63, 0x63, 0x31, 0x31, 0x63, 0x63, 0x63, 0x8c },
+	{ 0x6e, 0x69, 0x69, 0xa1, 0xa1, 0xa1, 0xa2, 0xa1, 0xa1, 0xa1, 0x69, 0x69, 0x6e, 0x69, 0x69, 0xa1, 0xa1, 0xa1, 0xa2, 0xa1, 0xa1, 0xa1, 0x69, 0x69, 0x6e },
+	{ 0xbc, 0xbb, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf, 0xbe, 0xbd, 0xbc, 0xbb, 0xba, 0xbb, 0xbc, 0xbb, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf, 0xbe, 0xbd, 0xbc },
+	{ 0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd0 },
+	{ 0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe0 },
+	{ 0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef, 0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef, 0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef, 0xe8 }
+};
+
+// Name, random seed and color scheme of the planet of each star system
+static const struct {
+	const char *name;
+	uint16 seed;
+	int16 colors;
+} kSystemPlanets[] = {
+	{ "cent",    0x1c5,  6 }, { "cam",    0x125, 10 }, { "ark7",   0x205, 11 },
+	{ "harl",    0x13e, 12 }, { "harrapa", 0x39c, 18 }, { "elasi",  0x155,  7 },
+	{ "digifal", 0x358,  8 }, { "strah",   0x87,  0 }, { "hrak",   0x188, 14 },
+	{ "trirho",  0x283, 13 }, { "shiva",  0x340, 12 }, { "alpha",  0x155, 11 },
+	{ "omega",   0x347, 10 }, { "argos",  0x3a4,  7 }, { "beta",   0x285, 14 },
+	{ "sirius",  0xea,  15 }, { "sigma",  0x155, 16 }, { "castor", 0x373, 17 },
+	{ "pollux",  0x2f0,  9 }, { "christ", 0xea,   9 }
+};
+
+// The random number generator of the Microsoft C library
+static uint16 msRand(uint32 &state) {
+	state = state * 0x343fd + 0x269ec3;
+	return (state >> 16) & 0x7fff;
+}
+
+// Fractal height map of a planet, created by midpoint displacement
+class PlanetHeightMap {
+public:
+	PlanetHeightMap(int16 size, uint16 seed) : _size(size), _state(seed) {
+		_heights = new int16[size * size]();
+	}
+
+	~PlanetHeightMap() {
+		delete[] _heights;
+	}
+
+	void generate() {
+		subdivideLine(0, 0, _size, 0);
+		subdivideLine(0, 0, 0, _size);
+		subdivideSquare(0, 0, _size, _size);
+	}
+
+	int16 at(int i) const {
+		return _heights[i];
+	}
+
+private:
+	void subdivideLine(int16 x1, int16 y1, int16 x2, int16 y2) {
+		int16 halfX = (x2 - x1) >> 1;
+		int16 halfY = (y2 - y1) >> 1;
+		int16 h1 = _heights[x1 * _size + y1];
+		int16 h2 = _heights[(x2 & (_size - 1)) * _size + (y2 & (_size - 1))];
+		int16 offset = (int16)(msRand(_state) - 0x4000) % (halfX + halfY);
+		_heights[(x1 + halfX) * _size + y1 + halfY] = (h1 + h2) / 2 + offset;
+
+		if (halfX + halfY > 1) {
+			subdivideLine(x1, y1, x1 + halfX, y1 + halfY);
+			subdivideLine(x1 + halfX, y1 + halfY, x2, y2);
+		}
+	}
+
+	void subdivideSquare(int16 x1, int16 y1, int16 x2, int16 y2) {
+		int16 halfX = (x2 - x1) >> 1;
+		int16 halfY = (y2 - y1) >> 1;
+		subdivideLine(x1, y1 + halfY, x2, y1 + halfY);
+		if (halfX + halfY > 2) {
+			subdivideLine(x1 + halfX, y1, x1 + halfX, y1 + halfY);
+			subdivideLine(x1 + halfX, y1 + halfY, x1 + halfX, y2);
+		}
+		if (halfX + halfY > 3) {
+			subdivideSquare(x1, y1, x1 + halfX, y1 + halfY);
+			subdivideSquare(x1 + halfX, y1, x2, y1 + halfY);
+			subdivideSquare(x1, y1 + halfY, x1 + halfX, y2);
+			subdivideSquare(x1 + halfX, y1 + halfY, x2, y2);
+		}
+	}
+
+	int16 _size;
+	uint32 _state;
+	int16 *_heights;
+};
+
+void StarTrekEngine::generatePlanetTexture(uint16 seed, int16 colors) {
+	PlanetHeightMap heightMap(PLANET_TEXTURE_SIZE, seed);
+	heightMap.generate();
+
+	const int count = PLANET_TEXTURE_SIZE * PLANET_TEXTURE_SIZE;
+	int16 maxHeight = -0x8000;
+	int16 minHeight = 0x7fff;
+	for (int i = 0; i < count; i++) {
+		maxHeight = MAX(maxHeight, heightMap.at(i));
+		minHeight = MIN(minHeight, heightMap.at(i));
+	}
+
+	const byte *colorTable = kPlanetColors[MIN<int16>(colors, ARRAYSIZE(kPlanetColors) - 1)];
+	int16 range = maxHeight - minHeight + 1;
+	for (int i = 0; i < count; i++)
+		_planetTexture[i] = colorTable[(int16)((heightMap.at(i) - minHeight) * 25) / range];
+}
+
+void StarTrekEngine::initPlanet(R3 *r3, const Common::String &name, uint16 seed, int16 colors) {
+	r3->field1e = 1;
+	r3->planetSize = 500;
+	r3->planetName = name;
+	r3->planetSeed = seed;
+	r3->planetColors = colors;
+	r3->field22 = r3->planetSize * 11;
+}
+
+void StarTrekEngine::initSystemPlanet(int system) {
+	if (system >= 0 && system < ARRAYSIZE(kSystemPlanets)) {
+		initPlanet(&_planetR3, kSystemPlanets[system].name, kSystemPlanets[system].seed, kSystemPlanets[system].colors);
+	} else {
+		uint16 seed = _randomSource.getRandomNumber(999);
+		int16 colors = _randomSource.getRandomNumber(15) + 6;
+		initPlanet(&_planetR3, Common::String::format("r%dc%d", seed, colors), seed, colors);
+	}
+}
+
+// Creates the image of a planet as seen from the camera
+void StarTrekEngine::loadPlanetView(R3 *r3) {
+	if (!_planetSphereMap) {
+		Common::MemoryReadStreamEndian *file = _resource->loadFile("planet.dat");
+		_planetSphereMap = new byte[file->size()];
+		file->read(_planetSphereMap, file->size());
+		delete file;
+	}
+
+	if (_planetTextureName != r3->planetName) {
+		generatePlanetTexture(r3->planetSeed, r3->planetColors);
+		_planetTextureName = r3->planetName;
+	}
+
+	// Planets that are closer are drawn with more detail
+	int32 threshold = (int32)_starfieldPointDivisor * r3->planetSize;
+	int32 z = r3->field36.z;
+	int16 size;
+	uint16 tableOffset;
+	if (z >= threshold) {
+		size = 11;
+		tableOffset = 0x4000;
+		r3->field24 = r3->planetSize;
+	} else if (z >= threshold / 2) {
+		size = 21;
+		tableOffset = 0x40f2;
+		r3->field24 = r3->planetSize / 2;
+	} else if (z >= threshold / 3) {
+		size = 31;
+		tableOffset = 0x4464;
+		r3->field24 = r3->planetSize / 3;
+	} else if (z >= threshold / 4) {
+		size = 41;
+		tableOffset = 0x4be6;
+		r3->field24 = r3->planetSize / 4;
+	} else {
+		size = 61;
+		tableOffset = 0x5908;
+		r3->field24 = r3->planetSize / 6;
+	}
+
+	// Direction to the camera, relative to the planet
+	Point3 relative = multPointMatrix(r3->field36, r3->matrix2.invert());
+	int16 azimuth = angleAtan2((int16)relative.x, (int16)relative.z);
+	int16 elevation = angleAsin(fixedDiv((int16)relative.y, (int16)r3->field54));
+	if (elevation < -0x80 || elevation > 0x80) {
+		int16 horizontal = vectorLength((int16)relative.x, (int16)relative.z, 0);
+		elevation = angleAcos(fixedDiv(horizontal, (int16)r3->field54));
+		if (relative.y < 0)
+			elevation = -elevation;
+	}
+
+	int16 yaw = 0x200 - azimuth;
+	r3->shipViewMatrix = initMatrix();
+	r3->shipViewMatrix = multMatrix(r3->shipViewMatrix, axisRotation(1, angleSin(yaw), angleCos(yaw)));
+	r3->shipViewMatrix = multMatrix(r3->shipViewMatrix, axisRotation(0, angleSin(elevation), angleCos(elevation)));
+
+	// Offsets into the sphere map and the texture
+	uint16 latitude = ((((int32)elevation << 7) + 0x200) / 0x400 & 0x7f) << 7;
+	uint16 longitude = ((((int32)yaw << 7) + 0x200) / 0x400 & 0x7f) << 7;
+
+	r3->bitmap = new Bitmap(size, size);
+	r3->bitmap->xoffset = (size - 1) / 2;
+	r3->bitmap->yoffset = (size - 1) / 2;
+
+	const byte *table = _planetSphereMap + tableOffset;
+	const int count = size * size;
+	int i = 0;
+	while (i < count) {
+		uint16 entry = READ_LE_UINT16(table + i * 2) + latitude;
+		if (entry & 0x8000) {
+			// Pixels outside of the planet
+			r3->bitmap->pixels[i++] = 0;
+			while (i < count && (READ_LE_UINT16(table + i * 2) & 0x8000))
+				r3->bitmap->pixels[i++] = 0;
+			continue;
+		}
+
+		uint16 texel = (READ_LE_UINT16(_planetSphereMap + (entry & 0xbfff)) + longitude) & 0xbfff;
+		r3->bitmap->pixels[i++] = _planetTexture[texel & (PLANET_TEXTURE_SIZE * PLANET_TEXTURE_SIZE - 1)];
+	}
+}
+
+void StarTrekEngine::freePlanetView(R3 *r3) {
+	delete r3->bitmap;
+	r3->bitmap = nullptr;
+}
+
 // Scales the turn rate of a ship by the strength of this system
 static const int kSteeringSystem = 7;
 
@@ -333,6 +566,17 @@ void StarTrekEngine::distributeEnergy(R3 *r3) {
 		r3->targetSpeed = r3->commandedSpeed;
 		r3->energy -= required;
 	}
+}
+
+void StarTrekEngine::rotateR3(R3 *r3, int axis, int16 angle) {
+	rotateMatrix(r3->matrix, axis, angleSin(angle), angleCos(angle));
+}
+
+void StarTrekEngine::resetShipControls(R3 *r3) {
+	r3->commandedSpeed = 0;
+	r3->targetTurnRate = Point3(0, 0, 0);
+	r3->currentSpeed = 0;
+	r3->turnRate = Point3(0, 0, 0);
 }
 
 void StarTrekEngine::repairShipSystems(R3 *r3) {
@@ -552,7 +796,6 @@ void StarTrekEngine::updateStarfieldAndShips(bool arg0) {
 
 			switch (r3->field1e) { // TODO
 			case 1:
-				break;
 			case 2:
 				drawR3Shape(r3);
 				break;
@@ -659,10 +902,12 @@ bool StarTrekEngine::calcShipViewTransform(R3 *r3, double scale, double forward[
 }
 
 void StarTrekEngine::drawR3Shape(R3 *r3) {
-	if (r3->field1e == 1 || r3->field1e == 4) // TODO: rotated shapes
+	if (r3->field1e == 4) // TODO: explosions
 		return;
 
-	if (r3->field1e == 2)
+	if (r3->field1e == 1)
+		loadPlanetView(r3);
+	else if (r3->field1e == 2)
 		loadShipView(r3);
 
 	if (r3->bitmap != nullptr) {
@@ -679,8 +924,23 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 		double dbl48 = 0.0;
 
 		switch (r3->field1e) {
-		case 1: // TODO
+		case 1: {
+			// The image is rotated around the view axis
+			Matrix m = multMatrix(r3->shipViewMatrix.invert(), r3->matrix2);
+			int16 roll = angleAtan2(m[0][1].raw(), m[0][0].raw());
+			double cosValue = angleCos(roll) / 16384.0;
+			double sinValue = angleSin(roll) / 16384.0;
+			double scale = CLIP(dbl68, 0.01, 10.0);
+			dbl30 = cosValue * scale;
+			dbl28 = -sinValue * scale;
+			dbl20 = sinValue * scale;
+			dbl18 = cosValue * scale;
+			dbl60 = cosValue / scale;
+			dbl58 = sinValue / scale;
+			dbl50 = -sinValue / scale;
+			dbl48 = cosValue / scale;
 			break;
+		}
 		case 3:
 			dbl30 = dbl68;
 			dbl28 = 0.0;
@@ -944,7 +1204,9 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 		delete[] leftBounds;
 	}
 
-	if (r3->field1e == 2)
+	if (r3->field1e == 1)
+		freePlanetView(r3);
+	else if (r3->field1e == 2)
 		freeShipView(r3);
 }
 

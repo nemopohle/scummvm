@@ -97,6 +97,7 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_viewDirection = 0;
 	_viewscreenZoom = 6;
 	_viewscreenFullscreen = false;
+	_planetSphereMap = nullptr;
 	_restoreFullscreenView = false;
 	_heldKey = Common::KEYCODE_INVALID;
 	Common::fill(_r3List, _r3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);
@@ -139,6 +140,7 @@ StarTrekEngine::~StarTrekEngine() {
 	delete _gfx;
 	delete _sound;
 	delete _resource;
+	delete[] _planetSphereMap;
 }
 
 Common::Error StarTrekEngine::run() {
@@ -174,9 +176,18 @@ Common::Error StarTrekEngine::run() {
 		loadedSave = true;
 	}
 
+	if (!loadedSave && (isCd || !isDemo))
+		playIntro();
+
+	_planetR3 = R3();
+	_planetR3.matrix = initMatrix();
+	_planetR3.pos = Point3(0, 0, 15300);
+	initPlanet(&_planetR3, "noname", 0x2ca, 10);
+	addR3(&_planetR3);
+	resetShipControls(&_enterpriseR3);
+
 	if (!loadedSave) {
 		if (isCd || !isDemo) {
-			playIntro();
 			_missionToLoad = "DEMON";
 			_bridgeSequenceToLoad = 0;
 			runGameMode(GAMEMODE_BRIDGE, false);
