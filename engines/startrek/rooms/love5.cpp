@@ -250,7 +250,7 @@ extern const RoomTextOffsets love5TextOffsets[] = {
 	//{ TX_LOV5C001, 1598, 0, 0, 0 },
 	{ TX_DIALOG_ERROR, 11927, 11499, 12441, 12463 },
 	{ TX_LOV5F001, 0, 12134, 0, 0 },
-	{ TX_LOV5F002, 0, 1868, 0, 0 },
+	{ TX_LOV5F002, 0, 1879, 0, 0 },
 	{          -1, 0,    0, 0, 0 }
 };
 
