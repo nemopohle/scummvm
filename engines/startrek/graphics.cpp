@@ -196,6 +196,20 @@ void Graphics::setPaletteFadeLevel(byte *palData, int fadeLevel) {
 	_vm->_system->delayMillis(10);
 }
 
+// Rotates a range of colors of the unfaded palette
+void Graphics::cyclePalette(int start, int count, int offset) {
+	byte colors[256 * 3];
+	for (int i = 0; i < count; i++) {
+		const byte *src = _palData + (start + (i + offset) % count) * 3;
+		for (int c = 0; c < 3; c++) {
+			colors[i * 3 + c] = src[c];
+			if (_vm->getPlatform() == Common::kPlatformDOS || _vm->getPlatform() == Common::kPlatformMacintosh)
+				colors[i * 3 + c] <<= 2;
+		}
+	}
+	_vm->_system->getPaletteManager()->setPalette(colors, start, count);
+}
+
 void Graphics::incPaletteFadeLevel() {
 	if (_paletteFadeLevel < 100) {
 		_paletteFadeLevel += 10;

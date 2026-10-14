@@ -73,6 +73,7 @@ void StarTrekEngine::loadBridge() {
 
 	loadBridgeActors();
 	initStarfieldSprite(&_starfieldSprite, new StubBitmap(0, 0), _starfieldRect);
+	initBridgeDisplays();
 
 	//sub_1312C();	// TODO
 
@@ -985,6 +986,7 @@ void StarTrekEngine::bridgeLeftClick() {
 void StarTrekEngine::cleanupBridge() {
 	if (_gfx->hasSprite(&_starfieldSprite))
 		_gfx->delSprite(&_starfieldSprite);
+	removeBridgeDisplays();
 	// TODO
 	// if (!v_starfieldInitialized)
 	// sub_12691()
@@ -1174,6 +1176,8 @@ void StarTrekEngine::updateBridgeTick() {
 		_enterpriseR3.targetTurnRate.z = roll;
 	}
 	updateBridgeSpace();
+	if (!_viewscreenFullscreen)
+		updateBridgeDisplays();
 	updateActorAnimations();
 
 	//updateMouseBitmap();
@@ -1186,8 +1190,10 @@ void StarTrekEngine::updateBridgeTick() {
 	_frameIndex++;
 	_roomFrameCounter++;
 	addAction(ACTION_TICK, _roomFrameCounter & 0xff, (_roomFrameCounter >> 8) & 0xff, 0);
-	if (_roomFrameCounter >= 2)
+	if (_roomFrameCounter >= 2) {
+		cycleBridgeColors();
 		_gfx->incPaletteFadeLevel();
+	}
 }
 
 void StarTrekEngine::updateBridgeSpace() {
@@ -1231,6 +1237,7 @@ void StarTrekEngine::enterFullscreenView() {
 
 	_viewscreenZoom = 4;
 	removeDrawnActorsFromScreen();
+	removeBridgeDisplays();
 	if (_gfx->hasSprite(&_starfieldSprite))
 		_gfx->delSprite(&_starfieldSprite);
 	_gfx->fillBackgroundRect(Common::Rect(SCREEN_WIDTH, SCREEN_HEIGHT), 0);

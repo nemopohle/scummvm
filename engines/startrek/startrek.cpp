@@ -106,6 +106,7 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_msRandState = 1;
 	_spaceMessages = 0;
 	_cloakLutLevel = -1;
+	_bridgeLightPosition = 0;
 	_repairPriority = kRepairNone;
 	_repairedGroup = kRepairNone;
 	_emergencyPowerUsed = false;

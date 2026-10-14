@@ -5,6 +5,7 @@ MODULE_OBJS = \
 	awaymission.o \
 	bitmap.o \
 	bridge.o \
+	bridgedisplays.o \
 	common.o \
 	console.o \
 	events.o \

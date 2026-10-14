@@ -137,6 +137,8 @@ public:
 
 	void addSprite(Sprite *sprite);
 	void delSprite(Sprite *sprite);
+	int16 getPaletteFadeLevel() const { return _paletteFadeLevel; }
+	void cyclePalette(int start, int count, int offset);
 	bool hasSprite(const Sprite *sprite) const;
 
 	// Save/load the current state of sprites. Can only push once for now.

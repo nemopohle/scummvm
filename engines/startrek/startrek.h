@@ -211,6 +211,8 @@ struct ComputerTopic {
 	Common::String topic;
 };
 
+#define NUM_BRIDGE_DISPLAYS 5
+
 enum SpaceMessage {
 	kSpaceMessageShieldsFalling = 1 << 0,
 	kSpaceMessageWeaponsOffline = 1 << 1,
@@ -413,6 +415,17 @@ private:
 	bool damageShipSystem(R3 *ship, int side, int16 damage);
 	void loadProjectileView(R3 *projectile);
 	void drawPhaserBeam(R3 *projectile);
+
+	// bridgedisplays.cpp
+	void initBridgeDisplays();
+	void removeBridgeDisplays();
+	void updateBridgeDisplays();
+	void cycleBridgeColors();
+	void updateScanner();
+	void drawBridgeLine(int16 x, int16 y, int16 length, byte color);
+	void drawConsoleBars();
+	void drawBridgeBitmap(Bitmap *bitmap);
+	void drawShipPanels(R3 *ship);
 	void copyCloakedShip(Bitmap *dest, Bitmap *ship, int16 level);
 	void drawViewscreenStatic();
 
@@ -880,6 +893,10 @@ public:
 	int16 _emergencyPowerDuration;
 	byte _cloakLut[256];
 	int16 _cloakLutLevel;
+	Sprite _bridgeDisplaySprites[NUM_BRIDGE_DISPLAYS];
+	Sprite _bridgeLightSprite;
+	int16 _bridgeLightPosition;
+	Sprite _scannerSprite;
 	byte *_planetSphereMap;
 	byte _planetTexture[PLANET_TEXTURE_SIZE * PLANET_TEXTURE_SIZE];
 	Common::String _planetTextureName;
