@@ -20,6 +20,7 @@
  */
 
 #include "startrek/room.h"
+#include "startrek/startrek.h"
 
 #define OBJECT_DOOR1 8
 #define OBJECT_DOOR2 9
@@ -105,7 +106,6 @@ enum love0TextIds {
 	TX_COMPU189, TX_COMPU190, TX_COMPU192, TX_COMPU193, TX_DIALOG_ERROR
 };
 
-// TODO: Finish floppy offsets
 extern const RoomTextOffsets love0TextOffsets[] = {
 	{ TX_SPEAKER_KIRK, 5915, 6466, 0, 6270 },
 	{ TX_SPEAKER_MCCOY, 5926, 6477, 0, 6281 },
@@ -185,9 +185,14 @@ void Room::love0Tick1() {
 
 	_roomVar.love.cmnXPosToCureSpock = 0xf4;
 	_roomVar.love.cmnYPosToCureSpock = 0x8f;
+
+	if (_vm->isFloppyVersion())
+		playMidiMusicTracks(MIDITRACK_21, kLoopTypeRepeat);
 }
 
 void Room::love0Tick10() {
+	if (_vm->isFloppyVersion())
+		playMidiMusicTracks(MIDITRACK_21, kLoopTypeRepeat);
 }
 
 void Room::love0WalkToDoor2() {

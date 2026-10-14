@@ -207,7 +207,6 @@ enum love1TextIds {
 	TX_LOV1N035, TX_LOV2N005, TX_BRIDU146, TX_GENER004, TX_GET_BOTTLE_ERROR
 };
 
-// TODO: Finish floppy offsets
 extern const RoomTextOffsets love1TextOffsets[] = {
 	{ TX_SPEAKER_KIRK, 11280, 11298, 0, 11702 },
 	{ TX_SPEAKER_MCCOY, 11291, 11309, 0, 11713 },

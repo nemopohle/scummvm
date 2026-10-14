@@ -20,6 +20,7 @@
  */
 
 #include "startrek/room.h"
+#include "startrek/startrek.h"
 
 #define OBJECT_DOOR 8
 #define OBJECT_ROMULAN_1 9
@@ -146,10 +147,9 @@ enum love4TextIds {
 	TX_VENA_F41, TX_FEA5_008, TX_LOV2N005, TX_LOV4N000, TX_LOV4N001,
 	TX_LOV4N002, TX_LOV4N003, TX_LOV4N004, TX_LOV4N005, TX_LOV4N006,
 	TX_LOV4N007, TX_LOV4N008, TX_LOV4N009, TX_LOV4N010, TX_LOV4N011,
-	TX_LOV4N013, TX_BRIDU146, TX_GENER004
+	TX_LOV4N013, TX_BRIDU146, TX_GENER004, TX_LOV4F001, TX_LOV4F002
 };
 
-// TODO: Finish floppy offsets
 extern const RoomTextOffsets love4TextOffsets[] = {
 	{ TX_SPEAKER_KIRK, 7266, 7634, 0, 7646 },
 	{ TX_SPEAKER_MCCOY, 7277, 7645, 0, 7657 },
@@ -266,6 +266,8 @@ extern const RoomTextOffsets love4TextOffsets[] = {
 	//{ TX_BRIDU146, 6918, 0, 0, 0 },
 	//{ TX_BRIDU146, 6585, 0, 0, 0 },
 	{ TX_GENER004, 5405, 4779, 0, 5605 },
+	{ TX_LOV4F001, 0, 8554, 0, 0 },
+	{ TX_LOV4F002, 0, 8671, 0, 0 },
 	{          -1, 0,    0, 0, 0 }
 };
 
@@ -395,6 +397,11 @@ void Room::love4TalkToRedshirt() {
 void Room::love4TalkToSpock() {
 	showText(TX_SPEAKER_SPOCK, TX_LOV4_027);
 	showText(TX_SPEAKER_KIRK,  TX_LOV4_003);
+
+	if (_vm->isFloppyVersion() && !_awayMission->redshirtDead) {
+		showText(TX_SPEAKER_FERRIS, TX_LOV4F001);
+		showText(TX_SPEAKER_SPOCK,  TX_LOV4F002);
+	}
 }
 
 void Room::love4TalkToRomulan() {

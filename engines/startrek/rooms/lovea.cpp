@@ -20,9 +20,9 @@
  */
 
 // Common code for all rooms in LOVE mission.
-// TODO: from a cursory glance, this seems to be different in the floppy version?
 
 #include "startrek/room.h"
+#include "startrek/startrek.h"
 
 namespace StarTrek {
 
@@ -40,10 +40,14 @@ enum loveTextIds {
 	TX_LOVA_F02, TX_LOVA_F03, TX_LOVA_F04, TX_LOVA_F07, TX_LOVA_F08,
 	TX_LOVA_F10, TX_LOVA_F54, TX_LOVA_F55, TX_TUG2_010, TX_MUD2_040,
 	TX_LOV2N005, TX_MUD4_018, TX_BRIDU146, TX_VENA_F41, TX_GENER004,
-	TX_LOV5C001, TX_SPOKCOFF
+	TX_LOV5C001, TX_SPOKCOFF, TX_SPEAKER_SCOTT, TX_LOVAF001, TX_LOVAF002,
+	TX_LOVAF003, TX_LOVAF004, TX_LOVAF005, TX_LOVAF006, TX_LOVAF007,
+	TX_LOVAF008, TX_LOVAF009, TX_LOVAF010, TX_LOVAF011, TX_LOVAF012,
+	TX_LOVAF013, TX_LOVAF014, TX_LOVAF015, TX_LOVAF016, TX_LOVAF017,
+	TX_LOVAF018, TX_LOVAF019, TX_LOVAF020, TX_LOVAF021, TX_LOVAF022,
+	TX_LOVAF023, TX_LOVAF024, TX_LOVAF025, TX_LOVAF026, TX_LOVAF027
 };
 
-// TODO: Finish floppy offsets
 extern const RoomTextOffsets loveTextOffsets[] = {
 	{ TX_SPEAKER_KIRK, 5915, 6466, 0, 6270 },
 	{ TX_SPEAKER_MCCOY, 5926, 6477, 0, 6281 },
@@ -89,24 +93,52 @@ extern const RoomTextOffsets loveTextOffsets[] = {
 	{ TX_LOV5_030,  3348, 2988, 0, 3462 },
 	{ TX_LOV5_038,  3399, 3027, 0, 3518 },
 	{ TX_LOVA_100,  4553, 4155, 0, 4784 },
-	{ TX_LOVA_F01,  3995, 0, 0, 4170 },
-	{ TX_LOVA_F02,  4067, 1227, 0, 4242 },
-	{ TX_LOVA_F03,  4266, 0, 0, 4470 },
-	{ TX_LOVA_F04,  4181, 0, 0, 4368 },
+	{ TX_LOVA_F01,  3995, 3530, 0, 4170 },
+	{ TX_LOVA_F02,  4067, 3622, 0, 4242 },
+	{ TX_LOVA_F03,  4266, 3891, 0, 4470 },
+	{ TX_LOVA_F04,  4181, 3790, 0, 4368 },
 	{ TX_LOVA_F07,  4630, 4217, 0, 4862 },
-	{ TX_LOVA_F08,  3619, 0, 0, 3747 },
-	{ TX_LOVA_F10,  4501, 0, 0, 4724 },
-	{ TX_LOVA_F54,  3775, 0, 0, 3913 },
+	{ TX_LOVA_F08,  3619, 3992, 0, 3747 },
+	{ TX_LOVA_F10,  4501, 4096, 0, 4724 },
+	{ TX_LOVA_F54,  3775, 3303, 0, 3913 },
 	{ TX_LOVA_F55,  3076, 2728, 0, 3187 },
 	{ TX_TUG2_010,  4431, 4049, 0, 4650 },
 	{ TX_MUD2_040,  4826, 0, 0, 5103 },
-	{ TX_LOV2N005,  4689, 0, 0, 4922 },
+	{ TX_LOV2N005,  4689, 4269, 0, 4922 },
 	{ TX_MUD4_018,  5035, 0, 0, 5338 },
 	{ TX_BRIDU146,  5104, 5211, 0, 5407 },
 	{ TX_VENA_F41,  5158, 5246, 0, 5473 },
 	{ TX_LOV5C001,  3497, 3095, 0, 3624 },
 	{ TX_SPOKCOFF,  3564, 3162, 0, 3694 },
 	{ TX_GENER004,  3924, 3474, 0, 4099 },	// Game over
+	{ TX_SPEAKER_SCOTT, 0, 4598, 0, 0 },
+	{ TX_LOVAF001, 0, 2676, 0, 0 },
+	{ TX_LOVAF002, 0, 2840, 0, 0 },
+	{ TX_LOVAF003, 0, 3203, 0, 0 },
+	{ TX_LOVAF004, 0, 4416, 0, 0 },
+	{ TX_LOVAF005, 0, 4563, 0, 0 },
+	{ TX_LOVAF006, 0, 4653, 0, 0 },
+	{ TX_LOVAF007, 0, 4707, 0, 0 },
+	{ TX_LOVAF008, 0, 4741, 0, 0 },
+	{ TX_LOVAF009, 0, 4890, 0, 0 },
+	{ TX_LOVAF010, 0, 5050, 0, 0 },
+	{ TX_LOVAF011, 0, 5081, 0, 0 },
+	{ TX_LOVAF012, 0, 5156, 0, 0 },
+	{ TX_LOVAF013, 0, 5185, 0, 0 },
+	{ TX_LOVAF014, 0, 5277, 0, 0 },
+	{ TX_LOVAF015, 0, 5303, 0, 0 },
+	{ TX_LOVAF016, 0, 5352, 0, 0 },
+	{ TX_LOVAF017, 0, 5474, 0, 0 },
+	{ TX_LOVAF018, 0, 5570, 0, 0 },
+	{ TX_LOVAF019, 0, 5688, 0, 0 },
+	{ TX_LOVAF020, 0, 5827, 0, 0 },
+	{ TX_LOVAF021, 0, 6067, 0, 0 },
+	{ TX_LOVAF022, 0, 6197, 0, 0 },
+	{ TX_LOVAF023, 0, 11117, 0, 0 },
+	{ TX_LOVAF024, 0, 11151, 0, 0 },
+	{ TX_LOVAF025, 0, 11188, 0, 0 },
+	{ TX_LOVAF026, 0, 11247, 0, 0 },
+	{ TX_LOVAF027, 0, 11357, 0, 0 },
 	{          -1,  0,    0, 0, 0 }
 };
 
@@ -140,19 +172,32 @@ void Room::loveaTimer0Expired() {
 		TX_LOV0_017
 	};
 
-	// BUGFIX: should range from 0-1, not 0-2. Original had "get name errors" when it
-	// rolled a 2.
-	byte randomVal = getRandomWordInRange(0, 1);
+	byte randomVal;
 	TextRef speaker;
 
 	const TextRef *textTable;
 
-	if (randomVal == 0 || _awayMission->redshirtDead) {
-		speaker = TX_SPEAKER_MCCOY;
+	if (_vm->isFloppyVersion()) {
+		// In the floppy version, Kirk is affected as well and everyone uses McCoy's lines
+		randomVal = getRandomWordInRange(0, 2);
+		if (randomVal == 1)
+			speaker = TX_SPEAKER_MCCOY;
+		else if (randomVal == 2 && !_awayMission->redshirtDead)
+			speaker = TX_SPEAKER_FERRIS;
+		else
+			speaker = TX_SPEAKER_KIRK;
 		textTable = mccoyText;
 	} else {
-		speaker = TX_SPEAKER_FERRIS;
-		textTable = ferrisText;
+		// BUGFIX: should range from 0-1, not 0-2. Original had "get name errors" when it
+		// rolled a 2.
+		randomVal = getRandomWordInRange(0, 1);
+		if (randomVal == 0 || _awayMission->redshirtDead) {
+			speaker = TX_SPEAKER_MCCOY;
+			textTable = mccoyText;
+		} else {
+			speaker = TX_SPEAKER_FERRIS;
+			textTable = ferrisText;
+		}
 	}
 
 	randomVal = getRandomWordInRange(0, 10);
@@ -188,13 +233,27 @@ void Room::loveaTimer1Expired() {
 		TX_LOV0_107
 	};
 
-	showText(TX_SPEAKER_SPOCK, spockText[getRandomWordInRange(0, 7)]);
+	const int spockTextFloppy[] = {
+		TX_LOVAF023,
+		TX_LOVAF024,
+		TX_LOVAF025,
+		TX_LOVAF026,
+		TX_LOV0_025,
+		TX_LOVAF027
+	};
+
+	if (_vm->isFloppyVersion())
+		showText(TX_SPEAKER_SPOCK, spockTextFloppy[getRandomWordInRange(0, 5)]);
+	else
+		showText(TX_SPEAKER_SPOCK, spockText[getRandomWordInRange(0, 7)]);
 
 	_awayMission->timers[1] = getRandomWordInRange(200, 400);
 }
 
 void Room::loveaUseMedkitOnSpock() {
-	if (_awayMission->love.spockCured)
+	if (_awayMission->love.spockCured && _vm->isFloppyVersion())
+		showText(TX_SPEAKER_SPOCK, TX_LOVAF001);
+	else if (_awayMission->love.spockCured)
 		showText(TX_SPEAKER_MCCOY, TX_LOV5_015);
 	else
 		showText(TX_SPEAKER_MCCOY, TX_LOV5_019);
@@ -210,7 +269,9 @@ void Room::loveaUseCureSampleOnSpock() {
 
 
 void Room::loveaUseCureOnSpock() {
-	if (_awayMission->love.spockCured)
+	if (_awayMission->love.spockCured && _vm->isFloppyVersion())
+		showText(TX_SPEAKER_SPOCK, TX_LOVAF002);
+	else if (_awayMission->love.spockCured)
 		showText(TX_SPEAKER_MCCOY, TX_LOV5_015);
 	else {
 		walkCrewman(OBJECT_SPOCK, _roomVar.love.cmnXPosToCureSpock, _roomVar.love.cmnYPosToCureSpock, 99);
@@ -247,7 +308,10 @@ void Room::loveaTimer2Expired() {
 			showText(TX_SPEAKER_SPOCK, TX_SPOKCOFF);
 			_awayMission->love.spockInfectionCounter++;
 		} else if (_awayMission->love.spockInfectionCounter == 30) {
-			showText(TX_SPEAKER_MCCOY, TX_LOVA_F08);
+			if (_vm->isFloppyVersion())
+				showText(TX_SPEAKER_SPOCK, TX_LOVAF003);
+			else
+				showText(TX_SPEAKER_MCCOY, TX_LOVA_F08);
 			_awayMission->love.spockInfectionCounter++;
 		} else if (_awayMission->love.spockInfectionCounter == 45) {
 			showText(TX_SPEAKER_SPOCK, TX_SPOKCOFF);
@@ -301,7 +365,10 @@ void Room::loveaUseRomulanLaughingGas() {
 
 void Room::loveaUseHumanLaughingGas() {
 	showDescription(TX_LOV2N005);
-	showText(TX_SPEAKER_SPOCK, TX_MUD2_040);
+	if (_vm->isFloppyVersion())
+		showText(TX_SPEAKER_MCCOY, TX_LOVAF004);
+	else
+		showText(TX_SPEAKER_SPOCK, TX_MUD2_040);
 	_awayMission->love.releasedHumanLaughingGas = true;
 	loseItem(OBJECT_IN2O);
 	playMidiMusicTracks(MIDITRACK_3);
@@ -312,16 +379,48 @@ void Room::loveaUseHumanLaughingGas() {
 
 void Room::loveaUseAmmonia() {
 	showDescription(TX_LOV2N005);
-	// TODO: redshirt says something in floppy edition only
+	if (_vm->isFloppyVersion() && !_awayMission->redshirtDead)
+		showText(TX_SPEAKER_FERRIS, TX_LOVAF005);
 	loseItem(OBJECT_INH3);
 }
 
 void Room::loveaUseCommunicator() {
+	if (_vm->isFloppyVersion()) {
+		if (!_awayMission->love.gotCure) {
+			if (!_awayMission->love.contactedEnterpriseBeforeCure) {
+				showText(TX_SPEAKER_KIRK,  TX_LOVAF006);
+				showText(TX_SPEAKER_UHURA, TX_LOVAF007);
+				showText(TX_SPEAKER_UHURA, TX_LOVAF008);
+				showText(TX_SPEAKER_KIRK,  TX_LOVAF009);
+				showText(TX_SPEAKER_MCCOY, TX_LOVAF010);
+				showText(TX_SPEAKER_SPOCK, TX_LOVAF011);
+				showText(TX_SPEAKER_MCCOY, TX_LOVAF012);
+				_awayMission->love.contactedEnterpriseBeforeCure = true;
+			} else {
+				showText(TX_SPEAKER_KIRK,  TX_LOVAF013);
+				showText(TX_SPEAKER_UHURA, TX_BRIDU146);
+				showText(TX_SPEAKER_KIRK,  TX_VENA_F41);
+			}
+		} else if (!_awayMission->love.contactedEnterpriseAfterCure) {
+			showText(TX_SPEAKER_KIRK,  TX_LOVAF014);
+			showText(TX_SPEAKER_UHURA, TX_LOVAF015);
+			showText(TX_SPEAKER_KIRK,  TX_LOVAF016);
+			showText(TX_SPEAKER_SCOTT, TX_LOVAF017);
+			showText(TX_SPEAKER_KIRK,  TX_LOVAF018);
+			showText(TX_SPEAKER_MCCOY, TX_LOVAF019);
+			showText(TX_SPEAKER_SPOCK, TX_LOVAF020);
+			_awayMission->love.contactedEnterpriseAfterCure = true;
+		} else {
+			showText(TX_SPEAKER_KIRK,  TX_LOVAF013);
+			showText(TX_SPEAKER_UHURA, TX_LOVAF021);
+			showText(TX_SPEAKER_KIRK,  TX_LOVAF022);
+		}
+		return;
+	}
+
 	// There were originally number of branches here, based on whether we've got the cure
 	// and whether we've contacted the enterprise already; but all of them branch to the
 	// exact same code.
-	// TODO: perhaps the floppy edition had different text for each case.
-
 	showText(TX_SPEAKER_KIRK,  TX_MUD4_018);
 	showText(TX_SPEAKER_UHURA, TX_BRIDU146);
 	showText(TX_SPEAKER_KIRK,  TX_VENA_F41);

@@ -20,6 +20,7 @@
  */
 
 #include "startrek/room.h"
+#include "startrek/startrek.h"
 
 #define OBJECT_SERVICE_PANEL 8
 #define OBJECT_INSULATION 9
@@ -187,7 +188,6 @@ enum love3TextIds {
 	TX_LOV3NA23, TX_LOV3NJ32, TX_DIALOG_ERROR
 };
 
-// TODO: Finish floppy offsets
 extern const RoomTextOffsets love3TextOffsets[] = {
 	{ TX_SPEAKER_KIRK, 9959, 9844, 0, 10409 },
 	{ TX_SPEAKER_MCCOY, 9970, 9855, 0, 10420 },
@@ -518,7 +518,10 @@ void Room::love3OpenedOrClosedServicePanel() {
 	else
 		loadActorAnim2(OBJECT_SERVICE_PANEL, "s3r4d1", 1, 0, 0);
 
-	playVoc("SMADOOR1");
+	if (_vm->isFloppyVersion())
+		playSoundEffectIndex(kSfxDoor);
+	else
+		playVoc("SMADOOR1");
 	_awayMission->love.servicePanelOpen = !_awayMission->love.servicePanelOpen;
 
 	if (_awayMission->love.servicePanelOpen) {

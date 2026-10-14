@@ -209,7 +209,6 @@ enum love2TextIds {
 	TX_VENA_F41, TX_BRIDU146, TX_GENER004
 };
 
-// TODO: Finish floppy offsets
 extern const RoomTextOffsets love2TextOffsets[] = {
 	{ TX_SPEAKER_KIRK, 14244, 13811, 0, 14723 },
 	{ TX_SPEAKER_MCCOY, 14255, 13822, 0, 14734 },

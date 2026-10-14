@@ -20,6 +20,7 @@
  */
 
 #include "startrek/room.h"
+#include "startrek/startrek.h"
 
 #define OBJECT_8 8
 #define OBJECT_PREAX 9
@@ -123,10 +124,9 @@ enum love5TextIds {
 	TX_LOV5N008, TX_LOV5N009, TX_LOV5N010, TX_LOV5N011, TX_LOV5N012,
 	TX_LOV5N013, TX_LOV5N014, TX_LOV5N016, TX_LOV5N017, TX_LOV5N018,
 	TX_LOV5N001_BOUND,
-	/*TX_LOV5C001,*/ TX_DEM0N009, TX_G_024, TX_DIALOG_ERROR
+	/*TX_LOV5C001,*/ TX_DEM0N009, TX_G_024, TX_DIALOG_ERROR, TX_LOV5F001
 };
 
-// TODO: Finish floppy offsets
 extern const RoomTextOffsets love5TextOffsets[] = {
 	{ TX_SPEAKER_KIRK, 8968, 9017, 0, 9419 },
 	{ TX_SPEAKER_MCCOY, 8979, 9028, 0, 9430 },
@@ -249,6 +249,7 @@ extern const RoomTextOffsets love5TextOffsets[] = {
 	{ TX_LOV5N018, 3805, 3398, 0, 3979 },
 	//{ TX_LOV5C001, 1598, 0, 0, 0 },
 	{ TX_DIALOG_ERROR, 11927, 11499, 0, 12463 },
+	{ TX_LOV5F001, 0, 12134, 0, 0 },
 	{          -1, 0,    0, 0, 0 }
 };
 
@@ -396,6 +397,8 @@ void Room::love5TalkToPreax() {
 				showText(TX_SPEAKER_MARCUS, TX_LOV5_043);
 			// fall through
 			case 0:
+				if (_vm->isFloppyVersion())
+					showText(TX_SPEAKER_PREAX, TX_LOV5F001);
 				showText(TX_SPEAKER_PREAX, TX_LOV5_061);
 				showText(TX_SPEAKER_KIRK, TX_LOV5_010);
 
