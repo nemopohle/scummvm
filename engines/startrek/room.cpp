@@ -150,7 +150,10 @@ byte *Room::loadRoomRDF(Common::String fileName) {
 }
 
 uint16 Room::readRdfWord(int offset) {
-	return READ_LE_UINT16((_rdfData + offset));
+	// The Amiga version has the data words in big endian
+	if (_vm->getPlatform() == Common::kPlatformAmiga)
+		return READ_BE_UINT16(_rdfData + offset);
+	return READ_LE_UINT16(_rdfData + offset);
 }
 
 bool Room::actionHasCode(const Action &action) {
@@ -369,16 +372,30 @@ const char *Room::getText(uint16 textId) {
 	if (offsets == nullptr)
 		error("Missing text ID: %d", textId);
 
-	switch (_vm->getLanguage()) {
-	case Common::FR_FRA:
-		offset = offsets->offsetFrenchCD;
-		break;
-	case Common::DE_DEU:
-		offset = offsets->offsetGermanCD;
-		break;
-	default:
-		offset = isCD ? offsets->offsetEnglishCD : offsets->offsetEnglishFloppy;
-		break;
+	if (_vm->getPlatform() == Common::kPlatformAmiga) {
+		switch (_vm->getLanguage()) {
+		case Common::FR_FRA:
+			offset = offsets->offsetAmigaFrench;
+			break;
+		case Common::DE_DEU:
+			offset = offsets->offsetAmigaGerman;
+			break;
+		default:
+			offset = offsets->offsetAmigaEnglish;
+			break;
+		}
+	} else {
+		switch (_vm->getLanguage()) {
+		case Common::FR_FRA:
+			offset = offsets->offsetFrenchCD;
+			break;
+		case Common::DE_DEU:
+			offset = offsets->offsetGermanCD;
+			break;
+		default:
+			offset = isCD ? offsets->offsetEnglishCD : offsets->offsetEnglishFloppy;
+			break;
+		}
 	}
 
 	// Some texts only exist in some versions of the game
@@ -651,22 +668,21 @@ void Room::mccoyScan(int direction, TextRef speaker, TextRef text, bool changeDi
 }
 
 bool Room::isPointInPolygon(int offset, int16 x, int16 y) {
-	int16 *data = (int16 *)(_rdfData + offset);
-	int16 numVertices = data[1];
-	int16 *vertData = &data[2];
+	int16 numVertices = readRdfWord(offset + 2);
+	int vertOffset = offset + 4;
 
 	for (int i = 0; i < numVertices; i++) {
-		Common::Point p1(vertData[0], vertData[1]);
+		Common::Point p1((int16)readRdfWord(vertOffset), (int16)readRdfWord(vertOffset + 2));
 		Common::Point p2;
 		if (i == numVertices - 1) // Loop to 1st vertex
-			p2 = Common::Point(data[2], data[3]);
+			p2 = Common::Point((int16)readRdfWord(offset + 4), (int16)readRdfWord(offset + 6));
 		else
-			p2 = Common::Point(vertData[2], vertData[3]);
+			p2 = Common::Point((int16)readRdfWord(vertOffset + 4), (int16)readRdfWord(vertOffset + 6));
 
 		if ((p2.x - p1.x) * (y - p1.y) - (p2.y - p1.y) * (x - p1.x) < 0)
 			return false;
 
-		vertData += 2;
+		vertOffset += 4;
 	}
 
 	return true;

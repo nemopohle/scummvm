@@ -74,6 +74,9 @@ struct RoomTextOffsets {
 	uint16 offsetEnglishFloppy;
 	uint16 offsetFrenchCD;
 	uint16 offsetGermanCD;
+	uint16 offsetAmigaEnglish;
+	uint16 offsetAmigaGerman;
+	uint16 offsetAmigaFrench;
 };
 
 struct RoomText {
