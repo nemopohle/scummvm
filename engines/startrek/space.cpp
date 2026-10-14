@@ -591,7 +591,7 @@ void StarTrekEngine::playWarpSequence() {
 		}
 
 		_gfx->incPaletteFadeLevel();
-		// TODO: Enemy ships
+		updateEnemyShips();
 		updateStarfieldAndShips(false);
 		_gfx->drawAllSprites();
 		_frameIndex++;
@@ -1362,7 +1362,6 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 			if (bitmapWidth > 252)
 				error("Shape width too big in drawR3Shape!");
 
-			// TODO: Ships that are hit are drawn differently (R3 fields 0x1c0-0x1c6)
 			// Cloaking ships fade out, but only while they are visible
 			bool cloaking = r3->field1e == 2 && r3->canCloak;
 			if (cloaking)
