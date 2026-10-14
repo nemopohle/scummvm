@@ -884,6 +884,16 @@ void StarTrekEngine::drawStarfield() {
 	int16 var8 = _starfieldPointDivisor << 3;
 
 	Common::MemoryReadStreamEndian *file = _resource->loadFile("stars.shp");
+	if (getPlatform() == Common::kPlatformAmiga) {
+		// The Amiga version doesn't use this file. Only its first header was converted to big endian.
+		uint32 size = file->size();
+		byte *data = (byte *)malloc(size);
+		file->read(data, size);
+		delete file;
+		for (int i = 0; i < 8; i += 2)
+			SWAP(data[i], data[i + 1]);
+		file = new Common::MemoryReadStreamEndian(data, size, false, DisposeAfterUse::YES);
+	}
 
 	for (int i = 0; i < NUM_STARS; i++) {
 		Star *star = &_starList[i];

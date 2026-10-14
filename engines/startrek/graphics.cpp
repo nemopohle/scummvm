@@ -134,6 +134,12 @@ void Graphics::loadPalette(const Common::String &paletteName) {
 	palStream->read(_palData, 256 * 3);
 	delete palStream;
 
+	// The Amiga version fills the textboxes with color 0 instead of darkening them
+	if (_vm->getPlatform() == Common::kPlatformAmiga) {
+		memset(_lutData, 0, 256);
+		return;
+	}
+
 	// Load LUT file
 	Common::MemoryReadStreamEndian *lutStream = _vm->_resource->loadFile(lutFile.c_str());
 	lutStream->read(_lutData, 256);

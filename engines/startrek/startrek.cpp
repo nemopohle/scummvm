@@ -55,9 +55,7 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_mccoyActor(&_actorList[2]),
 	_redshirtActor(&_actorList[3]) {
 
-	if (getPlatform() == Common::kPlatformAmiga)
-		error("Amiga versions of Star Trek: 25th Anniversary are not yet supported");
-	else if (getGameType() == GType_STJR)
+	if (getGameType() == GType_STJR)
 		error("Star Trek: Judgment Rites is not yet supported");
 
 	_gfx = nullptr;
@@ -173,6 +171,7 @@ StarTrekEngine::~StarTrekEngine() {
 Common::Error StarTrekEngine::run() {
 	const Common::FSNode gameDataDir(ConfMan.getPath("path"));
 	SearchMan.addSubDirectoryMatching(gameDataDir, "misc");
+	SearchMan.addSubDirectoryMatching(gameDataDir, "database");
 
 	bool isDemo = getFeatures() & GF_DEMO;
 	bool isCd = getFeatures() & GF_CDROM;

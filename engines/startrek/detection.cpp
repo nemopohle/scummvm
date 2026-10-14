@@ -49,6 +49,7 @@ namespace StarTrek {
 
 static const char *const directoryGlobs[] = {
 	"misc",
+	"database",
 	0
 };
 
@@ -236,52 +237,52 @@ static const StarTrekGameDescription gameDescriptions[] = {
 	},
 
 
+	{ // ST25 Amiga (EN)
+		{
+			"st25",
+			"Floppy",
+			AD_ENTRY1s("data.000", "f0918b6d096455ce2ae6dd5ef973292e", 8255782),
+			Common::EN_ANY,
+			Common::kPlatformAmiga,
+			ADGF_UNSTABLE,
+			GUIO0()
+		},
+		GType_ST25,
+		0,
+	},
+
+	{ // ST25 Amiga (GER)
+		{
+			"st25",
+			"Floppy",
+			AD_ENTRY1s("data.000", "70d0e374d5fa973e536dba0f42310672", 8276058),
+			Common::DE_DEU,
+			Common::kPlatformAmiga,
+			ADGF_UNSTABLE,
+			GUIO0()
+		},
+		GType_ST25,
+		0,
+	},
+
+	{ // ST25 Amiga (FR)
+		{
+			"st25",
+			"Floppy",
+			AD_ENTRY1s("data.000", "d0299af1385edd7c7612ed453e417dd8", 8306892),
+			Common::FR_FRA,
+			Common::kPlatformAmiga,
+			ADGF_UNSTABLE,
+			GUIO0()
+		},
+		GType_ST25,
+		0,
+	},
+
 	// These are commented until future notice because I don't have complete information
 	// on them (the file size for data.000 / data.001). Will be relying on people to
 	// report the missing data.
 	/*
-	{ // ST25 Amiga ? (EN)
-		{
-			"st25",
-			"Floppy",
-			AD_ENTRY1("data.000", "f0918b6d096455ce2ae6dd5ef973292e"),
-			Common::EN_ANY,
-			Common::kPlatformAmiga,
-			ADGF_UNSTABLE,
-			GUIO2(GUIO_RENDERVGA, GUIO_RENDEREGA)
-		},
-		GType_ST25,
-		0,
-	},
-
-	{ // ST25 Amiga ? (GER)
-		{
-			"st25",
-			"Floppy",
-			AD_ENTRY1("data.000", "70d0e374d5fa973e536dba0f42310672"),
-			Common::DE_DEU,
-			Common::kPlatformAmiga,
-			ADGF_UNSTABLE,
-			GUIO2(GUIO_RENDERVGA, GUIO_RENDEREGA)
-		},
-		GType_ST25,
-		0,
-	},
-
-	{ // ST25 Amiga ? (FR)
-		{
-			"st25",
-			"Floppy",
-			AD_ENTRY1("data.000", "d0299af1385edd7c7612ed453e417dd8"),
-			Common::FR_FRA,
-			Common::kPlatformAmiga,
-			ADGF_UNSTABLE,
-			GUIO2(GUIO_RENDERVGA, GUIO_RENDEREGA)
-		},
-		GType_ST25,
-		0,
-	},
-
 	{ // ST25 Mac ? (EN)
 		{
 			"st25",

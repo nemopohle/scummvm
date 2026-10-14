@@ -178,8 +178,7 @@ uint32 Resource::getSequentialFileOffset(uint32 offset, int fileIndex) {
 	Common::SeekableReadStream *dataRunFile;
 
 	if (_platform == Common::kPlatformAmiga) {
-		// TODO: Amiga version
-		dataRunFile = nullptr;
+		dataRunFile = SearchMan.createReadStreamForMember("data000.run");
 	} else if (_platform == Common::kPlatformMacintosh) {
 		dataRunFile = _macResFork->getResource("Runs");
 	} else {
@@ -191,12 +190,14 @@ uint32 Resource::getSequentialFileOffset(uint32 offset, int fileIndex) {
 
 	dataRunFile->seek(offset);
 
-	offset = dataRunFile->readByte() + (dataRunFile->readByte() << 8) + (dataRunFile->readByte() << 16);
-	//offset &= 0xFFFFFE;
+	bool bigEndian = _platform == Common::kPlatformAmiga;
+	if (bigEndian)
+		offset = (dataRunFile->readByte() << 16) + (dataRunFile->readByte() << 8) + dataRunFile->readByte();
+	else
+		offset = dataRunFile->readByte() + (dataRunFile->readByte() << 8) + (dataRunFile->readByte() << 16);
 
-	for (uint16 i = 0; i < fileIndex; i++) {
-		offset += dataRunFile->readUint16LE();
-	}
+	for (uint16 i = 0; i < fileIndex; i++)
+		offset += bigEndian ? dataRunFile->readUint16BE() : dataRunFile->readUint16LE();
 
 	delete dataRunFile;
 
