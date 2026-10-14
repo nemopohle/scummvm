@@ -85,6 +85,23 @@ private:
 	void loadPCMusicFile(const Common::String &baseSoundName);
 	void clearMidiSlot(int slot);
 
+	// The Amiga version plays songs of "The Player 4.1A" and sampled sound effects
+	void loadAmigaMusicFile(const Common::String &baseSoundName);
+	void playAmigaTrack(int track, bool music);
+	void playAmigaSong(int song);
+	void playAmigaSoundEffect(int effect, Audio::SoundHandle *handle);
+	void stopAmigaSounds(bool music, bool soundEffects);
+	bool isAmigaMusicPlaying() const;
+
+	const int8 *_amigaTracks;
+	int _amigaTrackCount;
+	int _amigaMusicTrack;
+	Audio::SoundHandle _amigaMusicHandle;
+	Audio::SoundHandle _amigaSfxHandles[MAX_SFX_PLAYING];
+	Common::String _amigaBankName;
+	byte *_amigaBank;
+	uint32 _amigaBankSize;
+
 	// MIDI-Related Variables
 	MidiDriver *_midiDriver;
 	MidiPlaybackSlot _midiSlots[NUM_MIDI_SLOTS]; // 0 is for music; 1-7 are for sfx

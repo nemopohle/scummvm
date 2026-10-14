@@ -2,6 +2,7 @@ MODULE := engines/startrek
 
 MODULE_OBJS = \
 	actors.o \
+	amigasound.o \
 	awaymission.o \
 	bitmap.o \
 	bridge.o \

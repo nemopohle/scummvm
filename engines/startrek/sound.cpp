@@ -60,9 +60,19 @@ Sound::Sound(StarTrekEngine *vm) : _vm(vm) {
 		}
 
 		_midiDriver->setTimerCallback(this, Sound::midiDriverCallback);
-	} else {
+	} else if (_vm->getPlatform() != Common::kPlatformAmiga) {
 		_vm->_musicWorking = false;
 	}
+
+	if (!_midiDriver) {
+		for (int i = 0; i < NUM_MIDI_SLOTS; i++)
+			_midiSlots[i].midiParser = nullptr;
+	}
+	_amigaTracks = nullptr;
+	_amigaTrackCount = 0;
+	_amigaMusicTrack = -1;
+	_amigaBank = nullptr;
+	_amigaBankSize = 0;
 
 	_soundHandle = new Audio::SoundHandle();
 	_loadedSoundData = nullptr;
@@ -88,6 +98,7 @@ Sound::~Sound() {
 	delete _midiDriver;
 	delete _soundHandle;
 	delete[] _loadedSoundData;
+	delete[] _amigaBank;
 }
 
 
@@ -104,6 +115,11 @@ void Sound::playMidiTrack(MidiTracks track) {
 	// TODO: Demo music
 	if (_vm->getFeatures() & GF_DEMO)
 		return;
+
+	if (_vm->getPlatform() == Common::kPlatformAmiga) {
+		playAmigaTrack(track, false);
+		return;
+	}
 
 	assert(_loadedSoundData != nullptr);
 
@@ -129,6 +145,13 @@ void Sound::playMidiTrack(MidiTracks track) {
 }
 
 void Sound::playMidiTrackInSlot(int slot, MidiTracks track) {
+	if (_vm->getPlatform() == Common::kPlatformAmiga) {
+		clearMidiSlot(slot);
+		if (track != -1)
+			playAmigaTrack(track, slot == 0);
+		return;
+	}
+
 	assert(_loadedSoundData != nullptr);
 	debugC(6, kDebugSound, "Playing MIDI track %d (slot %d)", track, slot);
 
@@ -144,6 +167,16 @@ void Sound::playMidiTrackInSlot(int slot, MidiTracks track) {
 bool Sound::isMidiPlaying() {
 	if (!_vm->_musicWorking)
 		return false;
+
+	if (_vm->getPlatform() == Common::kPlatformAmiga) {
+		if (isAmigaMusicPlaying())
+			return true;
+		for (int i = 0; i < MAX_SFX_PLAYING; i++) {
+			if (_vm->_system->getMixer()->isSoundHandleActive(_amigaSfxHandles[i]))
+				return true;
+		}
+		return false;
+	}
 
 	for (int i = 0; i < NUM_MIDI_SLOTS; i++) {
 		if (_midiSlots[i].midiParser->isPlaying())
@@ -173,7 +206,7 @@ void Sound::loadMusicFile(const Common::String &baseSoundName) {
 	} else if (_vm->getPlatform() == Common::kPlatformDOS && isDemo) {
 		//playSMFSound(baseSoundName);
 	} else if (_vm->getPlatform() == Common::kPlatformAmiga) {
-		//playAmigaSound(baseSoundName);
+		loadAmigaMusicFile(baseSoundName);
 	} else if (_vm->getPlatform() == Common::kPlatformMacintosh) {
 		//playMacSMFSound(baseSoundName);
 	}
@@ -429,11 +462,14 @@ void Sound::setSfxEnabled(bool enable) {
 void Sound::checkLoopMusic() {
 	if (!_vm->_musicWorking || !_vm->_musicEnabled || _loopingMidiTrack == MIDITRACK_NONE)
 		return;
-	if (!_midiSlots[0].midiParser->isPlaying())
+	bool playing = _vm->getPlatform() == Common::kPlatformAmiga ? isAmigaMusicPlaying() : _midiSlots[0].midiParser->isPlaying();
+	if (!playing)
 		playMidiTrackInSlot(0, _loopingMidiTrack);
 }
 
 MidiTracks Sound::getPlayingMidiTrack() {
+	if (_vm->getPlatform() == Common::kPlatformAmiga)
+		return isAmigaMusicPlaying() ? (MidiTracks)_amigaMusicTrack : MIDITRACK_NONE;
 	if (!_vm->_musicWorking || !_midiSlots[0].midiParser->isPlaying())
 		return MIDITRACK_NONE;
 	return (MidiTracks)_midiSlots[0].track;
@@ -489,6 +525,11 @@ void Sound::loadPCMusicFile(const Common::String &baseSoundName) {
 void Sound::clearMidiSlot(int slot) {
 	if (!_vm->_musicWorking)
 		return;
+
+	if (_vm->getPlatform() == Common::kPlatformAmiga) {
+		stopAmigaSounds(slot == 0, slot != 0);
+		return;
+	}
 
 	_midiSlots[slot].midiParser->stopPlaying();
 	_midiSlots[slot].midiParser->unloadMusic();
