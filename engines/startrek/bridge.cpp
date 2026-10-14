@@ -377,8 +377,8 @@ void StarTrekEngine::playBridgeSequence(int sequenceId) {
 		showBridgeScreenTalkerWithMessage(14, "Elasi Pirate", "pira");
 		_enterpriseState.underAttack = true;
 		_sound->playMidiMusicTracks(MIDITRACK_2);
-		startBattle("orion");	// Pirate Ship 1
-		startBattle("orion");	// Pirate Ship 2
+		spawnEnemyShip("orion");
+		startBattle("orion");
 		_enterpriseState.underAttack = false;
 		showTextboxBridge(kBridgeTalkerSpock, 8);	// The ion trail of the scout ship leads to the Harrapan system, Captain
 		showTextboxBridge(kBridgeTalkerUhura, 9);
@@ -570,7 +570,7 @@ void StarTrekEngine::playBridgeSequence(int sequenceId) {
 		if (_enterpriseState.underAttack) {
 			_sound->playSoundEffectIndex(kSfxRedAlert);
 			showTextboxBridge(kBridgeTalkerSpock, 34);
-			startBattle("3PIRATE");
+			spawnEnemyShip("3PIRATE");
 			startBattle("orion");
 		} else {
 			showTextboxBridge(kBridgeTalkerSpock, 37);
@@ -635,6 +635,11 @@ void StarTrekEngine::bridgeCrewAction(int crewId) {
 	switch (crewId) {
 	case kBridgeTalkerSpock:
 	case kBridgeTalkerUhura:
+		if (_randomEncounterType != 0) {
+			showTextboxBridge(crewId, crewId == kBridgeTalkerSpock ? 7 : 8);
+			return;
+		}
+
 		while (curCrewTexts->targetPlanet != kPlanetNone) {
 			if (_targetPlanet == curCrewTexts->targetPlanet && curCrewTexts->talker == crewId) {
 				if (_enterpriseState.underAttack) {
@@ -675,11 +680,6 @@ void StarTrekEngine::bridgeCrewAction(int crewId) {
 			_currentPlanet = chooseDestination();
 			if (_currentPlanet != _targetPlanet) {
 				wrongDestinationRandomEncounter();
-				// TODO: Redraw sprites
-
-				// FIXME: Space battles are not implemented, end the encounter right away
-				_enterpriseState.underAttack = false;
-				_resource->setTxtFileName(_missionName);
 			} else {
 				arrivedAtTargetPlanet();
 			}
@@ -1568,9 +1568,31 @@ void StarTrekEngine::showMissionStartEnterpriseFlyby(Common::String sequence, Co
 void StarTrekEngine::startBattle(Common::String enemyShip) {
 	spawnEnemyShip(enemyShip);
 	_enterpriseState.underAttack = true;
-	// TODO: Mission specific retreats
-	while (hasEnemyShips() && _gameMode == GAMEMODE_BRIDGE && !_resetGameMode && !shouldQuit())
+	while (hasEnemyShips() && _gameMode == GAMEMODE_BRIDGE && !_resetGameMode && !shouldQuit()) {
 		handleBridgeEvents();
+		if (updateEnemyRetreat())
+			break;
+	}
+}
+
+// Returns true if the battle of the mission ends with the retreat
+bool StarTrekEngine::updateEnemyRetreat() {
+	if (_missionName == "TUG") {
+		R3 &ship = _enemyShips[0];
+		if (ship.field1e != 0 && ship.systems[6].strength < (ship.systems[6].maxStrength >> 1)) {
+			for (int i = 8; i < 12; i++)
+				ship.systems[i].present = 0;
+			ship.retreating = true;
+			return true;
+		}
+	} else if (_missionName == "MUDD") {
+		for (int i = 0; i < 2; i++) {
+			R3 &ship = _enemyShips[i];
+			if (ship.field1e != 0 && ship.systems[6].strength * 2 <= ship.systems[6].maxStrength)
+				ship.retreating = true;
+		}
+	}
+	return false;
 }
 
 void StarTrekEngine::showSpaceMessages() {
@@ -1585,7 +1607,24 @@ void StarTrekEngine::showSpaceMessages() {
 }
 
 void StarTrekEngine::wrongDestinationRandomEncounter() {
-	_randomEncounterType = _randomSource.getRandomNumberRng(1, 3);
+	static const char *const kElasiShips[] = { "orion", "pirate1", "mpirate" };
+
+	msSrand(_frameIndex & 0x7fff);
+	_randomEncounterType = msRand() % 3 + 1;
+	int count = (msRand() & 3) + 1;
+	for (int i = 0; i < count; i++) {
+		switch (_randomEncounterType) {
+		case kRandomEncounterKlingon:
+			spawnEnemyShip("klingon");
+			break;
+		case kRandomEncounterRomulan:
+			spawnEnemyShip((msRand() & 1) ? "romulan" : "ckling");
+			break;
+		default:
+			spawnEnemyShip(kElasiShips[msRand() % 3]);
+			break;
+		}
+	}
 
 	switch (_randomEncounterType) {
 	case kRandomEncounterKlingon:
@@ -1594,17 +1633,45 @@ void StarTrekEngine::wrongDestinationRandomEncounter() {
 	case kRandomEncounterRomulan:
 		_resource->setTxtFileName("romulan");
 		break;
-	case kRandomEncounterElasi:
+	default:
 		_resource->setTxtFileName("elasi");
 		break;
-	default:
-		break;
 	}
-
-	// TODO: The rest
-
 	_enterpriseState.underAttack = true;
-	_sound->loadMusicFile("bridge");	// TODO: check for bridgeb
+	_sound->loadMusicFile(count >= 3 ? "bridgeb" : "bridge");
+
+	// The enemies hail the Enterprise after a short while
+	uint32 hailTime = _frameIndex + 10;
+	while (_frameIndex < hailTime && !_resetGameMode && !shouldQuit())
+		handleBridgeEvents();
+
+	showTextbox("Mr. Chekov", _resource->getLoadedText(0), 196, 116, 176, 0);
+	showTextbox("Mr. Spock", _resource->getLoadedText(1), 294, 106, 44, 0);
+	const char *header = "Mr. Sulu";
+	if (_randomEncounterType == kRandomEncounterKlingon)
+		header = "Mr. Spock";
+	else if (_randomEncounterType == kRandomEncounterElasi)
+		header = "Captain Kirk";
+	showTextbox(header, _resource->getLoadedText(2), 122, 116, 176, 0);
+	showTextbox("Mr. Scott", _resource->getLoadedText(3), 64, 100, 161, 0);
+	_sound->playSoundEffectIndex(kSfxHailing);
+	showTextbox("Lieutenant Uhura", _resource->getLoadedText(4), 298, 150, 161, 0);
+	showTextbox("Captain Kirk", _resource->getLoadedText(5), 160, 130, 176, 0);
+	const char *talker = "pira";
+	if (_randomEncounterType == kRandomEncounterKlingon)
+		talker = "klg1";
+	else if (_randomEncounterType == kRandomEncounterRomulan)
+		talker = "romula";
+	showBridgeScreenTalkerWithMessage(6, "Captain", talker);
+	_sound->playMidiMusicTracks(MIDITRACK_2, kLoopTypeRepeat);
+	_sound->playSoundEffectIndex(kSfxRedAlert);
+
+	while (hasEnemyShips() && !_resetGameMode && !shouldQuit())
+		handleBridgeEvents();
+
+	_randomEncounterType = 0;
+	_resource->setTxtFileName(_missionName);
+	_sound->loadMusicFile("bridge");
 }
 
 // Used when approaching Beta Myamid / Masada in chapter 2, and Ark 7 in chapter 3

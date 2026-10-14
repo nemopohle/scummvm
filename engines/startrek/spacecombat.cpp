@@ -591,6 +591,43 @@ void StarTrekEngine::loadProjectileView(R3 *projectile) {
 	projectile->bitmap = new Bitmap(_resource->loadFile(name + ".shp"));
 }
 
+// Copies a ship to a 256x256 bitmap at (2, 2), with colors darkened by the cloak
+void StarTrekEngine::copyCloakedShip(Bitmap *dest, Bitmap *ship, int16 level) {
+	if (level != _cloakLutLevel) {
+		Common::MemoryReadStreamEndian *file = _resource->loadFile(Common::String::format("cloak%d.lut", level));
+		file->read(_cloakLut, sizeof(_cloakLut));
+		delete file;
+		_cloakLutLevel = level;
+	}
+
+	for (int y = 0; y < ship->height; y++) {
+		const byte *src = ship->pixels + y * ship->width;
+		byte *dst = dest->pixels + (y + 2) * dest->width + 2;
+		for (int x = 0; x < ship->width; x++)
+			dst[x] = _cloakLut[src[x]];
+	}
+}
+
+void StarTrekEngine::drawViewscreenStatic() {
+	Bitmap *tile = new Bitmap(_resource->loadBitmapFile(Common::String::format("static%d", msRand() % 5)));
+	const Common::Rect &rect = _starfieldRect;
+	byte *pixels = _gfx->getBackgroundPixels() + rect.top * SCREEN_WIDTH + rect.left;
+
+	for (int tileY = 0; tileY < tile->height; tileY++) {
+		for (int tileX = 0; tileX < tile->width; tileX++) {
+			byte color = tile->pixels[tileY * tile->width + tileX];
+			if (color == 0)
+				continue;
+			for (int y = tileY; y < rect.height(); y += tile->height) {
+				for (int x = tileX; x < rect.width(); x += tile->width)
+					pixels[y * SCREEN_WIDTH + x] = color;
+			}
+		}
+	}
+
+	delete tile;
+}
+
 // Updates the leftmost and rightmost pixel of a row of a phaser beam
 static void addBeamPixels(int16 *spans, const Common::Rect &rect, int16 y, int16 left, int16 right) {
 	if (y < rect.top || y >= rect.bottom)

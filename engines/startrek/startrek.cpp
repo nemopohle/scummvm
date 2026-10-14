@@ -105,6 +105,7 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 		_projectiles[i] = R3();
 	_msRandState = 1;
 	_spaceMessages = 0;
+	_cloakLutLevel = -1;
 	_restoreFullscreenView = false;
 	_heldKey = Common::KEYCODE_INVALID;
 	Common::fill(_r3List, _r3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);

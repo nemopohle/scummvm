@@ -901,8 +901,29 @@ void StarTrekEngine::updateStarfieldAndShips(bool arg0) {
 			r3 = sub_19f24(r3);
 			break;
 		case 2:
-			// TODO: exploding ships
-			r3 = sub_19f24(r3);
+			if (r3->exploding) {
+				r3->explosionFrame++;
+				if (r3->explosionFrame > 45) {
+					if (r3 == &_enterpriseR3)
+						enterpriseDestroyed = true;
+					else
+						delR3(r3);
+					r3 = nullptr;
+				} else {
+					// The explosion gets bigger after a while
+					int16 radius = r3->field22;
+					int16 size = r3->field24;
+					bool large = r3->explosionFrame >= 24;
+					r3->field24 = large ? 12 : 6;
+					r3->field22 = large ? radius * 2 : radius;
+					R3 *ship = r3;
+					r3 = sub_19f24(ship);
+					ship->field22 = radius;
+					ship->field24 = size;
+				}
+			} else {
+				r3 = sub_19f24(r3);
+			}
 			break;
 		case 3:
 			r3 = sub_19f24(r3);
@@ -924,8 +945,24 @@ void StarTrekEngine::updateStarfieldAndShips(bool arg0) {
 
 			switch (r3->field1e) { // TODO
 			case 1:
-			case 2:
 				drawR3Shape(r3);
+				break;
+			case 2:
+				if (r3->exploding) {
+					if (r3->explosionFrame < 21)
+						drawR3Shape(r3);
+					int16 shape = r3->field20;
+					int16 size = r3->field24;
+					r3->field1e = 4;
+					r3->field20 = 4;
+					r3->field24 = r3->explosionFrame < 24 ? 6 : 12;
+					drawR3Shape(r3);
+					r3->field1e = 2;
+					r3->field20 = shape;
+					r3->field24 = size;
+				} else {
+					drawR3Shape(r3);
+				}
 				break;
 			case 3:
 				if (r3->field20 == 1)
@@ -946,7 +983,8 @@ void StarTrekEngine::updateStarfieldAndShips(bool arg0) {
 		return;
 	}
 
-	// TODO: static on enterprise viewscreen?
+	if (arg0)
+		drawViewscreenStatic();
 }
 
 R3 *StarTrekEngine::sub_19f24(R3 *r3) {
@@ -1030,10 +1068,9 @@ bool StarTrekEngine::calcShipViewTransform(R3 *r3, double scale, double forward[
 }
 
 void StarTrekEngine::drawR3Shape(R3 *r3) {
-	if (r3->field1e == 4) // TODO: explosions
-		return;
-
-	if (r3->field1e == 1)
+	if (r3->field1e == 4)
+		r3->bitmap = new Bitmap(_resource->loadFile(Common::String::format("bigexp%02d.shp", r3->explosionFrame)));
+	else if (r3->field1e == 1)
 		loadPlanetView(r3);
 	else if (r3->field1e == 2)
 		loadShipView(r3);
@@ -1054,7 +1091,8 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 		double dbl48 = 0.0;
 
 		switch (r3->field1e) {
-		case 1: {
+		case 1:
+		case 4: {
 			// The image is rotated around the view axis
 			Matrix m = multMatrix(r3->shipViewMatrix.invert(), r3->matrix2);
 			int16 roll = angleAtan2(m[0][1].raw(), m[0][0].raw());
@@ -1080,8 +1118,6 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 			dbl58 = 0.0;
 			dbl50 = 0.0;
 			dbl48 = dbl70;
-			break;
-		case 4: // TODO
 			break;
 		case 2: {
 			double forward[4], inverse[4];
@@ -1269,7 +1305,14 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 				error("Shape width too big in drawR3Shape!");
 
 			// TODO: Ships that are hit are drawn differently (R3 fields 0x1c0-0x1c6)
-			_gfx->copyRectBetweenBitmaps(&tmpBitmap, 2, 2, r3->bitmap, 0, 0, bitmapWidth, bitmapHeight);
+			// Cloaking ships fade out, but only while they are visible
+			bool cloaking = r3->field1e == 2 && r3->canCloak;
+			if (cloaking)
+				r3->cloakLevel = CLIP<int16>(r3->cloakLevel + (r3->cloakActive ? 1 : -1), 0, 28);
+			if (cloaking && r3->cloakLevel >= 20)
+				copyCloakedShip(&tmpBitmap, r3->bitmap, r3->cloakLevel - 20);
+			else
+				_gfx->copyRectBetweenBitmaps(&tmpBitmap, 2, 2, r3->bitmap, 0, 0, bitmapWidth, bitmapHeight);
 
 			byte *bgPixels = _gfx->getBackgroundPixels() + shpImageTop * SCREEN_WIDTH;
 
@@ -1334,7 +1377,7 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 		delete[] leftBounds;
 	}
 
-	if (r3->field1e == 1 || (r3->field1e == 3 && r3->projectileOwner))
+	if (r3->field1e == 1 || r3->field1e == 4 || (r3->field1e == 3 && r3->projectileOwner))
 		freePlanetView(r3);
 	else if (r3->field1e == 2)
 		freeShipView(r3);
@@ -1385,11 +1428,6 @@ static const uint16 kShipViews[12][7] = {
 
 // Loads the view of a ship closest to the direction it is seen from
 void StarTrekEngine::loadShipView(R3 *r3) {
-	if (r3->field20 == 4) {
-		// TODO: Explosion (BigExp%02d.shp)
-		return;
-	}
-
 	if (r3->field54 < _flt_50898)
 		error("object too close.");
 

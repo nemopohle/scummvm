@@ -262,6 +262,7 @@ public:
 	void handleBridgeEvents();
 	void updateBridgeTick();
 	void showSpaceMessages();
+	bool updateEnemyRetreat();
 	void updateBridgeSpace();
 	void setMouseControllingShip(bool enable);
 	void restrictBridgeMouse();
@@ -399,6 +400,8 @@ private:
 	bool damageShipSystem(R3 *ship, int side, int16 damage);
 	void loadProjectileView(R3 *projectile);
 	void drawPhaserBeam(R3 *projectile);
+	void copyCloakedShip(Bitmap *dest, Bitmap *ship, int16 level);
+	void drawViewscreenStatic();
 
 	void playWarpSequence();
 	void pointCameraAt(const Point3 &target, const Point_Fixed14 &up);
@@ -854,6 +857,8 @@ public:
 	uint16 msRand();
 	void msSrand(uint16 seed);
 	int _spaceMessages;
+	byte _cloakLut[256];
+	int16 _cloakLutLevel;
 	byte *_planetSphereMap;
 	byte _planetTexture[PLANET_TEXTURE_SIZE * PLANET_TEXTURE_SIZE];
 	Common::String _planetTextureName;
