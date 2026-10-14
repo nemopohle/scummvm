@@ -262,6 +262,7 @@ public:
 
 	Common::Error run() override;
 	Common::Error runGameMode(int mode, bool resume);
+	void restartGame();
 
 	// Transporter room
 	void runTransportSequence(const Common::String &name);

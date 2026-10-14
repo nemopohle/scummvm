@@ -222,6 +222,65 @@ Common::Error StarTrekEngine::run() {
 	return Common::kNoError;
 }
 
+// Starts a new game without the intro. The original loads SAVEGAME.NEW for this.
+void StarTrekEngine::restartGame() {
+	for (int i = 0; i < NUM_ENEMY_SHIPS; i++) {
+		if (_enemyShips[i].field1e != 0)
+			delR3(&_enemyShips[i]);
+		_enemyShips[i] = R3();
+	}
+	removeProjectiles();
+	removeOrbitObject();
+	Common::fill(_r3List, _r3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);
+
+	_enterpriseR3 = R3();
+	_enterpriseR3.matrix = initMatrix();
+	loadShipDescriptor(&_enterpriseR3, "enterpri");
+	addR3(&_enterpriseR3);
+	initSpaceObjects();
+
+	_enterpriseState = EnterpriseState();
+	_targetShip = nullptr;
+	_msRandState = 1;
+	_spaceMessages = 0;
+	_repairPriority = kRepairNone;
+	_repairedGroup = kRepairNone;
+	_emergencyPowerUsed = false;
+	_emergencyPowerTicks = 0;
+	_emergencyPowerRate = 0;
+	_emergencyPowerAmount = 30;
+	_emergencyPowerDuration = 450;
+	_viewDirection = 0;
+	_viewscreenZoom = 6;
+
+	memset(&_awayMission, 0, sizeof(_awayMission));
+	for (int i = 0; i < NUM_OBJECTS; i++)
+		_itemList[i] = g_itemList[i];
+
+	_targetPlanet = -1;
+	_currentPlanet = -1;
+	_randomEncounterType = 0;
+	_lastMissionId = -1;
+	Common::fill(_missionPoints, _missionPoints + 7, 0);
+	_missionToLoad = "DEMON";
+	_missionState = kMissionDemonStart;
+	_missionTicks = 0;
+	Common::fill(_missionVars, _missionVars + ARRAYSIZE(_missionVars), 0);
+	_missionScore = 0;
+	_missionMaxScore = 0;
+	_missionEndFlag = 0;
+	_returnedFromAwayMission = false;
+	_bridgeInputLocked = false;
+	_frameIndex = 0;
+
+	// The bridge is set up again by the game loop
+	if (_gameMode == GAMEMODE_BRIDGE) {
+		cleanupBridge();
+		_lastGameMode = -1;
+	}
+	_gameMode = GAMEMODE_BRIDGE;
+}
+
 Common::Error StarTrekEngine::runGameMode(int mode, bool resume) {
 	_gfx->toggleMouse(true);
 

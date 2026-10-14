@@ -1001,7 +1001,7 @@ void StarTrekEngine::showGameOverMenu() {
 			return;
 		case 1: // Restart
 			_gfx->fadeoutScreen();
-			// TODO
+			restartGame();
 			_resetGameMode = true;
 			return;
 		case 2: // Quit
