@@ -35,6 +35,15 @@
 		}                                        \
 	}
 
+// Rooms that the floppy version replaces with its own
+#define ADD_FLOPPY_ROOM(NAME, ROOM) {            \
+		if (name.equalsIgnoreCase(#NAME)) {      \
+			_roomActionList = ROOM##ActionList;  \
+			_roomTextList = ROOM##TextOffsets;   \
+			_roomStaticTextList = ROOM##Texts;   \
+		}                                        \
+	}
+
 #define ADD_ROOM_COMMON(PREFIX) {                        \
 		if (name.hasPrefixIgnoreCase(#PREFIX)) {         \
 			_roomCommonTextList = PREFIX##TextOffsets;   \
@@ -106,6 +115,12 @@ Room::Room(StarTrekEngine *vm, const Common::String &name) : _vm(vm), _awayMissi
 	ADD_ROOM(veng7)
 	ADD_ROOM(veng8)
 	ADD_ROOM_COMMON(veng)
+
+	// The floppy version has a shorter Vengeance away mission
+	if (vm->isFloppyVersion()) {
+		ADD_FLOPPY_ROOM(veng0, vengf0)
+		ADD_FLOPPY_ROOM(veng1, vengf1)
+	}
 
 	if (_roomActionList == nullptr) {
 		warning("Room \"%s\" unimplemented", name.c_str());

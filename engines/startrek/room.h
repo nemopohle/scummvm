@@ -2880,6 +2880,61 @@ public:
 	void vengaUseCommunicator();
 	void vengaUseMccoyOnDeadGuy();
 
+	// VENGF0 (floppy)
+	void vengf0Tick1();
+	void vengf0Tick10();
+	void vengf0Tick50();
+	void vengf0UseSTricorderOnComputerBank();
+	void vengf0UseSTricorderOnChair();
+	void vengf0UseMccoyOnDeadCrew();
+	void vengf0TalkToKirk();
+	void vengf0TalkToMccoy();
+	void vengf0TalkToSpock();
+	void vengf0TalkToRedshirt();
+	void vengf0UseCommunicator();
+	void vengf0TouchedHotspot0();
+	void vengf0LookAtPatterson();
+	void vengf0LookAtDeadCrewman();
+	void vengf0LookAtComputerBank();
+	void vengf0LookAtChair();
+	void vengf0LookAtKirk();
+	void vengf0LookAtSpock();
+	void vengf0LookAtMccoy();
+	void vengf0LookAtRedshirt();
+	void vengf0LookAtDeadMan();
+	void vengf0UseMccoyOnDeadMan();
+	void vengf0MccoyReachedDeadMan();
+	void vengf0MccoyExaminedDeadMan();
+
+	// VENGF1 (floppy)
+	void vengf1Tick1();
+	void vengf1TalkToKirk();
+	void vengf1TalkToMccoy();
+	void vengf1TalkToSpock();
+	void vengf1TalkToRedshirt();
+	void vengf1UseMccoyOnDeadGuy();
+	void vengf1UseMedkitOnBrittany();
+	void vengf1UseMTricorderOnBrittany();
+	void vengf1UseMccoyOnBrittany();
+	void vengf1WalkMccoyToBrittany();
+	void vengf1MccoyReachedBrittany();
+	void vengf1UsedMedkitOnBrittany();
+	void vengf1MccoyScannedBrittany();
+	void vengf1TalkToBrittany();
+	void vengf1UseCommunicator();
+	void vengf1LookAtLeftBed();
+	void vengf1LookAtRightBed();
+	void vengf1LookAtLeftBedReadings();
+	void vengf1LookAtRightBedReadings();
+	void vengf1LookAtDoor();
+	void vengf1LookAtKirk();
+	void vengf1LookAtSpock();
+	void vengf1LookAtMccoy();
+	void vengf1LookAtRedshirt();
+	void vengf1LookAtBrittany();
+	void vengf1TouchedHotspot0();
+	void vengf1WalkToDoor();
+
 public:
 	// Room-specific variables. This is memset'ed to 0 when the room is initialized.
 	// NOTE: Any changes here must be reflected in the corresponding serializer functions.

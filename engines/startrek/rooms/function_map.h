@@ -86,6 +86,10 @@ extern const RoomText veng4Texts[], veng5Texts[], veng6Texts[], veng7Texts[];
 extern const RoomText veng8Texts[];
 extern const RoomTextOffsets vengTextOffsets[];
 
+extern const RoomAction vengf0ActionList[], vengf1ActionList[];
+extern const RoomTextOffsets vengf0TextOffsets[], vengf1TextOffsets[];
+extern const RoomText vengf0Texts[], vengf1Texts[];
+
 }
 
 #endif
