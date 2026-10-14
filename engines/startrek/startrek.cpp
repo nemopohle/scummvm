@@ -98,6 +98,13 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_viewscreenZoom = 6;
 	_viewscreenFullscreen = false;
 	_planetSphereMap = nullptr;
+	_targetShip = nullptr;
+	for (int i = 0; i < NUM_ENEMY_SHIPS; i++)
+		_enemyShips[i] = R3();
+	for (int i = 0; i < NUM_PROJECTILES; i++)
+		_projectiles[i] = R3();
+	_msRandState = 1;
+	_spaceMessages = 0;
 	_restoreFullscreenView = false;
 	_heldKey = Common::KEYCODE_INVALID;
 	Common::fill(_r3List, _r3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);

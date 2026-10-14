@@ -20,6 +20,7 @@ MODULE_OBJS = \
 	saveload.o \
 	sound.o \
 	space.o \
+	spacecombat.o \
 	sprite.o \
 	startrek.o \
 	text.o \

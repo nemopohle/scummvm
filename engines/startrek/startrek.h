@@ -211,6 +211,11 @@ struct ComputerTopic {
 	Common::String topic;
 };
 
+enum SpaceMessage {
+	kSpaceMessageShieldsFalling = 1 << 0,
+	kSpaceMessageWeaponsOffline = 1 << 1
+};
+
 struct EnterpriseState {
 	bool shields;
 	bool weapons;
@@ -256,6 +261,7 @@ public:
 	void playBridgeSequence(int sequenceId);
 	void handleBridgeEvents();
 	void updateBridgeTick();
+	void showSpaceMessages();
 	void updateBridgeSpace();
 	void setMouseControllingShip(bool enable);
 	void restrictBridgeMouse();
@@ -377,6 +383,23 @@ private:
 	void moveR3(R3 *r3);
 	void updateShipSpeed(R3 *r3, int32 targetSpeed);
 	void rotateR3(R3 *r3, int axis, int16 angle);
+
+	// spacecombat.cpp
+	void spawnEnemyShip(const Common::String &name);
+	bool hasEnemyShips();
+	void updateEnemyShips();
+	void updateEnemyShip(R3 *ship);
+	int32 randomTurnRate(R3 *ship);
+	void updateManeuver(R3 *ship);
+	void fireEnemyWeapons(R3 *ship, const Point3 &local, const Point3 &direction);
+	bool fireWeapon(R3 *ship, int weaponIndex, const Point3 *direction);
+	void fireEnterpriseWeapons(bool torpedoes);
+	void updateProjectiles();
+	void applyHit(R3 *ship, R3 *projectile);
+	bool damageShipSystem(R3 *ship, int side, int16 damage);
+	void loadProjectileView(R3 *projectile);
+	void drawPhaserBeam(R3 *projectile);
+
 	void playWarpSequence();
 	void pointCameraAt(const Point3 &target, const Point_Fixed14 &up);
 	void turnCameraTowards(const Point3 &target);
@@ -823,6 +846,14 @@ public:
 	Common::Rect _starfieldRect;
 	R3 _enterpriseR3;
 	R3 _planetR3;
+	R3 _enemyShips[NUM_ENEMY_SHIPS];
+	R3 _projectiles[NUM_PROJECTILES];
+	R3 *_targetShip;
+	// Shared like the random number generator of the original
+	uint32 _msRandState;
+	uint16 msRand();
+	void msSrand(uint16 seed);
+	int _spaceMessages;
 	byte *_planetSphereMap;
 	byte _planetTexture[PLANET_TEXTURE_SIZE * PLANET_TEXTURE_SIZE];
 	Common::String _planetTextureName;

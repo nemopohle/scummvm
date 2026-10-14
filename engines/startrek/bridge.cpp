@@ -1014,10 +1014,16 @@ void StarTrekEngine::handleBridgeEvents() {
 		switch (event.type) {
 		case TREKEVENT_TICK:
 			updateBridgeTick();
+			showSpaceMessages();
 			break;
 
 		case TREKEVENT_LBUTTONDOWN:
-			bridgeLeftClick();
+			if (_mouseControllingShip) {
+				if (!_enterpriseState.inOrbit)
+					fireEnterpriseWeapons(false);
+			} else {
+				bridgeLeftClick();
+			}
 			break;
 
 		case TREKEVENT_MOUSEMOVE:
@@ -1029,7 +1035,8 @@ void StarTrekEngine::handleBridgeEvents() {
 			break;
 
 		case TREKEVENT_RBUTTONDOWN:
-			// TODO
+			if (_mouseControllingShip && !_enterpriseState.inOrbit)
+				fireEnterpriseWeapons(true);
 			break;
 
 		case TREKEVENT_KEYDOWN:
@@ -1050,10 +1057,13 @@ void StarTrekEngine::handleBridgeEvents() {
 			case Common::KEYCODE_KP_ENTER:
 			case Common::KEYCODE_F1:
 				// Fire phasers
-				// TODO
+				if (_mouseControllingShip && !_enterpriseState.inOrbit)
+					fireEnterpriseWeapons(false);
 				break;
 			case Common::KEYCODE_SPACE:	// Fire photon torpedoes
-				// TODO
+			case Common::KEYCODE_F2:
+				if (_mouseControllingShip && !_enterpriseState.inOrbit)
+					fireEnterpriseWeapons(true);
 				break;
 			case Common::KEYCODE_v:	// Toggle between the normal bridge view and full screen view
 				if (_viewscreenFullscreen) {
@@ -1173,11 +1183,14 @@ void StarTrekEngine::updateBridgeTick() {
 }
 
 void StarTrekEngine::updateBridgeSpace() {
+	_enterpriseR3.shieldsOn = _enterpriseState.shields;
+	_enterpriseR3.weaponsOn = _enterpriseState.weapons;
 	distributeEnergy(&_enterpriseR3);
 	moveR3(&_enterpriseR3);
 	if ((_frameIndex & 0x1f) == 7)
 		repairShipSystems(&_enterpriseR3);
-	// TODO: Enemy ships and projectiles
+	updateEnemyShips();
+	updateProjectiles();
 	if ((_frameIndex & 0x3f) == 0)
 		normalizeShipMatrices();
 	rotateR3(&_planetR3, 1, 4);
@@ -1185,7 +1198,7 @@ void StarTrekEngine::updateBridgeSpace() {
 
 	// The viewscreen shows static depending on the damage of this system
 	const ShipSystem &viewscreen = _enterpriseR3.systems[12];
-	bool showStatic = viewscreen.maxStrength > 0 && viewscreen.strength < (int16)_randomSource.getRandomNumber(viewscreen.maxStrength - 1);
+	bool showStatic = viewscreen.maxStrength > 0 && viewscreen.strength < (int16)(msRand() % viewscreen.maxStrength);
 	updateStarfieldAndShips(showStatic);
 }
 
@@ -1553,7 +1566,22 @@ void StarTrekEngine::showMissionStartEnterpriseFlyby(Common::String sequence, Co
 }
 
 void StarTrekEngine::startBattle(Common::String enemyShip) {
-	// TODO
+	spawnEnemyShip(enemyShip);
+	_enterpriseState.underAttack = true;
+	// TODO: Mission specific retreats
+	while (hasEnemyShips() && _gameMode == GAMEMODE_BRIDGE && !_resetGameMode && !shouldQuit())
+		handleBridgeEvents();
+}
+
+void StarTrekEngine::showSpaceMessages() {
+	const char *shieldsFallingText = "#BRID\\BRID_S45#The shields are falling!";
+	const char *weaponsOfflineText = "#BRID\\BRID_S37#Our weapons are off-line!";
+
+	if (_spaceMessages & kSpaceMessageShieldsFalling)
+		showTextbox("Mr. Scott", shieldsFallingText, 0, 160, 161, 0);
+	if (_spaceMessages & kSpaceMessageWeaponsOffline)
+		showTextbox("Mr. Scott", weaponsOfflineText, 0, 160, 161, 0);
+	_spaceMessages = 0;
 }
 
 void StarTrekEngine::wrongDestinationRandomEncounter() {

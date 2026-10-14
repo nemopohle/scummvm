@@ -24,97 +24,12 @@
 
 namespace StarTrek {
 
-// Multiplies a row vector with a matrix
-static Point3 multPointMatrix(const Point3 &p, const Matrix &m) {
-	Point3 result;
-	for (int i = 0; i < 3; i++) {
-		int32 sum = (int32)(int16)p.x * m[0][i].raw() + (int32)(int16)p.y * m[1][i].raw() + (int32)(int16)p.z * m[2][i].raw();
-		result[i] = (int16)(sum >> 14);
-	}
-	return result;
+uint16 StarTrekEngine::msRand() {
+	return msRandNext(_msRandState);
 }
 
-static Matrix multMatrix(const Matrix &a, const Matrix &b) {
-	Matrix result;
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			int32 sum = (int32)a[i][0].raw() * b[0][j].raw() + (int32)a[i][1].raw() * b[1][j].raw() + (int32)a[i][2].raw() * b[2][j].raw();
-			result[i][j] = Fixed14::fromRaw((int16)(sum >> 14));
-		}
-	}
-	return result;
-}
-
-// Matrix rows and columns changed by rotations around the X, Y and Z axis
-static const int kRotationAxes[3][2] = { { 1, 2 }, { 2, 0 }, { 0, 1 } };
-
-static Matrix axisRotation(int axis, int16 sinValue, int16 cosValue) {
-	int a = kRotationAxes[axis][0];
-	int b = kRotationAxes[axis][1];
-
-	Matrix rotation;
-	for (int i = 0; i < 3; i++)
-		rotation[i][i] = Fixed14::fromRaw(0x4000);
-	rotation[a][a] = Fixed14::fromRaw(cosValue);
-	rotation[a][b] = Fixed14::fromRaw(sinValue);
-	rotation[b][a] = Fixed14::fromRaw(-sinValue);
-	rotation[b][b] = Fixed14::fromRaw(cosValue);
-	return rotation;
-}
-
-static void rotateMatrix(Matrix &matrix, int axis, int16 sinValue, int16 cosValue) {
-	matrix = multMatrix(axisRotation(axis, sinValue, cosValue), matrix);
-}
-
-static Point_Fixed14 crossProduct(const Point_Fixed14 &a, const Point_Fixed14 &b) {
-	Point_Fixed14 result;
-	result.x = Fixed14::fromRaw(fixedMult2(a.y.raw(), b.z.raw(), a.z.raw(), -b.y.raw()));
-	result.y = Fixed14::fromRaw(fixedMult2(a.z.raw(), b.x.raw(), a.x.raw(), -b.z.raw()));
-	result.z = Fixed14::fromRaw(fixedMult2(a.x.raw(), b.y.raw(), a.y.raw(), -b.x.raw()));
-	return result;
-}
-
-static int16 vectorLength(int16 x, int16 y, int16 z) {
-	uint32 squared = (uint32)((int32)x * x + (int32)y * y + (int32)z * z);
-	uint32 root = (uint32)sqrt((double)squared);
-	while (root * root > squared)
-		root--;
-	while ((root + 1) * (root + 1) <= squared)
-		root++;
-	return (int16)root;
-}
-
-static Point_Fixed14 normalizeVector(const Point_Fixed14 &v) {
-	Point_Fixed14 result;
-	int16 length = vectorLength(v.x.raw(), v.y.raw(), v.z.raw());
-	if (length != 0) {
-		result.x = Fixed14::fromRaw(fixedDiv(v.x.raw(), length));
-		result.y = Fixed14::fromRaw(fixedDiv(v.y.raw(), length));
-		result.z = Fixed14::fromRaw(fixedDiv(v.z.raw(), length));
-	}
-	return result;
-}
-
-// Removes the rounding errors accumulated by repeated rotations
-static void normalizeMatrix(Matrix &matrix) {
-	matrix[0] = crossProduct(matrix[1], matrix[2]);
-	matrix[1] = crossProduct(matrix[2], matrix[0]);
-	for (int i = 0; i < 3; i++)
-		matrix[i] = normalizeVector(matrix[i]);
-}
-
-// Returns false if the direction is zero
-static bool lookAt(const Point3 &direction, const Point_Fixed14 &up, Matrix &matrix) {
-	Point_Fixed14 forward;
-	for (int i = 0; i < 3; i++)
-		forward[i] = Fixed14::fromRaw((int16)direction[i]);
-	if (vectorLength(forward.x.raw(), forward.y.raw(), forward.z.raw()) == 0)
-		return false;
-
-	matrix[2] = normalizeVector(forward);
-	matrix[0] = normalizeVector(crossProduct(up, matrix[2]));
-	matrix[1] = crossProduct(matrix[2], matrix[0]);
-	return true;
+void StarTrekEngine::msSrand(uint16 seed) {
+	_msRandState = seed;
 }
 
 void StarTrekEngine::initTrigTables() {
@@ -281,7 +196,18 @@ void StarTrekEngine::loadShipDescriptor(R3 *r3, const Common::String &name) {
 	for (int i = 0; i < 3; i++)
 		r3->turnAngle[i] = file->readSint32();
 	r3->field140 = file->readSint16();
-	// TODO: The rest of the file describes weapons etc.
+	r3->engageRange = file->readSint32();
+	r3->canCloak = file->readSint16() != 0;
+	for (int i = 0; i < ARRAYSIZE(r3->weapons); i++) {
+		ShipWeapon &weapon = r3->weapons[i];
+		weapon.nextFireTime = file->readUint32();
+		weapon.lifetime = file->readSint16();
+		weapon.speed = file->readSint16();
+		weapon.cooldown = file->readSint16();
+		for (int j = 0; j < 3; j++)
+			weapon.mount[j] = file->readSint32();
+		weapon.shape = file->readSint16();
+	}
 	delete file;
 }
 
@@ -326,16 +252,10 @@ static const struct {
 	{ "pollux",  0x2f0,  9 }, { "christ", 0xea,   9 }
 };
 
-// The random number generator of the Microsoft C library
-static uint16 msRand(uint32 &state) {
-	state = state * 0x343fd + 0x269ec3;
-	return (state >> 16) & 0x7fff;
-}
-
 // Fractal height map of a planet, created by midpoint displacement
 class PlanetHeightMap {
 public:
-	PlanetHeightMap(int16 size, uint16 seed) : _size(size), _state(seed) {
+	PlanetHeightMap(int16 size, uint32 &state) : _size(size), _state(state) {
 		_heights = new int16[size * size]();
 	}
 
@@ -359,7 +279,7 @@ private:
 		int16 halfY = (y2 - y1) >> 1;
 		int16 h1 = _heights[x1 * _size + y1];
 		int16 h2 = _heights[(x2 & (_size - 1)) * _size + (y2 & (_size - 1))];
-		int16 offset = (int16)(msRand(_state) - 0x4000) % (halfX + halfY);
+		int16 offset = (int16)(msRandNext(_state) - 0x4000) % (halfX + halfY);
 		_heights[(x1 + halfX) * _size + y1 + halfY] = (h1 + h2) / 2 + offset;
 
 		if (halfX + halfY > 1) {
@@ -385,12 +305,13 @@ private:
 	}
 
 	int16 _size;
-	uint32 _state;
+	uint32 &_state;
 	int16 *_heights;
 };
 
 void StarTrekEngine::generatePlanetTexture(uint16 seed, int16 colors) {
-	PlanetHeightMap heightMap(PLANET_TEXTURE_SIZE, seed);
+	msSrand(seed);
+	PlanetHeightMap heightMap(PLANET_TEXTURE_SIZE, _msRandState);
 	heightMap.generate();
 
 	const int count = PLANET_TEXTURE_SIZE * PLANET_TEXTURE_SIZE;
@@ -420,8 +341,9 @@ void StarTrekEngine::initSystemPlanet(int system) {
 	if (system >= 0 && system < ARRAYSIZE(kSystemPlanets)) {
 		initPlanet(&_planetR3, kSystemPlanets[system].name, kSystemPlanets[system].seed, kSystemPlanets[system].colors);
 	} else {
-		uint16 seed = _randomSource.getRandomNumber(999);
-		int16 colors = _randomSource.getRandomNumber(15) + 6;
+		msSrand(_frameIndex);
+		uint16 seed = msRand() % 1000;
+		int16 colors = msRand() % 16 + 6;
 		initPlanet(&_planetR3, Common::String::format("r%dc%d", seed, colors), seed, colors);
 	}
 }
@@ -566,7 +488,38 @@ void StarTrekEngine::updateShipSpeed(R3 *r3, int32 targetSpeed) {
 
 void StarTrekEngine::distributeEnergy(R3 *r3) {
 	r3->energy = r3->systems[13].strength + r3->systems[14].strength + r3->systems[15].strength;
-	// TODO: Emergency power, shields, weapons and cloaking device
+	// TODO: Emergency power
+
+	if (!r3->shieldsOn) {
+		r3->shieldsActive = false;
+	} else if (r3->energy < 10) {
+		if (r3->shieldsActive && r3 == &_enterpriseR3)
+			_spaceMessages |= kSpaceMessageShieldsFalling;
+		r3->shieldsActive = false;
+	} else {
+		r3->energy -= 10;
+		r3->shieldsActive = true;
+	}
+
+	if (!r3->cloakRequested || r3->energy < 20) {
+		r3->cloakActive = false;
+	} else {
+		if (!r3->cloakActive)
+			r3->cloakLevel = 0;
+		r3->energy -= 20;
+		r3->cloakActive = true;
+	}
+
+	if (!r3->weaponsOn) {
+		r3->weaponsActive = false;
+	} else if (r3->energy < 10) {
+		if (r3->weaponsActive && r3 == &_enterpriseR3)
+			_spaceMessages |= kSpaceMessageWeaponsOffline;
+		r3->weaponsActive = false;
+	} else {
+		r3->energy -= 10;
+		r3->weaponsActive = true;
+	}
 
 	int16 available = MIN<int16>(r3->energy, 70);
 	int16 required = 0;
@@ -975,9 +928,9 @@ void StarTrekEngine::updateStarfieldAndShips(bool arg0) {
 				drawR3Shape(r3);
 				break;
 			case 3:
-				if (r3->field20 == 1) {
-					// TODO
-				} else
+				if (r3->field20 == 1)
+					drawPhaserBeam(r3);
+				else
 					drawR3Shape(r3);
 				break;
 			default:
@@ -1084,6 +1037,8 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 		loadPlanetView(r3);
 	else if (r3->field1e == 2)
 		loadShipView(r3);
+	else if (r3->field1e == 3 && r3->projectileOwner)
+		loadProjectileView(r3);
 
 	if (r3->bitmap != nullptr) {
 		double dbl68 = ((double)r3->field24 * _starfieldPointDivisor) / r3->field36.z;
@@ -1379,7 +1334,7 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 		delete[] leftBounds;
 	}
 
-	if (r3->field1e == 1)
+	if (r3->field1e == 1 || (r3->field1e == 3 && r3->projectileOwner))
 		freePlanetView(r3);
 	else if (r3->field1e == 2)
 		freeShipView(r3);
