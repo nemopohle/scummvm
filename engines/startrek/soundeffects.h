@@ -98,7 +98,8 @@ enum MidiTracks {
 enum MidiLoopType {
 	kLoopTypeRepeat = -3,
 	kLoopTypeLast = -2,
-	kLoopTypeNone = -1
+	kLoopTypeNone = -1,
+	kLoopTypeTrack0 = 0	// Values from 0 are the track that loops afterwards
 };
 
 #endif

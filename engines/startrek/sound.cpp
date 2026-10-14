@@ -183,6 +183,8 @@ void Sound::playMidiMusicTracks(MidiTracks startTrack, MidiLoopType loopType) {
 		_loopingMidiTrack = startTrack;
 	else if (loopType == kLoopTypeNone)
 		_loopingMidiTrack = MIDITRACK_NONE;
+	else if (loopType >= 0)
+		_loopingMidiTrack = (MidiTracks)loopType;
 
 	if (_vm->_musicEnabled)
 		playMidiTrackInSlot(0, startTrack);
@@ -308,9 +310,27 @@ void Sound::stopPlayingSpeech() {
 }
 
 void Sound::playSoundEffectIndex(SoundEffects index) {
-	if (!(_vm->getFeatures() & GF_CDROM))
-		playMidiTrack((MidiTracks)index);
-	else {
+	if (!(_vm->getFeatures() & GF_CDROM)) {
+		// The sounds of the bridge are other tracks of its music file
+		static const struct {
+			SoundEffects sound;
+			MidiTracks track;
+		} kFloppyBridgeSounds[] = {
+			{ kSfxHailing, (MidiTracks)1 },
+			{ kSfxPhaser2, (MidiTracks)5 },
+			{ kSfxPhotonTorpedoes, (MidiTracks)6 },
+			{ kSfxShieldHit, (MidiTracks)7 },
+			{ kSfxUnk, (MidiTracks)8 },
+			{ kSfxRedAlert, (MidiTracks)9 },
+			{ kSfxWarp, (MidiTracks)10 }
+		};
+		MidiTracks track = (MidiTracks)index;
+		for (int i = 0; i < ARRAYSIZE(kFloppyBridgeSounds); i++) {
+			if (kFloppyBridgeSounds[i].sound == index)
+				track = kFloppyBridgeSounds[i].track;
+		}
+		playMidiTrack(track);
+	} else {
 		switch (index) {
 		case kSfxTricorder:
 			playVoc("tricorde");

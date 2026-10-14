@@ -127,10 +127,10 @@ void StarTrekEngine::showTextboxBridge(int talker, Common::String text) {
 		showTextbox("Captain's Log", text, 160, 130, 176, 0);
 		break;
 	case kBridgeTalkerElasiCaptain:
-		showTextbox("Elasi Captain", text, 160, 190, 44, -7);
+		showTextbox("Elasi Captain", text, 160, 190, 44, 0);
 		break;
 	case kBridgeTalkerElasiCereth:
-		showTextbox("Elasi Cereth", text, 160, 190, 44, -7);
+		showTextbox("Elasi Cereth", text, 160, 190, 44, 0);
 		break;
 	case kBridgeTalkerAutobeacon:
 		showTextbox("Autobeacon", text, 160, 130, 161, 0);
@@ -266,31 +266,38 @@ void StarTrekEngine::showMissionPerformance(int missionId, int textId, int16 sco
 	if (maxScore >= 1)
 		percent = MAX<int>(MIN(score, maxScore), 0) * 100 / maxScore;
 
-	Common::String performanceDescription;
-	MidiTracks midiTrack = MIDITRACK_0;
-	int commendationPoints = 0;
+	// The floppy version has unvoiced texts
+	static const char *const kDescriptions[2][5] = {
+		{
+			"#BRID\\B_199#I'll be frank, Kirk. Starfleet expects more of you than that. Try to do better on your next assignment.",
+			"#BRID\\B_197#A satisfactory performance, Captain, but there's still room for improvement.",
+			"#BRID\\B_214#Well done, Captain. Keep up the good work.",
+			"#BRID\\B_414#The top brass at Starfleet are impressed. Outstanding work, Jim.",
+			"#BRID\\B_195#A perfect mission, Jim! You are a model for all Starfleet!"
+		},
+		{
+			"I'll be frank, Kirk, Star Fleet expects more out of you than that. Try to do better on your next assignment.",
+			"A satisfactory performance, Captain, but there's still room for improvement.",
+			"Well done, Captain. Keep up the good work.",
+			"The top brass at Star Fleet are impressed. Outstanding work, Jim.",
+			"A perfect mission, Jim! You are a model for all Star Fleet"
+		}
+	};
+	static const MidiTracks kTracks[] = { MIDITRACK_13, MIDITRACK_13, MIDITRACK_11, MIDITRACK_12, MIDITRACK_14 };
 
-	if (percent <= 50) {
-		performanceDescription = "#BRID\\B_199#I'll be frank, Kirk. Starfleet expects more of you than that. Try to do better on your next assignment.";
+	int commendationPoints;
+	if (percent <= 50)
 		commendationPoints = 0;
-		midiTrack = MIDITRACK_13;
-	} else if (percent <= 70) {
-		performanceDescription = "#BRID\\B_197#A satisfactory performance, Captain, but there's still room for improvement.";
+	else if (percent <= 70)
 		commendationPoints = 1;
-		midiTrack = MIDITRACK_13;
-	} else if (percent <= 85) {
-		performanceDescription = "#BRID\\B_214#Well done, Captain. Keep up the good work.";
+	else if (percent <= 85)
 		commendationPoints = 2;
-		midiTrack = MIDITRACK_11;
-	} else if (percent <= 99) {
-		performanceDescription = "#BRID\\B_414#The top brass at Starfleet are impressed. Outstanding work, Jim.";
+	else if (percent <= 99)
 		commendationPoints = 3;
-		midiTrack = MIDITRACK_12;
-	} else {
-		performanceDescription = "#BRID\\B_195#A perfect mission, Jim! You are a model for all Starfleet!";
+	else
 		commendationPoints = 4;
-		midiTrack = MIDITRACK_14;
-	}
+	MidiTracks midiTrack = kTracks[commendationPoints];
+	Common::String performanceDescription = localizeText(kDescriptions[isFloppyVersion()][commendationPoints]);
 
 	_sound->playMidiMusicTracks(midiTrack, kLoopTypeLast);
 
@@ -302,26 +309,31 @@ void StarTrekEngine::showMissionPerformance(int missionId, int textId, int16 sco
 	for (int i = 8; i < 12; i++)
 		_enterpriseR3.systems[i].maxStrength += commendationPoints >> 2;
 
-	Common::String speechIdPerformance = getSpeechSampleForNumber(percent);
-	Common::String speechIdCommendationPoints = getSpeechSampleForNumber(commendationPoints);
-
-	Common::String missionPerformanceText = Common::String::format(
-		_resource->getLoadedText(textId).c_str(),
-		speechIdPerformance.c_str(),
-		speechIdCommendationPoints.c_str(),
-		percent,
-		commendationPoints,
-		"" // The German texts of sins and veng end with a stray %s
-	);
-
-	Common::String texts[] = {
-		missionPerformanceText,
-		performanceDescription,
-		""
-	};
-
 	// The Admiral stays on the viewscreen after the last mission
-	showBridgeScreenTalkerWithMessages(texts, "Admiral", "woman", missionId != 6);
+	bool removeTalker = missionId != 6;
+	Common::String text = _resource->getLoadedText(textId);
+	if (isFloppyVersion()) {
+		// One textbox with the description, and either of two admirals
+		Common::String texts[] = {
+			Common::String::format(text.c_str(), percent, commendationPoints, performanceDescription.c_str()),
+			""
+		};
+		showBridgeScreenTalkerWithMessages(texts, "Admiral", (msRand() & 1) ? "admira" : "woman", removeTalker);
+	} else {
+		Common::String texts[] = {
+			Common::String::format(
+				text.c_str(),
+				getSpeechSampleForNumber(percent).c_str(),
+				getSpeechSampleForNumber(commendationPoints).c_str(),
+				percent,
+				commendationPoints,
+				"" // The German texts of sins and veng end with a stray %s
+			),
+			performanceDescription,
+			""
+		};
+		showBridgeScreenTalkerWithMessages(texts, "Admiral", "woman", removeTalker);
+	}
 
 	_lastMissionId = missionId;
 	_missionPoints[missionId] = commendationPoints;
@@ -758,7 +770,7 @@ void StarTrekEngine::dispatchBridgeMenu(int menuEvent) {
 		bridgeCrewAction(kBridgeTalkerKirk);
 		break;
 	case kBridgeKirkOptions: // Kirk, options
-		showOptionsMenu(65, 60);
+		showOptionsMenu(isFloppyVersion() ? 75 : 65, 60);
 		break;
 	case kBridgeSpock: // Spock, consult
 		bridgeCrewAction(kBridgeTalkerSpock);
@@ -939,9 +951,14 @@ int StarTrekEngine::chooseDestination() {
 // The Enterprise flies past the camera while the title of the mission is shown
 void StarTrekEngine::showMissionStartEnterpriseFlyby(Common::String sequence, Common::String name) {
 	initSystemPlanet(kPlanetNone);
-	_sound->playMidiMusicTracks(MIDITRACK_11);
-	_sound->stopAllVocSounds();
-	_sound->playVoc("bridloop");
+	if (isFloppyVersion()) {
+		// The music of the bridge follows
+		_sound->playMidiMusicTracks(MIDITRACK_11, kLoopTypeTrack0);
+	} else {
+		_sound->playMidiMusicTracks(MIDITRACK_11);
+		_sound->stopAllVocSounds();
+		_sound->playVoc("bridloop");
+	}
 	enterFullscreenView();
 
 	// Positions of the camera and the Enterprise are velocity * frame + start
@@ -968,7 +985,7 @@ void StarTrekEngine::showMissionStartEnterpriseFlyby(Common::String sequence, Co
 
 		switch (frame) {
 		case 65: {
-			if (_sfxEnabled && _sfxWorking)
+			if (!isFloppyVersion() && _sfxEnabled && _sfxWorking)
 				_sound->playSpeech(sequence);
 			Bitmap *bitmap = new Bitmap(_resource->loadBitmapFile(name));
 			bitmap->xoffset = bitmap->width / 2;
@@ -1081,10 +1098,11 @@ void StarTrekEngine::wrongDestinationRandomEncounter() {
 
 	showTextbox("Mr. Chekov", _resource->getLoadedText(0), 196, 116, 176, 0);
 	showTextbox("Mr. Spock", _resource->getLoadedText(1), 294, 106, 44, 0);
+	// In the floppy version, Sulu always says this
 	const char *header = "Mr. Sulu";
-	if (_randomEncounterType == kRandomEncounterKlingon)
+	if (!isFloppyVersion() && _randomEncounterType == kRandomEncounterKlingon)
 		header = "Mr. Spock";
-	else if (_randomEncounterType == kRandomEncounterElasi)
+	else if (!isFloppyVersion() && _randomEncounterType == kRandomEncounterElasi)
 		header = "Captain Kirk";
 	showTextbox(header, _resource->getLoadedText(2), 122, 116, 176, 0);
 	showTextbox("Mr. Scott", _resource->getLoadedText(3), 64, 100, 161, 0);
@@ -1106,6 +1124,8 @@ void StarTrekEngine::wrongDestinationRandomEncounter() {
 	_randomEncounterType = 0;
 	_resource->setTxtFileName(_missionName);
 	_sound->loadMusicFile("bridge");
+	if (isFloppyVersion())
+		_sound->playMidiMusicTracks(MIDITRACK_0, kLoopTypeRepeat);
 }
 
 // Approaches a structure in space and orbits it: ark7, derelict, masada or republic

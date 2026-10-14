@@ -98,9 +98,22 @@ void StarTrekEngine::setCrewStanding(bool standing) {
 	}
 }
 
+// The floppy version continues with the music of the bridge
 void StarTrekEngine::stopMissionMusic() {
-	if (_sound->getPlayingMidiTrack() != MIDITRACK_NONE)
+	if (_sound->getPlayingMidiTrack() == MIDITRACK_NONE)
+		return;
+	if (isFloppyVersion())
+		_sound->playMidiMusicTracks(MIDITRACK_0, kLoopTypeRepeat);
+	else
 		_sound->playMidiMusicTracks(MIDITRACK_NONE);
+}
+
+void StarTrekEngine::playMissionJingle(MidiTracks track) {
+	_sound->playMidiMusicTracks(track, isFloppyVersion() ? kLoopTypeTrack0 : kLoopTypeNone);
+}
+
+const char *StarTrekEngine::getAdmiralTalker() const {
+	return isFloppyVersion() ? "admira" : "woman";
 }
 
 // Chapter 1: Demon world
@@ -135,11 +148,13 @@ bool StarTrekEngine::handleDemonEvent(int type, int value) {
 		const ShipSystem &republicHull = republic.systems[6];
 		const ShipSystem &hull = _enterpriseR3.systems[6];
 		if (republicHull.strength < (republicHull.maxStrength >> 1)) {
-			_sound->playMidiMusicTracks(MIDITRACK_3);
+			playMissionJingle(MIDITRACK_3);
+			if (isFloppyVersion())
+				showTextboxBridge(kBridgeTalkerChekov, 3);
 			showTextboxBridge(kBridgeTalkerSpock, 4);
 			showTextboxBridge(kBridgeTalkerUhura, 5);
 		} else if (hull.strength < (hull.maxStrength >> 1)) {
-			_sound->playMidiMusicTracks((MidiTracks)4);
+			playMissionJingle((MidiTracks)4);
 			showTextboxBridge(kBridgeTalkerSpock, 6);
 			showTextboxBridge(kBridgeTalkerScotty, 7);
 			showTextboxBridge(kBridgeTalkerKirk, 8);
@@ -171,7 +186,7 @@ bool StarTrekEngine::handleDemonEvent(int type, int value) {
 			showTextboxBridge(kBridgeTalkerKirk, 14);
 			if (republic.field1e == 2)
 				delR3(&republic);
-			showBridgeScreenTalkerWithMessage(12, "Admiral", "woman");
+			showBridgeScreenTalkerWithMessage(12, "Admiral", getAdmiralTalker());
 			setMissionState(kMissionDemonPollux);
 			_targetPlanet = kPlanetPollux;
 		}
@@ -271,7 +286,7 @@ bool StarTrekEngine::handleTugEvent(int type, int value) {
 				_missionEndFlag = 0;
 				playMissionFlyby("TUG0\\FLYBY", "hijacked");
 			} else if (value == 151) {
-				_sound->playMidiMusicTracks(MIDITRACK_0);
+				_sound->playMidiMusicTracks(MIDITRACK_0, isFloppyVersion() ? kLoopTypeRepeat : kLoopTypeNone);
 				_sound->playSoundEffectIndex(kSfxHailing);
 				showTextboxBridge(kBridgeTalkerUhura, 0);
 				showTextboxBridge(kBridgeTalkerKirk, 1);
@@ -324,7 +339,7 @@ bool StarTrekEngine::handleTugEvent(int type, int value) {
 		// The pirate flees when its hull is damaged
 		const ShipSystem &hull = pirate.systems[6];
 		if (_enterpriseState.underAttack && hull.strength < (hull.maxStrength >> 1)) {
-			_sound->playMidiMusicTracks(MIDITRACK_3);
+			playMissionJingle(MIDITRACK_3);
 			showTextboxBridge(kBridgeTalkerChekov, 14);
 			showTextboxBridge(kBridgeTalkerSpock, 15);
 			for (int i = 8; i < 12; i++)
@@ -406,6 +421,8 @@ bool StarTrekEngine::handleTugEvent(int type, int value) {
 				showTextboxBridge(kBridgeTalkerKirk, 35);
 				showTextboxBridge(kBridgeTalkerSpock, 36);
 				showTextboxBridge(kBridgeTalkerKirk, 37);
+				if (isFloppyVersion())
+					showTextboxBridge(kBridgeTalkerKirk, 38);
 			} else if (_missionEndFlag == 1) {
 				// The Masada was destroyed
 				showTextboxBridge(kBridgeTalkerUhura, 39);
@@ -443,9 +460,11 @@ void StarTrekEngine::hailTheMasada() {
 			showBridgeScreenTalker("pira");
 			showTextboxBridge(kBridgeTalkerElasiCereth, 22);
 			showTextboxBridge(kBridgeTalkerKirk, 23);
+			if (isFloppyVersion())
+				showTextboxBridge(kBridgeTalkerElasiCereth, 24);
 			removeBridgeScreenTalker();
 			_missionVars[0]++;
-			showTextboxBridge(kBridgeTalkerSpock, 60);
+			showHostagesKilled();
 		}
 
 		if (_missionVars[0] > 4) {
@@ -463,10 +482,12 @@ void StarTrekEngine::hailTheMasada() {
 }
 
 void StarTrekEngine::negotiateWithElasiCereth() {
+	// In the floppy version, line 44 of tug.txt is split in two lines
+	int shift = isFloppyVersion() ? 1 : 0;
 	// Kirk's choices, from tug.txt
 	const int options1[] = { 66, 67, 68, -1 };
-	const int options2[] = { 48, 49, -1 };
-	const int options3[] = { 55, 56, 57, -1 };
+	const int options2[] = { 48 + shift, 49 + shift, -1 };
+	const int options3[] = { 55 + shift, 56 + shift, 57 + shift, -1 };
 
 	showBridgeScreenTalker("pira");
 	showTextboxBridge(kBridgeTalkerElasiCereth, 65);
@@ -475,27 +496,33 @@ void StarTrekEngine::negotiateWithElasiCereth() {
 	restartBridgeScreenTalker();
 	if (choice == 1) {
 		_missionVars[0]++;
-		showTextboxBridge(kBridgeTalkerElasiCereth, 46);
-		showTextboxBridge(kBridgeTalkerSpock, 60);
+		showTextboxBridge(kBridgeTalkerElasiCereth, 46 + shift);
+		showHostagesKilled();
 	} else {
 		if (choice == 2) {
-			showTextboxBridge(kBridgeTalkerElasiCereth, 47);
+			showTextboxBridge(kBridgeTalkerElasiCereth, 47 + shift);
 			restartBridgeScreenTalker();
 		}
-		showTextboxBridge(kBridgeTalkerElasiCereth, 44);
-		showTextboxBridge(kBridgeTalkerUhura, 45);
+		if (!isFloppyVersion() || choice != 2)
+			showTextboxBridge(kBridgeTalkerElasiCereth, 44);
+		if (isFloppyVersion()) {
+			if (choice != 2)
+				restartBridgeScreenTalker();
+			showTextboxBridge(kBridgeTalkerElasiCereth, 45);
+		}
+		showTextboxBridge(kBridgeTalkerUhura, 45 + shift);
 	}
 
 	choice = showKirkChoices(options2);
 	restartBridgeScreenTalker();
 	if (choice == 0 || choice == 1) {
-		showTextboxBridge(kBridgeTalkerElasiCereth, 51);
-		showTextboxBridge(kBridgeTalkerScotty, 52);
-		showTextboxBridge(kBridgeTalkerSulu, 53);
+		showTextboxBridge(kBridgeTalkerElasiCereth, 51 + shift);
+		showTextboxBridge(kBridgeTalkerScotty, 52 + shift);
+		showTextboxBridge(kBridgeTalkerSulu, 53 + shift);
 		restartBridgeScreenTalker();
-		showTextboxBridge(kBridgeTalkerElasiCereth, 54);
+		showTextboxBridge(kBridgeTalkerElasiCereth, 54 + shift);
 	} else {
-		showTextboxBridge(kBridgeTalkerElasiCereth, 50);
+		showTextboxBridge(kBridgeTalkerElasiCereth, 50 + shift);
 	}
 
 	choice = showKirkChoices(options3);
@@ -504,16 +531,24 @@ void StarTrekEngine::negotiateWithElasiCereth() {
 		showTextboxBridge(kBridgeTalkerElasiCereth, 69);
 	} else if (choice != 0) {
 		if (choice != 2)
-			showTextboxBridge(kBridgeTalkerKirk, 58);
+			showTextboxBridge(kBridgeTalkerKirk, 58 + shift);
 		restartBridgeScreenTalker();
 		showTextboxBridge(kBridgeTalkerElasiCereth, 70);
 		_missionVars[0]++;
-		showTextboxBridge(kBridgeTalkerSpock, 60);
+		showHostagesKilled();
 		restartBridgeScreenTalker();
 		showTextboxBridge(kBridgeTalkerElasiCereth, 71);
 	}
 
 	removeBridgeScreenTalker();
+}
+
+void StarTrekEngine::showHostagesKilled() {
+	// The floppy version counts the remaining life forms
+	if (isFloppyVersion())
+		showTextboxBridge(kBridgeTalkerSpock, Common::String::format(_resource->getLoadedText(60).c_str(), 27 - _missionVars[0]));
+	else
+		showTextboxBridge(kBridgeTalkerSpock, 60);
 }
 
 // Chapter 3: Love's Labor Jeopardized
@@ -532,7 +567,7 @@ bool StarTrekEngine::handleLoveEvent(int type, int value) {
 			_sound->playSoundEffectIndex(kSfxHailing);
 			showTextboxBridge(kBridgeTalkerUhura, 0);
 			showTextboxBridge(kBridgeTalkerKirk, 1);
-			showBridgeScreenTalkerWithMessage(2, "Admiral", "woman");
+			showBridgeScreenTalkerWithMessage(2, "Admiral", getAdmiralTalker());
 			setMissionState(kMissionLoveEnRoute);
 			_targetPlanet = kPlanetArk7;
 		}
@@ -541,7 +576,7 @@ bool StarTrekEngine::handleLoveEvent(int type, int value) {
 	case kMissionLoveEnRoute:
 		// The music of a random encounter stops after the battle
 		if (!_enterpriseState.underAttack && _sound->getPlayingMidiTrack() == MIDITRACK_2)
-			_sound->playMidiMusicTracks(MIDITRACK_NONE);
+			stopMissionMusic();
 		if (type != kMissionEventMenu)
 			return false;
 
@@ -569,6 +604,8 @@ bool StarTrekEngine::handleLoveEvent(int type, int value) {
 		}
 
 	case kMissionLoveAmbush:
+		if (isFloppyVersion() && !_enterpriseState.underAttack && _sound->getPlayingMidiTrack() == MIDITRACK_2)
+			stopMissionMusic();
 		// Variable 0 blocks the menus until the Romulans have spoken
 		if (type == kMissionEventTick) {
 			if (value == 1) {
@@ -584,6 +621,8 @@ bool StarTrekEngine::handleLoveEvent(int type, int value) {
 				_sound->playMidiMusicTracks(MIDITRACK_2, kLoopTypeRepeat);
 				_sound->playSoundEffectIndex(kSfxRedAlert);
 			} else if (!_enterpriseState.underAttack) {
+				if (isFloppyVersion())
+					_sound->playMidiMusicTracks(MIDITRACK_0, kLoopTypeRepeat);
 				setMissionState(kMissionLoveAfterBattle);
 			}
 			return true;
@@ -686,7 +725,7 @@ bool StarTrekEngine::handleMuddEvent(int type, int value) {
 				_sound->playSoundEffectIndex(kSfxHailing);
 				showTextboxBridge(kBridgeTalkerUhura, 0);
 				showTextboxBridge(kBridgeTalkerKirk, 1);
-				showBridgeScreenTalkerWithMessage(2, "Admiral", "woman");
+				showBridgeScreenTalkerWithMessage(2, "Admiral", getAdmiralTalker());
 				_missionVars[0] = 1;
 				_targetPlanet = kPlanetHarlequin;
 				setMouseControllingShip(true);
@@ -843,6 +882,10 @@ bool StarTrekEngine::handleMuddEvent(int type, int value) {
 				} else {
 					showTextboxBridge(kBridgeTalkerKirk, 38);
 				}
+				if (isFloppyVersion()) {
+					showTextboxBridge(kBridgeTalkerMcCoy, 39);
+					showTextboxBridge(kBridgeTalkerKirk, 40);
+				}
 				showTextboxBridge(kBridgeTalkerUhura, 41);
 				showTextboxBridge(kBridgeTalkerKirk, 42);
 				showTextboxBridge(kBridgeTalkerUhura, 43);
@@ -962,7 +1005,7 @@ bool StarTrekEngine::handleFeatherEvent(int type, int value) {
 		_enterpriseState.underAttack = false;
 		if (type == kMissionEventReturn) {
 			playOrbitSequence(false, false);
-			showTextboxBridge(kBridgeTalkerUhura, 21);
+			showTextboxBridge(isFloppyVersion() ? kBridgeTalkerChekov : kBridgeTalkerUhura, 21);
 			_sound->playSoundEffectIndex(kSfxHailing);
 			showTextboxBridge(kBridgeTalkerUhura, 22);
 			negotiateWithKenka();
@@ -1053,7 +1096,7 @@ void StarTrekEngine::negotiateWithKenka() {
 			showTextboxBridge(kBridgeTalkerKirk, 29);
 			showTextboxBridge(kBridgeTalkerAdmiralKenka, 30);
 			removeBridgeScreenTalker();
-			showBridgeScreenTalkerWithMessage(31, "Admiral", "woman");
+			showBridgeScreenTalkerWithMessage(31, "Admiral", getAdmiralTalker());
 			showTextboxBridge(kBridgeTalkerScotty, 32);
 			showTextboxBridge(kBridgeTalkerKirk, 33);
 
@@ -1253,9 +1296,14 @@ bool StarTrekEngine::handleSinsEvent(int type, int value) {
 			showTextboxBridge(kBridgeTalkerSpock, 26);
 			showTextboxBridge(kBridgeTalkerMcCoy, 27);
 			showTextboxBridge(kBridgeTalkerKirk, 28);
-			// The original shows this at McCoy's position
-			showTextbox("Captain Kirk", _resource->getLoadedText(29), 160, 100, 44, 0);
-			showTextboxBridge(kBridgeTalkerMcCoy, 30);
+			if (isFloppyVersion()) {
+				showTextboxBridge(kBridgeTalkerMcCoy, 29);
+				showTextboxBridge(kBridgeTalkerScotty, 30);
+			} else {
+				// The original shows this at McCoy's position
+				showTextbox("Captain Kirk", _resource->getLoadedText(29), 160, 100, 44, 0);
+				showTextboxBridge(kBridgeTalkerMcCoy, 30);
+			}
 			showTextboxBridge(kBridgeTalkerKirk, 31);
 			playOrbitSequence(false, false);
 			setCrewStanding(false);
@@ -1344,8 +1392,12 @@ bool StarTrekEngine::handleVengEvent(int type, int value) {
 			}
 			return false;
 		}
-		if (type == kMissionEventTick && !_enterpriseState.underAttack)
+		if (type == kMissionEventTick && !_enterpriseState.underAttack) {
+			MidiTracks track = _sound->getPlayingMidiTrack();
+			if (isFloppyVersion() && track != MIDITRACK_NONE)
+				_sound->playMidiMusicTracks(track, kLoopTypeTrack0);
 			endGame();
+		}
 		return true;
 
 	default:
@@ -1372,7 +1424,7 @@ void StarTrekEngine::returnFromRepublic() {
 	showTextboxBridge(kBridgeTalkerSpock, 15);
 	showTextboxBridge(kBridgeTalkerKirk, 16);
 	showTextboxBridge(kBridgeTalkerSpock, 17);
-	showTextboxBridge(kBridgeTalkerSpock, 18);
+	showTextboxBridge(isFloppyVersion() ? kBridgeTalkerSulu : kBridgeTalkerSpock, 18);
 	showTextboxBridge(kBridgeTalkerUhura, 19);
 	showTextboxBridge(kBridgeTalkerSpock, 20);
 	if (showKirkChoices(hailOptions) != 0) {
@@ -1448,11 +1500,16 @@ void StarTrekEngine::endGame() {
 	for (int i = 0; i < ARRAYSIZE(_missionPoints); i++)
 		points += _missionPoints[i];
 	int percent = CLIP(points * 100 / 28, 0, 100);
-	Common::String review = Common::String::format(_resource->getLoadedText(45).c_str(), getSpeechSampleForNumber(percent).c_str(), percent);
-	showTextbox("Admiral", review, 160, 190, 44, -7);
-
 	int epilogue = percent <= 50 ? 0 : (percent <= 85 ? 1 : 2);
-	showTextbox("Admiral", _resource->getLoadedText(kAdmiralTexts[epilogue]), 160, 190, 44, -7);
+	if (isFloppyVersion()) {
+		// One textbox with both texts
+		Common::String review = Common::String::format(_resource->getLoadedText(45).c_str(), percent);
+		showTextbox("Admiral", review + _resource->getLoadedText(kAdmiralTexts[epilogue]), 160, 190, 44, -7);
+	} else {
+		Common::String review = Common::String::format(_resource->getLoadedText(45).c_str(), getSpeechSampleForNumber(percent).c_str(), percent);
+		showTextbox("Admiral", review, 160, 190, 44, -7);
+		showTextbox("Admiral", _resource->getLoadedText(kAdmiralTexts[epilogue]), 160, 190, 44, -7);
+	}
 	removeBridgeScreenTalker();
 	for (int i = 0; i < 7 && kEpilogues[epilogue][i][0] != kBridgeTalkerNone; i++)
 		showTextboxBridge(kEpilogues[epilogue][i][0], kEpilogues[epilogue][i][1]);
@@ -1478,6 +1535,8 @@ void StarTrekEngine::showEndCredits() {
 	_starfieldPosition = Point3(0, 0, 0);
 	_someMatrix = initMatrix();
 	rotateMatrix(_someMatrix, 1, angleSin(0x200), angleCos(0x200));
+	if (isFloppyVersion())
+		_sound->playMidiMusicTracks(MIDITRACK_0);
 
 	R3 credits = R3();
 	credits.field1e = 3;
@@ -1508,12 +1567,19 @@ void StarTrekEngine::showEndCredits() {
 		credits.pos = _starfieldPosition;
 		credits.pos.z -= _starfieldPointDivisor;
 		addR3(&credits);
-		if (_sfxEnabled && _sfxWorking)
-			_sound->playSpeech("sfx\\geneeulo");
-		do {
-			aborted = playEndCreditsFrames(&credits, 220);
-		} while (!aborted && _sound->isPlayingSpeech());
-		_sound->stopPlayingSpeech();
+		if (isFloppyVersion()) {
+			// The card stays until the music ends
+			do {
+				aborted = playEndCreditsFrames(&credits, 20);
+			} while (!aborted && _sound->isMidiPlaying());
+		} else {
+			if (_sfxEnabled && _sfxWorking)
+				_sound->playSpeech("sfx\\geneeulo");
+			do {
+				aborted = playEndCreditsFrames(&credits, 220);
+			} while (!aborted && _sound->isPlayingSpeech());
+			_sound->stopPlayingSpeech();
+		}
 		delR3(&credits);
 		if (!aborted)
 			playEndCreditsFrames(&credits, 15);

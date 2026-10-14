@@ -330,10 +330,13 @@ private:
 	void turnOffShieldsAndWeapons();
 	void setCrewStanding(bool standing);
 	void stopMissionMusic();
+	void playMissionJingle(MidiTracks track);
+	const char *getAdmiralTalker() const;
 	void showSuluText(const Common::String &text, byte color);
 	bool handleDemonEvent(int type, int value);
 	bool handleTugEvent(int type, int value);
 	void negotiateWithElasiCereth();
+	void showHostagesKilled();
 	void hailTheMasada();
 	bool handleLoveEvent(int type, int value);
 	bool handleMuddEvent(int type, int value);
@@ -820,6 +823,7 @@ public:
 public:
 	const StarTrekGameDescription *_gameDescription;
 	uint32 getFeatures() const;
+	bool isFloppyVersion() const { return !(getFeatures() & GF_CDROM); }
 	Common::Platform getPlatform() const;
 	uint8 getGameType() const;
 	Common::Language getLanguage() const;
