@@ -1013,30 +1013,7 @@ void StarTrekEngine::handleBridgeEvents() {
 
 		switch (event.type) {
 		case TREKEVENT_TICK:
-			if (!_enterpriseState.inOrbit) {
-				// Roll while Ins or Del is held
-				int32 roll = 0;
-				if (_heldKey == Common::KEYCODE_INSERT || _heldKey == Common::KEYCODE_KP0)
-					roll = _enterpriseR3.maxTurnRate;
-				else if (_heldKey == Common::KEYCODE_DELETE || _heldKey == Common::KEYCODE_KP_PERIOD)
-					roll = -_enterpriseR3.maxTurnRate;
-				_enterpriseR3.targetTurnRate.z = roll;
-			}
-			updateBridgeSpace();
-			updateActorAnimations();
-
-			//updateMouseBitmap();
-			renderBanBelowSprites();
-			_gfx->drawAllSprites(false);
-			renderBanAboveSprites();
-			_gfx->updateScreen();
-
-			_sound->checkLoopMusic();
-			_frameIndex++;
-			_roomFrameCounter++;
-			addAction(ACTION_TICK, _roomFrameCounter & 0xff, (_roomFrameCounter >> 8) & 0xff, 0);
-			if (_roomFrameCounter >= 2)
-				_gfx->incPaletteFadeLevel();
+			updateBridgeTick();
 			break;
 
 		case TREKEVENT_LBUTTONDOWN:
@@ -1166,6 +1143,33 @@ void StarTrekEngine::handleBridgeEvents() {
 			break;
 		}
 	}
+}
+
+void StarTrekEngine::updateBridgeTick() {
+	if (!_enterpriseState.inOrbit) {
+		// Roll while Ins or Del is held
+		int32 roll = 0;
+		if (_heldKey == Common::KEYCODE_INSERT || _heldKey == Common::KEYCODE_KP0)
+			roll = _enterpriseR3.maxTurnRate;
+		else if (_heldKey == Common::KEYCODE_DELETE || _heldKey == Common::KEYCODE_KP_PERIOD)
+			roll = -_enterpriseR3.maxTurnRate;
+		_enterpriseR3.targetTurnRate.z = roll;
+	}
+	updateBridgeSpace();
+	updateActorAnimations();
+
+	//updateMouseBitmap();
+	renderBanBelowSprites();
+	_gfx->drawAllSprites(false);
+	renderBanAboveSprites();
+	_gfx->updateScreen();
+
+	_sound->checkLoopMusic();
+	_frameIndex++;
+	_roomFrameCounter++;
+	addAction(ACTION_TICK, _roomFrameCounter & 0xff, (_roomFrameCounter >> 8) & 0xff, 0);
+	if (_roomFrameCounter >= 2)
+		_gfx->incPaletteFadeLevel();
 }
 
 void StarTrekEngine::updateBridgeSpace() {
@@ -1478,8 +1482,74 @@ void StarTrekEngine::arrivedAtTargetPlanet() {
 	}
 }
 
+// The Enterprise flies past the camera while the title of the mission is shown
 void StarTrekEngine::showMissionStartEnterpriseFlyby(Common::String sequence, Common::String name) {
-	// TODO
+	initSystemPlanet(kPlanetNone);
+	_sound->playMidiMusicTracks(MIDITRACK_11);
+	_sound->stopAllVocSounds();
+	_sound->playVoc("bridloop");
+	enterFullscreenView();
+
+	// Positions of the camera and the Enterprise are velocity * frame + start
+	int16 velocity[2][3] = { { 100, 0, 0 }, { 125, 0, 0 } };
+	int16 start[2][3] = { { 1974, 0, 720 }, { 0, 0, 0 } };
+
+	_someMatrix = initMatrix();
+	_enterpriseR3.matrix = initMatrix();
+	rotateR3(&_enterpriseR3, 1, 0x100);
+	_viewDirection = -1;
+	resetShipControls(&_enterpriseR3);
+	_mouseControllingShip = false;
+	_gfx->setMouseBitmap("blank");
+
+	Sprite titleSprite;
+	for (int frame = 2; frame <= 150; frame++) {
+		for (int i = 0; i < 3; i++)
+			_enterpriseR3.pos[i] = (int16)(velocity[1][i] * frame + start[1][i]);
+		if (_viewDirection == -1) {
+			for (int i = 0; i < 3; i++)
+				_starfieldPosition[i] = (int16)(velocity[0][i] * frame + start[0][i]);
+			pointCameraAt(_enterpriseR3.pos, _enterpriseR3.matrix[1]);
+		}
+
+		switch (frame) {
+		case 65: {
+			if (_sfxEnabled && _sfxWorking)
+				_sound->playSpeech(sequence);
+			Bitmap *bitmap = new Bitmap(_resource->loadBitmapFile(name));
+			bitmap->xoffset = bitmap->width / 2;
+			bitmap->yoffset = bitmap->height / 2;
+			_gfx->addSprite(&titleSprite);
+			titleSprite.setXYAndPriority(160, 60, 14);
+			titleSprite.setBitmap(bitmap);
+			break;
+		}
+		case 95:
+			titleSprite.dontDrawNextFrame();
+			break;
+		case 96:
+			_gfx->delSprite(&titleSprite);
+			break;
+		case 97:
+			delete titleSprite.bitmap;
+			titleSprite.bitmap = nullptr;
+			break;
+		case 105:
+			leaveFullscreenView();
+			_viewDirection = 0;
+			start[1][0] = velocity[1][0] * frame;
+			velocity[1][0] = _enterpriseR3.maxSpeed >> 18;
+			_enterpriseR3.commandedSpeed = _enterpriseR3.maxSpeed >> 2;
+			break;
+		default:
+			break;
+		}
+
+		updateBridgeTick();
+		waitForNextTick(false);
+	}
+
+	setMouseControllingShip(true);
 }
 
 void StarTrekEngine::startBattle(Common::String enemyShip) {

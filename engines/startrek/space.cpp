@@ -656,6 +656,10 @@ void StarTrekEngine::playWarpSequence() {
 	_sound->playVoc("bridloop");
 }
 
+void StarTrekEngine::pointCameraAt(const Point3 &target, const Point_Fixed14 &up) {
+	lookAt(target - _starfieldPosition, up, _someMatrix);
+}
+
 void StarTrekEngine::turnCameraTowards(const Point3 &target) {
 	Point3 direction = multPointMatrix(target - _starfieldPosition, _someMatrix.invert());
 	int16 angle = angleAtan2((int16)direction.x, (int16)direction.z);
@@ -720,7 +724,7 @@ void StarTrekEngine::playOrbitDepartureSequence() {
 			rotateR3(&_enterpriseR3, 1, 8);
 		for (int i = 0; i < 3; i++)
 			_enterpriseR3.pos[i] += ((int32)_enterpriseR3.matrix[2][i].raw() * speed) >> 14;
-		lookAt(_enterpriseR3.pos - _starfieldPosition, _enterpriseR3.matrix[1], _someMatrix);
+		pointCameraAt(_enterpriseR3.pos, _enterpriseR3.matrix[1]);
 
 		if (frame < 60)
 			_gfx->incPaletteFadeLevel();

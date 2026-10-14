@@ -255,6 +255,7 @@ public:
 	void setBridgeMouseCursor();
 	void playBridgeSequence(int sequenceId);
 	void handleBridgeEvents();
+	void updateBridgeTick();
 	void updateBridgeSpace();
 	void setMouseControllingShip(bool enable);
 	void restrictBridgeMouse();
@@ -377,6 +378,7 @@ private:
 	void updateShipSpeed(R3 *r3, int32 targetSpeed);
 	void rotateR3(R3 *r3, int axis, int16 angle);
 	void playWarpSequence();
+	void pointCameraAt(const Point3 &target, const Point_Fixed14 &up);
 	void turnCameraTowards(const Point3 &target);
 	void playOrbitArrivalSequence();
 	void playOrbitDepartureSequence();
