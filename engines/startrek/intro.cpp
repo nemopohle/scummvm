@@ -25,8 +25,6 @@
 namespace StarTrek {
 
 void StarTrekEngine::playIntro() {
-	// TODO: .MT audio file
-
 	_frameIndex = 0;
 	_shipDitheringEnabled = false;
 
@@ -89,15 +87,13 @@ void StarTrekEngine::playIntro() {
 		index -= 1;
 	}
 
-	// TODO: kirkintr
-
 	clockTicks += 540;
 
 	while (_clockTicks < clockTicks && _sound->isMidiPlaying()) {
 		waitForNextTick(true);
 	}
 
-	// TODO: MT audio file
+	// TODO: With an MT-32, the original plays MIDI track 1 here and waits for its end
 
 	_gfx->fadeoutScreen();
 	_gfx->loadPalette("bridge");
@@ -164,7 +160,6 @@ void StarTrekEngine::playIntro() {
 			loadSubtitleSprite(3, &subtitleSprite);
 			initIntroR3ObjectToMove(&planetR3, 0, 5000, 0, 5000, 0);
 			planetR3.pos.y = -2500;
-			planetR3.pos.z = -1;
 			initIntroR3ObjectToMove(&_enterpriseR3, -30, 450, 45, 540, 54);
 			break;
 
@@ -180,7 +175,6 @@ void StarTrekEngine::playIntro() {
 			loadSubtitleSprite(6, &subtitleSprite);
 			initIntroR3ObjectToMove(&planetR3, 30, 5600, 30, 5600, 0);
 			planetR3.pos.y = -2500;
-			planetR3.pos.z = -1;
 			initIntroR3ObjectToMove(&_enterpriseR3, -10, 800, 155, 600, 18);
 			break;
 
@@ -188,7 +182,8 @@ void StarTrekEngine::playIntro() {
 			loadSubtitleSprite(6, &subtitleSprite);
 			break;
 
-		case 162:
+		case 162: // The starfield moves again
+			starfieldZoomSpeed = 10;
 			delR3(&planetR3);
 			break;
 
@@ -197,22 +192,23 @@ void StarTrekEngine::playIntro() {
 			initIntroR3ObjectToMove(&_enterpriseR3, 340, 5000, 0, 0, 18);
 			break;
 
-		case 186:
+		case 186: // The title flies away from the camera
 			delR3(&_enterpriseR3);
 			showCreditsScreen(&planetR3, 0, false);
 			initIntroR3ObjectToMove(&planetR3, 0, 0, 0, _starfieldPointDivisor, 18);
-			// TODO: the rest
 			break;
 
-		case 204:
-			// TODO
+		case 204: // The title stays in front of the camera
+			planetR3.pos.z = _starfieldPosition.z + _starfieldPointDivisor;
+			planetR3.speed.z = 0;
 			break;
 
 		case 216:
-			// TODO
+			subtitleSprite.setBitmap(_resource->loadBitmapFile("legal"));
 			break;
 
 		case 222:
+			subtitleSprite.setBitmap(_resource->loadBitmapFile("blank"));
 			delR3(&planetR3);
 			break;
 
@@ -317,7 +313,6 @@ void StarTrekEngine::playIntro() {
 	_gfx->fadeoutScreen();
 	_gfx->delSprite(&_starfieldSprite);
 	_shipDitheringEnabled = true;
-	// TODO: the rest
 }
 
 void StarTrekEngine::showCreditsScreen(R3 *creditsBuffer, int index, bool deletePrevious) {
