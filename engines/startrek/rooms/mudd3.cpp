@@ -205,7 +205,11 @@ extern const RoomTextOffsets mudd3TextOffsets[] = {
 
 extern const RoomText mudd3Texts[] = {
 	{ TX_MUD3_068, Common::EN_ANY, "#MUD3\\MUD3_068#Not my area of expertise, I'm afraid." },	// Same as MUD3_021, spoken by Buchert
+	{ TX_MUD3_068, Common::DE_DEU, "#MUD3\\MUD3_068#Das ist nicht gerade mein Fachgebiet." },
+	{ TX_MUD3_068, Common::FR_FRA, "#MUD3\\MUD3_068#J'ai bien peur que ce ne soit pas ma sp\xe9" "cialit\xe9." },
 	{ TX_DEM0N009, Common::EN_ANY, "#DEM0\\DEM0N009#Spock raises an eyebrow" },
+	{ TX_DEM0N009, Common::DE_DEU, "#DEM0\\DEM0N009#Spock hebt eine Augenbraue." },
+	{ TX_DEM0N009, Common::FR_FRA, "#DEM0\\DEM0N009#Spock hausse un sourcil." },
 	{ -1, Common::UNK_LANG, "" }
 };
 

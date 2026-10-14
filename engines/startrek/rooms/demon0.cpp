@@ -160,11 +160,11 @@ extern const RoomTextOffsets demon0TextOffsets[] = {
 	{ TX_DEM0N008, 5560, 5215, 6134, 6059 },
 	{ TX_DEM0N009, 6036, 5601, 6645, 6595 },
 	{ TX_DEM0N010, 5960, 5540, 6571, 6515 },
+	{ TX_DEM0C001, 1501, 1382, 1574, 1553 },
 	{          -1, 0,    0, 0, 0 }
 };
 
 extern const RoomText demon0Texts[] = {
-	{ TX_DEM0C001, Common::EN_ANY, "All mining equipment use this road." },
 	{ -1, Common::UNK_LANG, "" }
 };
 

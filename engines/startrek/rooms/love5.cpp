@@ -256,6 +256,8 @@ extern const RoomTextOffsets love5TextOffsets[] = {
 
 extern const RoomText love5Texts[] = {
 	{ TX_DEM0N009, Common::EN_ANY, "#DEM0\\DEM0N009#Spock raises an eyebrow" },
+	{ TX_DEM0N009, Common::DE_DEU, "#DEM0\\DEM0N009#Spock hebt eine Augenbraue." },
+	{ TX_DEM0N009, Common::FR_FRA, "#DEM0\\DEM0N009#Spock hausse un sourcil." },
 	{ -1, Common::UNK_LANG, "" }
 };
 
