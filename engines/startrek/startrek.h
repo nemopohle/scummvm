@@ -602,7 +602,12 @@ public:
 	void showOptionsMenu(int x, int y);
 	void showBridgeMenu(Common::String menu, int x, int y);
 	void handleBridgeMenu(int menuEvent);
-	void showStarMap();
+	/**
+	 * Shows the star map and returns the selected star. The star systems use
+	 * the planet IDs.
+	 */
+	int showStarMap();
+	void arrivedAtTargetPlanet();
 	void orbitPlanet();
 	void captainsLog();
 

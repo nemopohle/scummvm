@@ -666,10 +666,18 @@ void StarTrekEngine::bridgeCrewAction(int crewId) {
 		} else if (_enterpriseState.inOrbit) {
 			showTextboxBridge(kBridgeTalkerSulu, leaveOrbitText);
 		} else {
-			showStarMap();
+			_currentPlanet = showStarMap();
 			if (_currentPlanet != _targetPlanet) {
 				wrongDestinationRandomEncounter();
 				// TODO: Redraw sprites
+
+				// HACK: Random encounters end in a space battle, which isn't
+				// implemented yet. End it right away, so that the player isn't
+				// stuck under attack.
+				_enterpriseState.underAttack = false;
+				_resource->setTxtFileName(_missionName);
+			} else {
+				arrivedAtTargetPlanet();
 			}
 		}
 		break;
@@ -1213,10 +1221,113 @@ void StarTrekEngine::handleBridgeMenu(int menuEvent) {
 	}
 }
 
-void StarTrekEngine::showStarMap() {
-	// HACK: Move to the target planet and play its associated sequence, until the starmap code is implemented
-	_currentPlanet = _targetPlanet;
+// Positions of the selectable stars on the star map. The first 20 are the
+// star systems, in the order of the planet IDs (kPlanetCenturius to
+// kPlanetChristgen). The others are stars without a destination.
+static const int16 starMapPositions[][2] = {
+	{  14,  16 }, {  28,  59 }, {  62,  32 }, { 102,  38 }, { 116,  33 },
+	{ 167,  18 }, { 245,  27 }, { 263,   8 }, { 294,  37 }, { 260,  63 },
+	{ 253, 118 }, { 230, 122 }, { 237,  93 }, { 220,  77 }, { 177,  62 },
+	{ 167, 111 }, { 118,  79 }, {  90, 102 }, {  73, 111 }, { 111, 124 },
+	{  21,  95 }, {  49,  28 }, {  81, 153 }, {  40, 133 }, {  25, 121 },
+	{ 112, 159 }, { 154, 169 }, { 160, 152 }, { 184, 135 }, { 213, 166 },
+	{ 271, 165 }, { 269, 136 }, { 297, 145 }, { 303, 103 }, { 279, 111 },
+	{ 280,  85 }, { 300,  14 }, { 217,  33 }, { 218,  55 }, { 166,  85 },
+	{  50,  44 }, { 151,  44 }, { 156,  16 }, {  83,  72 }, { 150, 102 }
+};
 
+static int getClosestStar(const Common::Point &pos) {
+	int closest = 0;
+	int closestDistance = 0x7fff;
+
+	for (int i = 0; i < ARRAYSIZE(starMapPositions); i++) {
+		int distance = ABS(starMapPositions[i][0] - pos.x) + ABS(starMapPositions[i][1] - pos.y);
+		if (distance < closestDistance) {
+			closest = i;
+			closestDistance = distance;
+		}
+	}
+
+	return closest;
+}
+
+int StarTrekEngine::showStarMap() {
+	_gfx->pushSprites();
+	_gfx->setMouseBitmap("cross");
+
+	// A circle marks the star closest to the mouse cursor
+	int star = getClosestStar(_gfx->getMousePos());
+	Sprite circleSprite;
+	_gfx->addSprite(&circleSprite);
+	circleSprite.setBitmap(_resource->loadBitmapFile("circle"));
+	circleSprite.setXYAndPriority(starMapPositions[star][0], starMapPositions[star][1], 14);
+
+	_gfx->setBackgroundImage("starmap");
+	_gfx->copyBackgroundScreen();
+	_gfx->drawAllSprites();
+
+	bool selected = false;
+	while (!selected) {
+		TrekEvent event;
+		if (!popNextEvent(&event))
+			continue;
+
+		switch (event.type) {
+		case TREKEVENT_TICK:
+			_frameIndex++;
+			break;
+
+		case TREKEVENT_MOUSEMOVE:
+			star = getClosestStar(_gfx->getMousePos());
+			circleSprite.setXYAndPriority(starMapPositions[star][0], starMapPositions[star][1], 14);
+			_gfx->drawAllSprites();
+			break;
+
+		case TREKEVENT_LBUTTONDOWN:
+		case TREKEVENT_RBUTTONDOWN:
+			selected = true;
+			break;
+
+		case TREKEVENT_KEYDOWN:
+			switch (event.kbd.keycode) {
+			case Common::KEYCODE_RETURN:
+			case Common::KEYCODE_KP_ENTER:
+			case Common::KEYCODE_SPACE:
+			case Common::KEYCODE_F1:
+			case Common::KEYCODE_F2:
+				selected = true;
+				break;
+			default:
+				break;
+			}
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	circleSprite.dontDrawNextFrame();
+	_gfx->drawAllSprites();
+	_gfx->delSprite(&circleSprite);
+	delete circleSprite.bitmap;
+	circleSprite.bitmap = nullptr;
+	_gfx->popSprites();
+	setBridgeMouseCursor();
+
+	// TODO: Warp animation through the starfield. This needs the space code.
+	// TODO: The original creates the planet of the selected star system here,
+	// to be shown on the main viewscreen.
+
+	_gfx->loadPalette("bridge");
+	_gfx->setBackgroundImage("bridge");
+	_gfx->copyBackgroundScreen();
+	_gfx->forceDrawAllSprites();
+
+	return star;
+}
+
+void StarTrekEngine::arrivedAtTargetPlanet() {
 	switch (_targetPlanet) {
 	case kPlanetPollux:
 		_bridgeSequenceToLoad = kSeqArrivedAtPolluxV;
@@ -1240,8 +1351,6 @@ void StarTrekEngine::showStarMap() {
 		// This shouldn't be called for Mission 6 (sins)
 		break;
 	}
-
-	// TODO
 }
 
 void StarTrekEngine::showMissionStartEnterpriseFlyby(Common::String sequence, Common::String name) {
