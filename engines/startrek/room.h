@@ -2524,6 +2524,7 @@ public:
 	void veng1ReachedDoor();
 	void veng1TouchedTurbolift();
 	void veng1LookAtDeadGuy();
+	void veng1UseMccoyOnDeadGuy();
 	void veng1UseSTricorderOnVent();
 	void veng1LookAtPanel();
 	void veng1LookAtDoor();
@@ -2647,6 +2648,7 @@ public:
 	void veng3LookAtSickbayDoor();
 	void veng3LookAtCable();
 	void veng3LookAtDeadGuy();
+	void veng3UseMccoyOnDeadGuy();
 	void veng3LookAtKirk();
 	void veng3LookAtMccoy();
 	void veng3LookAtSpock();
@@ -2723,6 +2725,7 @@ public:
 	void veng5LookAtDoor();
 	void veng5LookAtLadder();
 	void veng5LookAtDeadGuy();
+	void veng5UseMccoyOnDeadGuy();
 	void veng5LookAtPowerPack();
 	void veng5LookAtDebris();
 	void veng5LookAtKirk();
@@ -2770,6 +2773,7 @@ public:
 	void veng6LookAtMccoy();
 	void veng6LookAtRedshirt();
 	void veng6LookAtDeadGuy();
+	void veng6UseMccoyOnDeadGuy();
 	void veng6LookAnywhere();
 	void veng6TalkToKirk();
 	void veng6TalkToSpock();
@@ -2812,6 +2816,7 @@ public:
 	void veng7TouchedTurboliftDoor();
 	void veng7LookAtCollapsedSection();
 	void veng7LookAtDeadGuy();
+	void veng7UseMccoyOnDeadGuy();
 	void veng7LookAtDoor();
 	void veng7LookAtCable();
 	void veng7LookAtKirk();
@@ -2878,7 +2883,7 @@ public:
 	void vengaUsePhaserAnywhere();
 	void vengaLookAtHypo();
 	void vengaUseCommunicator();
-	void vengaUseMccoyOnDeadGuy();
+	void vengaUseMccoyOnDeadGuy(TextRef text0, TextRef text1, TextRef text2, TextRef text3);
 
 	// VENGF0 (floppy)
 	void vengf0Tick1();

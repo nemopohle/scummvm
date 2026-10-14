@@ -122,9 +122,9 @@ extern const RoomAction veng6ActionList[] = {
 	{ {ACTION_USE, OBJECT_IPHASERK, 0xff,     0, 0}, &Room::vengaUsePhaserAnywhere },
 	{ {ACTION_LOOK, OBJECT_IHYPO,          0, 0, 0}, &Room::vengaLookAtHypo },
 	{ {ACTION_USE, OBJECT_ICOMM, OBJECT_KIRK, 0, 0}, &Room::vengaUseCommunicator },
-	{ {ACTION_USE, OBJECT_IMEDKIT,  OBJECT_DEAD_GUY, 0, 0}, &Room::vengaUseMccoyOnDeadGuy },
-	{ {ACTION_USE, OBJECT_IMTRICOR, OBJECT_DEAD_GUY, 0, 0}, &Room::vengaUseMccoyOnDeadGuy },
-	{ {ACTION_USE, OBJECT_MCCOY,    OBJECT_DEAD_GUY, 0, 0}, &Room::vengaUseMccoyOnDeadGuy },
+	{ {ACTION_USE, OBJECT_IMEDKIT,  OBJECT_DEAD_GUY, 0, 0}, &Room::veng6UseMccoyOnDeadGuy },
+	{ {ACTION_USE, OBJECT_IMTRICOR, OBJECT_DEAD_GUY, 0, 0}, &Room::veng6UseMccoyOnDeadGuy },
+	{ {ACTION_USE, OBJECT_MCCOY,    OBJECT_DEAD_GUY, 0, 0}, &Room::veng6UseMccoyOnDeadGuy },
 
 	// ENHANCEMENT
 	{ {ACTION_USE, OBJECT_ISTRICOR, OBJECT_IMPULSE_ENGINES, 0, 0}, &Room::veng6UseSTricorderOnImpulseEngines },
@@ -133,7 +133,7 @@ extern const RoomAction veng6ActionList[] = {
 
 enum veng6TextIds {
 	TX_SPEAKER_KIRK, TX_SPEAKER_MCCOY, TX_SPEAKER_SPOCK, TX_SPEAKER_KIJE, TX_SPEAKER_COMPUTER,
-	TX_BRIDU146, TX_COMPA185, TX_DEM3_019, TX_MUD1N014, TX_MUD4_018,
+	TX_BRIDU146, TX_COMPA185, TX_DEM3_019, TX_G_014, TX_MUD1N014, TX_MUD4_018,
 	TX_VEN0N016, TX_VEN0_016, TX_VEN2U093, TX_VEN2_028,
 	TX_VEN2_066, TX_VEN2_098, TX_VEN4N010, TX_VEN4_016, TX_VEN5N007,
 	TX_VEN6N000, TX_VEN6N001, TX_VEN6N002, TX_VEN6N003, TX_VEN6N005,
@@ -157,6 +157,7 @@ extern const RoomTextOffsets veng6TextOffsets[] = {
 	{ TX_BRIDU146, 7831, 0, 0, 8275 },
 	{ TX_COMPA185, 4008, 0, 0, 4183 },
 	{ TX_DEM3_019, 8315, 0, 0, 8781 },
+	{ TX_G_014, 8438, 0, 0, 8905 },
 	{ TX_MUD1N014, 6550, 0, 0, 6892 },
 	{ TX_MUD4_018, 7762, 0, 0, 8207 },
 	//{ TX_MUD4_018, 7895, 0, 0, 0 },	// Skip duplicate text
@@ -341,6 +342,10 @@ void Room::veng6LookAtRedshirt() {
 
 void Room::veng6LookAtDeadGuy() {
 	showDescription(TX_VEN0N016);
+}
+
+void Room::veng6UseMccoyOnDeadGuy() {
+	vengaUseMccoyOnDeadGuy(TX_DEM3_019, TX_VEN4_016, TX_G_014, TX_VEN0_016);
 }
 
 void Room::veng6LookAnywhere() {

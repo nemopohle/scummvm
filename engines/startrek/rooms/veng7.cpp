@@ -67,15 +67,15 @@ extern const RoomAction veng7ActionList[] = {
 	{ {ACTION_USE, OBJECT_IPHASERK, 0xff,     0, 0}, &Room::vengaUsePhaserAnywhere },
 	{ {ACTION_LOOK, OBJECT_IHYPO,          0, 0, 0}, &Room::vengaLookAtHypo },
 	{ {ACTION_USE, OBJECT_ICOMM, OBJECT_KIRK, 0, 0}, &Room::vengaUseCommunicator },
-	{ {ACTION_USE, OBJECT_IMEDKIT,  OBJECT_DEAD_GUY, 0, 0}, &Room::vengaUseMccoyOnDeadGuy },
-	{ {ACTION_USE, OBJECT_IMTRICOR, OBJECT_DEAD_GUY, 0, 0}, &Room::vengaUseMccoyOnDeadGuy },
-	{ {ACTION_USE, OBJECT_MCCOY,    OBJECT_DEAD_GUY, 0, 0}, &Room::vengaUseMccoyOnDeadGuy },
+	{ {ACTION_USE, OBJECT_IMEDKIT,  OBJECT_DEAD_GUY, 0, 0}, &Room::veng7UseMccoyOnDeadGuy },
+	{ {ACTION_USE, OBJECT_IMTRICOR, OBJECT_DEAD_GUY, 0, 0}, &Room::veng7UseMccoyOnDeadGuy },
+	{ {ACTION_USE, OBJECT_MCCOY,    OBJECT_DEAD_GUY, 0, 0}, &Room::veng7UseMccoyOnDeadGuy },
 	{ {ACTION_LIST_END, 0, 0, 0, 0}, nullptr }
 };
 
 enum veng7TextIds {
 	TX_SPEAKER_KIRK, TX_SPEAKER_MCCOY, TX_SPEAKER_SPOCK, TX_SPEAKER_KIJE,
-	TX_BRIDU146, TX_DEM3_019, TX_MUD4_018, TX_VEN0N016, TX_VEN0_016,
+	TX_BRIDU146, TX_DEM3_019, TX_G_014, TX_MUD4_018, TX_VEN0N016, TX_VEN0_016,
 	TX_VEN1_004, TX_VEN2U093, TX_VEN2_028, TX_VEN2_066,
 	TX_VEN2_098, TX_VEN4N010, TX_VEN4_016, TX_VEN6N007, TX_VEN7N001,
 	TX_VEN7N002, TX_VEN7N003, TX_VEN7N004, TX_VEN7N005, TX_VEN7N006,
@@ -91,6 +91,7 @@ extern const RoomTextOffsets veng7TextOffsets[] = {
 	{ TX_SPEAKER_KIJE, 4173, 0, 0, 4324 },
 	{ TX_BRIDU146, 3179, 0, 0, 3291 },
 	{ TX_DEM3_019, 3663, 0, 0, 3797 },
+	{ TX_G_014, 3786, 0, 0, 3921 },
 	{ TX_MUD4_018, 3110, 0, 0, 3223 },
 	{ TX_MUD4_018, 3243, 0, 0, 3367 },
 	{ TX_VEN0N016, 708, 0, 0, 714 },
@@ -167,6 +168,10 @@ void Room::veng7LookAtDeadGuy() {
 	// a more interesting unused audio file, so use that instead.
 	//showDescription(TX_VEN7N000);
 	showDescription(TX_VEN0N016);
+}
+
+void Room::veng7UseMccoyOnDeadGuy() {
+	vengaUseMccoyOnDeadGuy(TX_DEM3_019, TX_VEN4_016, TX_G_014, TX_VEN0_016);
 }
 
 void Room::veng7LookAtDoor() {

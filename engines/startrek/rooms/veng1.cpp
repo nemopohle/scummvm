@@ -121,9 +121,9 @@ extern const RoomAction veng1ActionList[] = {
 	{ {ACTION_USE, OBJECT_IPHASERK, 0xff,     0, 0}, &Room::vengaUsePhaserAnywhere },
 	{ {ACTION_LOOK, OBJECT_IHYPO,          0, 0, 0}, &Room::vengaLookAtHypo },
 	{ {ACTION_USE, OBJECT_ICOMM, OBJECT_KIRK, 0, 0}, &Room::vengaUseCommunicator },
-	{ {ACTION_USE, OBJECT_IMEDKIT,  OBJECT_DEAD_GUY, 0, 0}, &Room::vengaUseMccoyOnDeadGuy },
-	{ {ACTION_USE, OBJECT_IMTRICOR, OBJECT_DEAD_GUY, 0, 0}, &Room::vengaUseMccoyOnDeadGuy },
-	{ {ACTION_USE, OBJECT_MCCOY,    OBJECT_DEAD_GUY, 0, 0}, &Room::vengaUseMccoyOnDeadGuy },
+	{ {ACTION_USE, OBJECT_IMEDKIT,  OBJECT_DEAD_GUY, 0, 0}, &Room::veng1UseMccoyOnDeadGuy },
+	{ {ACTION_USE, OBJECT_IMTRICOR, OBJECT_DEAD_GUY, 0, 0}, &Room::veng1UseMccoyOnDeadGuy },
+	{ {ACTION_USE, OBJECT_MCCOY,    OBJECT_DEAD_GUY, 0, 0}, &Room::veng1UseMccoyOnDeadGuy },
 	{ {ACTION_LIST_END, 0, 0, 0, 0}, nullptr }
 };
 
@@ -133,7 +133,7 @@ enum veng1TextIds {
 	TX_VEN1_006, TX_VEN1_007, TX_VEN1_008, TX_VEN1_009, TX_VEN1_010,
 	TX_VEN1_011, TX_VEN1_012, TX_VEN1_013, TX_VEN1_014, TX_VEN1_015,
 	TX_VEN1_016, TX_VEN1_F33, TX_VEN2_028, TX_VEN2_066, TX_VEN2_098,
-	TX_VEN4_016, TX_VENA_F32, TX_VENA_F34, TX_VENA_F40, TX_DEM3_019,
+	TX_VEN4_016, TX_VENA_F32, TX_VENA_F34, TX_VENA_F40, TX_DEM3_019, TX_G_014,
 	TX_MUD4_018, /*TX_BRIDU146,*/ TX_VEN1N000, TX_VEN1N001, TX_VEN1N002,
 	TX_VEN1N003, TX_VEN1N004, TX_VEN1N005, TX_VEN1N006, TX_VEN1N007,
 	TX_VEN1N008, TX_VEN1N009, TX_VEN1N010, TX_VEN1N011, TX_VEN1N012,
@@ -173,8 +173,7 @@ extern const RoomTextOffsets veng1TextOffsets[] = {
 	{ TX_VENA_F34, 6276, 0, 0, 6740 },
 	{ TX_VENA_F40, 5871, 0, 0, 6308 },
 	{ TX_DEM3_019, 7133, 466, 0, 7633 },
-	//{ TX_G_014, 7256, 0, 0, 0 },
-	//{ TX_G_014, 7313, 0, 0, 0 },
+	{ TX_G_014, 7256, 0, 0, 7757 },
 	{ TX_MUD4_018, 6580, 0, 0, 7059 },
 	//{ TX_MUD4_018, 6713, 0, 0, 0 },		// ignore duplicate line
 	//{ TX_BRIDU146, 6649, 0, 0, 0 },
@@ -264,6 +263,10 @@ void Room::veng1TouchedTurbolift() {
 
 void Room::veng1LookAtDeadGuy() {
 	showDescription(TX_VEN4N014);
+}
+
+void Room::veng1UseMccoyOnDeadGuy() {
+	vengaUseMccoyOnDeadGuy(TX_DEM3_019, TX_VEN4_016, TX_G_014, TX_VEN0_016);
 }
 
 void Room::veng1UseSTricorderOnVent() {

@@ -28,7 +28,7 @@ enum vengTextIds {
 	TX_SPEAKER_KIRK, TX_SPEAKER_MCCOY, TX_SPEAKER_SPOCK, TX_SPEAKER_ELASI_CAPTAIN, TX_SPEAKER_UHURA,
 	TX_VEN2_098, TX_VEN2_028, TX_VEN2_066, TX_VENA_F32, TX_VENA_F34,
 	TX_VENA_F40, TX_VEN6N007, TX_VEN4N010, TX_VEN2U093, TX_MUD4_018,
-	TX_BRIDU146, /*TX_DEM3_019, TX_VEN4_016, TX_G_014,*/ TX_VEN0_016
+	TX_BRIDU146
 };
 
 extern const RoomTextOffsets vengTextOffsets[] = {
@@ -48,10 +48,6 @@ extern const RoomTextOffsets vengTextOffsets[] = {
 	{ TX_VEN2U093, 6021, 0, 0, 6417 },
 	{ TX_MUD4_018, 5820, 0, 0, 6205 },
 	{ TX_BRIDU146, 5889, 0, 0, 6273 },
-	//{ TX_DEM3_019, 0, 0, 0, 0 },	// Examining dead guy 1
-	//{ TX_VEN4_016, 0, 0, 0, 0 },	// Examining dead guy 2
-	//{ TX_G_014, 0, 0, 0, 0 },	// Examining dead guy 3
-	{ TX_VEN0_016, 8838, 3022, 0, 9482 },	// Examining dead guy 4
 	{          -1, 0,    0, 0, 0 }
 };
 
@@ -135,37 +131,23 @@ void Room::vengaUseCommunicator() {
 		showText(TX_SPEAKER_SPOCK, TX_VEN2_066);
 }
 
-void Room::vengaUseMccoyOnDeadGuy() {
-	showText(TX_SPEAKER_MCCOY, TX_VEN0_016);
-
-	// TODO: The original shows the random texts below. They are embedded in each
-	// room, not in VENG0.RDF, so they can't be looked up as common texts.
-#if 0
-	int val = getRandomWordInRange(0, 5);
-
-	switch (val) {
+// The texts are in the RDF file of each room
+void Room::vengaUseMccoyOnDeadGuy(TextRef text0, TextRef text1, TextRef text2, TextRef text3) {
+	switch (getRandomWordInRange(0, 5)) {
 	case 0:
-		showText(TX_SPEAKER_MCCOY, TX_DEM3_019);
+		showText(TX_SPEAKER_MCCOY, text0);
 		break;
-
 	case 1:
-		showText(TX_SPEAKER_MCCOY, TX_VEN4_016);
+		showText(TX_SPEAKER_MCCOY, text1);
 		break;
-
 	case 2:
 	case 3:
-		showText(TX_SPEAKER_MCCOY, TX_G_014);
+		showText(TX_SPEAKER_MCCOY, text2);
 		break;
-
-	case 4:
-	case 5:
-		showText(TX_SPEAKER_MCCOY, TX_VEN0_016);
-		break;
-
 	default:
+		showText(TX_SPEAKER_MCCOY, text3);
 		break;
 	}
-#endif
 }
 
 }
