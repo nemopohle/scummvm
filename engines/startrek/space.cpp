@@ -544,7 +544,7 @@ void StarTrekEngine::rotateR3(R3 *r3, int axis, int16 angle) {
 
 // The Enterprise flies away from the camera and jumps to warp
 void StarTrekEngine::playWarpSequence() {
-	// TODO: Remove the projectiles
+	removeProjectiles();
 	_gfx->fadeoutScreen();
 
 	_enterpriseR3.pos = Point3(0, 0, 0);
@@ -624,7 +624,7 @@ void StarTrekEngine::turnCameraTowards(const Point3 &target) {
 
 // The Enterprise slows down next to the planet and enters orbit
 void StarTrekEngine::playOrbitArrivalSequence() {
-	// TODO: Remove the projectiles
+	removeProjectiles();
 	_enterpriseR3.pos = _planetR3.pos + Point3(550, 0, -2050);
 	_enterpriseR3.matrix = initMatrix();
 	_starfieldPosition = _planetR3.pos + Point3(900, 0, 0);
@@ -664,7 +664,7 @@ void StarTrekEngine::playOrbitArrivalSequence() {
 
 // The Enterprise turns away from the planet and leaves orbit
 void StarTrekEngine::playOrbitDepartureSequence() {
-	// TODO: Remove the projectiles
+	removeProjectiles();
 	_enterpriseR3.pos = _planetR3.pos + Point3(-300, 0, -550);
 	_enterpriseR3.matrix = initMatrix();
 	rotateR3(&_enterpriseR3, 1, 0x100);

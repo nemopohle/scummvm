@@ -36,7 +36,7 @@ Console::Console(StarTrekEngine *vm) : GUI::Debugger(), _vm(vm) {
 	registerCmd("filedump",		WRAP_METHOD(Console, Cmd_DumpFile));
 	registerCmd("filesearch",	WRAP_METHOD(Console, Cmd_SearchFile));
 	registerCmd("score",			WRAP_METHOD(Console, Cmd_Score));
-	registerCmd("bridgeseq",		WRAP_METHOD(Console, Cmd_BridgeSequence));
+	registerCmd("mission",		WRAP_METHOD(Console, Cmd_Mission));
 	registerCmd("dumptext",		WRAP_METHOD(Console, Cmd_DumpText));
 }
 
@@ -195,12 +195,13 @@ bool Console::Cmd_Score(int argc, const char **argv) {
 	return true;
 }
 
-bool Console::Cmd_BridgeSequence(int argc, const char **argv) {
+bool Console::Cmd_Mission(int argc, const char **argv) {
 	if (argc < 2) {
-		debugPrintf("Usage: %s <sequence ID> to start a bridge sequence\n", argv[0]);
+		debugPrintf("Usage: %s <state ID> to set the mission state of the bridge\n", argv[0]);
 		return true;
 	} else {
-		_vm->_bridgeSequenceToLoad = atoi(argv[1]);
+		_vm->_missionState = atoi(argv[1]);
+		_vm->_missionTicks = 0;
 		return false;
 	}
 }

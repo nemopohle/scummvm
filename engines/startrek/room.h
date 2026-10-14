@@ -270,7 +270,7 @@ private:
 	/**
 	 * Cmd 0x11
 	 */
-	void endMission(int16 score, int16 arg2, int16 arg3);
+	void endMission(int16 score, int16 maxScore, int16 endFlag);
 	/**
 	 * Cmd 0x12
 	 */

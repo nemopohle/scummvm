@@ -518,7 +518,7 @@ void Room::playMidiMusicTracks(MidiTracks startTrack, MidiLoopType loopType) {
 	_vm->_sound->playMidiMusicTracks(startTrack, loopType);
 }
 
-void Room::endMission(int16 score, int16 arg1, int16 arg2) {
+void Room::endMission(int16 score, int16 maxScore, int16 endFlag) {
 	_vm->_awayMission.disableInput = true;
 
 	for (int i = 0; i < (_vm->_awayMission.redshirtDead ? 3 : 4); i++) {
@@ -540,22 +540,10 @@ void Room::endMission(int16 score, int16 arg1, int16 arg2) {
 	_vm->_awayMission.disableInput = false;
 	_vm->_roomIndexToLoad = 0;
 	_vm->_gameMode = GAMEMODE_BEAMUP;
-
-	if (_vm->_missionName == "DEMON") {
-		_vm->_bridgeSequenceToLoad = kSeqEndMissionDemon;
-	} else if (_vm->_missionName == "TUG") {
-		_vm->_bridgeSequenceToLoad = kSeqEndMissionTug;
-	} else if (_vm->_missionName == "LOVE") {
-		_vm->_bridgeSequenceToLoad = kSeqEndMissionLove;
-	} else if (_vm->_missionName == "MUDD") {
-		_vm->_bridgeSequenceToLoad = kSeqEndMissionMudd;
-	} else if (_vm->_missionName == "FEATHER") {
-		_vm->_bridgeSequenceToLoad = kSeqEndMissionFeather;
-	} else if (_vm->_missionName == "TRIAL") {
-		_vm->_bridgeSequenceToLoad = kSeqEndMissionTrial;
-	} else if (_vm->_missionName == "SINS") {
-		_vm->_bridgeSequenceToLoad = kSeqEndMissionSins;
-	}
+	_vm->_missionScore = score;
+	_vm->_missionMaxScore = maxScore;
+	_vm->_missionEndFlag = endFlag;
+	_vm->_returnedFromAwayMission = true;
 }
 
 void Room::showGameOverMenu() { // TODO: takes an optional parameter?

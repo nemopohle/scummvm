@@ -27,8 +27,8 @@ namespace StarTrek {
 enum BridgeMenuEvent {
 	kBridgeNone = -1,
 	kBridgeKirkCommand = 0,
-	kBridgeUnk1 = 1,
-	kBridgeUnk2 = 2,
+	kBridgeFirePhasers = 1,
+	kBridgeFireTorpedoes = 2,
 	kBridgeStarfieldFullScreen = 3,
 	kBridgeKirkCaptainsLog = 16,
 	kBridgeKirkTransporter = 17,
@@ -93,7 +93,8 @@ enum BridgeTalkers {
 	kBridgeTalkerHarryMudd,
 	kBridgeTalkerTaraz,
 	kBridgeTalkerAdmiralKenka,
-	kBridgeTalkerKallarax
+	kBridgeTalkerKallarax,
+	kBridgeTalkerBredell
 };
 
 enum RandomEncounterType {
@@ -103,43 +104,50 @@ enum RandomEncounterType {
 	kRandomEncounterElasi = 3
 };
 
-enum BridgeSequence {
-	kSeqNone = -1,
+enum MissionEventType {
+	kMissionEventTick,
+	kMissionEventMenu,
+	kMissionEventReturn	// Back from the away mission
+};
+
+enum MissionState {
+	kMissionNone = -1,
 	// -- Chapter 1 ----
-	kSeqStartMissionDemon = 0,
-	kSeqEndMockBattle = 1,
-	kSeqShowDebriefDemon = 2,
-	kSeqArrivedAtPolluxV = 3,
-	kSeqEndMissionDemon = 4,
+	kMissionDemonStart = 0,
+	kMissionDemonMockBattle,
+	kMissionDemonAfterBattle,
+	kMissionDemonPollux,
+	kMissionDemonEnd,
 	// -- Chapter 2 ----
-	kSeqStartMissionTug = 5,
-	kSeqStartElasiPirateBattle = 6,
-	kSeqArrivedAtBetaMyamid = 7,
-	kSeqApproachedTheMasada = 8,
-	kSeqEndMissionTug = 9,
+	kMissionTugStart,
+	kMissionTugPirate,
+	kMissionTugPirateFled,
+	kMissionTugMasada,
+	kMissionTugEnd,
 	// -- Chapter 3 ----
-	kSeqStartMissionLove = 10,
-	kSeqAfterLoveDebrief = 11,
-	kSeqStartRomulanBattle = 12,
-	kSeqAfterRomulanBattle = 13,
-	kSeqArrivedAtArk7 = 14,
-	kSeqEndMissionLove = 15,
+	kMissionLoveStart,
+	kMissionLoveEnRoute,
+	kMissionLoveAmbush,
+	kMissionLoveAfterBattle,
+	kMissionLoveArk7,
+	kMissionLoveEnd,
 	// -- Chapter 4 ----
-	kSeqStartMissionMudd = 16,
-	kSeqFightElasiShipsAndContactMudd = 17,
-	kSeqEndMissionMudd = 18,
+	kMissionMuddStart,
+	kMissionMuddHarlequin,
+	kMissionMuddDerelict,
 	// -- Chapter 5 ----
-	kSeqStartMissionFeather = 19,
-	kSeqUnk20 = 20,
-	kSeqEndMissionFeather = 21,
-	kSeqStartMissionTrial = 22,
-	kSeqEndMissionTrial = 23,	// In the original, the same function was used for both start and end
+	kMissionFeatherStart,
+	kMissionFeatherOrbit,
+	kMissionFeatherBattle,
+	kMissionTrialStart,
+	kMissionTrialEnd,
+	kMissionTrialBattle,
 	// -- Chapter 6 ----
-	kSeqStartMissionSins = 24,
-	kSeqEndMissionSins = 25,
+	kMissionSinsStart,
+	kMissionSinsAlphaProxima,
 	// -- Chapter 7 ----
-	kSeqStartMissionVeng = 26,
-	kSeqEndMissionVengAndGame = 27
+	kMissionVengStart,
+	kMissionVengBattle
 };
 
 } // End of namespace StarTrek

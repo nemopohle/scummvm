@@ -27,6 +27,7 @@
 #include "common/savefile.h"
 #include "common/serializer.h"
 
+#include "startrek/bridge.h"
 #include "startrek/resource.h"
 #include "startrek/room.h"
 #include "startrek/startrek.h"
@@ -74,7 +75,7 @@ bool StarTrekEngine::showLoadMenu() {
 	return loadGame(slot);
 }
 
-const uint32 CURRENT_SAVEGAME_VERSION = 2;
+const uint32 CURRENT_SAVEGAME_VERSION = 3;
 
 bool StarTrekEngine::saveGame(int slot, Common::String desc) {
 	Common::String filename = getSavegameFilename(slot);
@@ -180,13 +181,15 @@ bool StarTrekEngine::saveOrLoadGameData(Common::SeekableReadStream *in, Common::
 
 	Common::String midiFilename = _sound->_loadedMidiFilename;
 	ser.syncString(midiFilename);
-	ser.syncAsSint16LE(_sound->_loopingMidiTrack);
+	int16 loopingMidiTrack = _sound->_loopingMidiTrack;
+	ser.syncAsSint16LE(loopingMidiTrack);
 
 	if (ser.isLoading()) {
 		if (midiFilename.empty())
 			_sound->clearAllMidiSlots();
 		else {
 			_sound->loadMusicFile(midiFilename);
+			_sound->_loopingMidiTrack = (MidiTracks)loopingMidiTrack;
 			_sound->playMidiTrackInSlot(0, _sound->_loopingMidiTrack);
 		}
 	}
@@ -217,7 +220,8 @@ bool StarTrekEngine::saveOrLoadGameData(Common::SeekableReadStream *in, Common::
 		int16 unkFlag3 = 0; // TODO: word_4b032 (either 0 or 1)
 		ser.syncAsSint16LE(unkFlag3);
 
-		ser.syncAsUint16LE(_hailedTarget);
+		uint16 hailedTarget = 0;
+		ser.syncAsUint16LE(hailedTarget);
 		ser.syncAsSint16LE(_lastMissionId);
 		for (int i = 0; i < 7; i++) {
 			ser.syncAsUint16LE(_missionPoints[i]);
@@ -232,7 +236,8 @@ bool StarTrekEngine::saveOrLoadGameData(Common::SeekableReadStream *in, Common::
 	}
 
 	if (meta->version >= 1) {
-		ser.syncAsSint16LE(_bridgeSequenceToLoad);
+		int16 bridgeSequence = -1;
+		ser.syncAsSint16LE(bridgeSequence);
 	}
 
 	for (int i = 0; i < NUM_OBJECTS; i++) {
@@ -410,6 +415,45 @@ bool StarTrekEngine::saveOrLoadGameData(Common::SeekableReadStream *in, Common::
 
 	if (meta->version >= 2)
 		syncSpaceState(ser);
+
+	if (meta->version >= 3) {
+		ser.syncAsSint16LE(_missionState);
+		ser.syncAsSint32LE(_missionTicks);
+		for (int i = 0; i < ARRAYSIZE(_missionVars); i++)
+			ser.syncAsSint16LE(_missionVars[i]);
+		ser.syncAsSint16LE(_missionScore);
+		ser.syncAsSint16LE(_missionMaxScore);
+		ser.syncAsSint16LE(_missionEndFlag);
+
+		if (ser.isLoading()) {
+			delete _orbitObjectR3.bitmap;
+			_orbitObjectR3.bitmap = nullptr;
+		}
+		syncR3(ser, _orbitObjectR3);
+		if (ser.isLoading() && _orbitObjectR3.field1e != 0)
+			addOrbitObject();
+	} else if (ser.isLoading()) {
+		// Older savegames only know the mission, so continue with its away mission
+		static const struct {
+			const char *mission;
+			int16 state;
+		} kMissionStates[] = {
+			{ "DEMON", kMissionDemonPollux },
+			{ "TUG", kMissionTugMasada },
+			{ "LOVE", kMissionLoveArk7 },
+			{ "MUDD", kMissionMuddDerelict },
+			{ "FEATHER", kMissionFeatherOrbit },
+			{ "TRIAL", kMissionTrialStart },
+			{ "SINS", kMissionSinsAlphaProxima },
+			{ "VENG", kMissionVengStart }
+		};
+		_missionState = kMissionNone;
+		_missionTicks = 1000;
+		for (int i = 0; i < ARRAYSIZE(kMissionStates); i++) {
+			if (_missionToLoad.equalsIgnoreCase(kMissionStates[i].mission))
+				_missionState = kMissionStates[i].state;
+		}
+	}
 
 	return true;
 }

@@ -38,7 +38,7 @@ namespace StarTrek {
 Sound::Sound(StarTrekEngine *vm) : _vm(vm) {
 	_midiDevice = MT_AUTO;
 	_midiDriver = nullptr;
-	_loopingMidiTrack = MIDITRACK_0;
+	_loopingMidiTrack = MIDITRACK_NONE;
 
 	if (_vm->getPlatform() == Common::kPlatformDOS) {
 		_midiDevice = MidiDriver::detectDevice(MDT_PCSPK | MDT_ADLIB | MDT_MIDI | MDT_PREFER_MT32);
@@ -157,6 +157,7 @@ void Sound::loadMusicFile(const Common::String &baseSoundName) {
 	bool isDemo = _vm->getFeatures() & GF_DEMO;
 
 	clearAllMidiSlots();
+	_loopingMidiTrack = MIDITRACK_NONE;
 
 	if (baseSoundName == _loadedMidiFilename)
 		return;
@@ -378,8 +379,20 @@ void Sound::setSfxEnabled(bool enable) {
 }
 
 void Sound::checkLoopMusic() {
-	// TODO
-	// It might be better to get rid of this altogether and deal with it in callbacks...
+	if (!_vm->_musicWorking || !_vm->_musicEnabled || _loopingMidiTrack == MIDITRACK_NONE)
+		return;
+	if (!_midiSlots[0].midiParser->isPlaying())
+		playMidiTrackInSlot(0, _loopingMidiTrack);
+}
+
+MidiTracks Sound::getPlayingMidiTrack() {
+	if (!_vm->_musicWorking || !_midiSlots[0].midiParser->isPlaying())
+		return MIDITRACK_NONE;
+	return (MidiTracks)_midiSlots[0].track;
+}
+
+bool Sound::isPlayingSpeech() const {
+	return _playingSpeech;
 }
 
 

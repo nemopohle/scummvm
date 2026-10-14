@@ -6,6 +6,7 @@ MODULE_OBJS = \
 	bitmap.o \
 	bridge.o \
 	bridgedisplays.o \
+	bridgemissions.o \
 	common.o \
 	console.o \
 	events.o \

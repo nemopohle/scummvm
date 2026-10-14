@@ -74,6 +74,8 @@ public:
 	void toggleMusic();
 	void toggleSfx();
 	void checkLoopMusic();
+	MidiTracks getPlayingMidiTrack();
+	bool isPlayingSpeech() const;
 
 private:
 	StarTrekEngine *_vm;

@@ -36,6 +36,7 @@
 #include "engines/util.h"
 #include "video/qt_decoder.h"
 
+#include "startrek/bridge.h"
 #include "startrek/console.h"
 #include "startrek/iwfile.h"
 #include "startrek/lzss.h"
@@ -128,10 +129,15 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_targetPlanet = -1;
 	_currentPlanet = -1;
 	_gameIsPaused = false;
-	_hailedTarget = false;
-	_deadMasadaPrisoners = 0;
-	_beamDownAllowed = true;
+	_bridgeInputLocked = false;
+	_currentScreenTalker = -1;
+	_missionState = kMissionNone;
+	_missionTicks = 0;
+	Common::fill(_missionVars, _missionVars + ARRAYSIZE(_missionVars), 0);
+	_missionScore = 0;
+	_missionMaxScore = 0;
 	_missionEndFlag = 0;
+	_returnedFromAwayMission = false;
 	_randomEncounterType = 0;
 	_lastMissionId = -1;
 	Common::fill(_missionPoints, _missionPoints + 7, 0);
@@ -202,16 +208,14 @@ Common::Error StarTrekEngine::run() {
 	if (!loadedSave) {
 		if (isCd || !isDemo) {
 			_missionToLoad = "DEMON";
-			_bridgeSequenceToLoad = 0;
+			_missionState = kMissionDemonStart;
 			runGameMode(GAMEMODE_BRIDGE, false);
 		} else {
 			_missionToLoad = "DEMO";
-			_bridgeSequenceToLoad = -1;
 			runGameMode(GAMEMODE_AWAYMISSION, false);
 		}
 	} else {
 		_roomIndexToLoad = -1;
-		_bridgeSequenceToLoad = -1;
 		runGameMode(_gameMode, true);
 	}
 

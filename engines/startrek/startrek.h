@@ -273,11 +273,9 @@ public:
 	void cleanupBridge();
 	void runBridge();
 	void setBridgeMouseCursor();
-	void playBridgeSequence(int sequenceId);
 	void handleBridgeEvents();
 	void updateBridgeTick();
 	void showSpaceMessages();
-	bool updateEnemyRetreat();
 	void updateBridgeSpace();
 	void setMouseControllingShip(bool enable);
 	void restrictBridgeMouse();
@@ -286,34 +284,75 @@ public:
 	void leaveFullscreenView();
 	void initViewscreenStarfield();
 	void handleBridgeComputer();
-	void showMissionPerformance(int score, int missionScoreTextId, int missionId);
+	void showMissionPerformance(int missionId, int textId, int16 score, int16 maxScore);
 
-	int _bridgeSequenceToLoad;
+	// Mission state of the bridge
+	int16 _missionState;
+	int32 _missionTicks;
+	int16 _missionVars[6];
+	// Results of the last away mission
+	int16 _missionScore;
+	int16 _missionMaxScore;
+	int16 _missionEndFlag;
+	bool _returnedFromAwayMission;
 
 private:
 	Common::String getSpeechSampleForNumber(int number);
 	void showTextboxBridge(int talker, int textId);
 	void showTextboxBridge(int talker, Common::String text);
+	void showBridgeScreenTalker(Common::String talkerId);
+	void restartBridgeScreenTalker();
+	void removeBridgeScreenTalker();
 	void showBridgeScreenTalkerWithMessage(int textId, Common::String talkerHeader, Common::String talkerId, bool removeTalker = true);
 	void showBridgeScreenTalkerWithMessages(Common::String texts[], Common::String talkerHeader, Common::String talkerId, bool removeTalker = true);
 	void showMissionStartEnterpriseFlyby(Common::String sequence, Common::String name);
-	void startBattle(Common::String enemyShip);
 	void wrongDestinationRandomEncounter();
 	void bridgeCrewAction(int crewId);
-	void contactTargetAction();
-	void orbitPlanetSequence(int sequenceId);
+	void handleBridgeMenu(int menuEvent);
+	void dispatchBridgeMenu(int menuEvent);
+	void orbitPlanetSequence(int shape);
+	void addOrbitObject();
+	void removeOrbitObject();
+	void playOrbitSequence(bool enterOrbit, bool showText);
+	void startBridgeWarp();
+	void endBridgeWarp();
 	int showKirkChoices(const int *textIds);
+	void showEndCredits();
+	bool playEndCreditsFrames(R3 *r3, int frames);
+
+	// bridgemissions.cpp
+	bool handleMissionEvent(int type, int value);
+	void setMissionState(int16 state);
+	void startMission(const char *name, const char *music);
+	void playMissionFlyby(const char *sequence, const char *name);
+	void resetShipForMission();
+	void turnOffShieldsAndWeapons();
+	void setCrewStanding(bool standing);
+	void stopMissionMusic();
+	void showSuluText(const Common::String &text, byte color);
+	bool handleDemonEvent(int type, int value);
+	bool handleTugEvent(int type, int value);
 	void negotiateWithElasiCereth();
 	void hailTheMasada();
+	bool handleLoveEvent(int type, int value);
+	bool handleMuddEvent(int type, int value);
+	bool handleFeatherEvent(int type, int value);
+	void negotiateWithTaraz();
+	void negotiateWithKenka();
+	bool handleTrialEvent(int type, int value);
+	void endMissionTrial();
+	bool handleSinsEvent(int type, int value);
+	bool handleVengEvent(int type, int value);
+	void returnFromRepublic();
+	void endGame();
 
 	int16 _targetPlanet;
 	int16 _currentPlanet;
 	int _currentScreenTalker;
+	Common::String _currentScreenTalkerAnim;
+	Sprite _screenTalkerSprite;
 	bool _gameIsPaused;
-	bool _hailedTarget;
-	int _deadMasadaPrisoners;
-	bool _beamDownAllowed;
-	int _missionEndFlag;
+	bool _bridgeInputLocked;
 	int16 _randomEncounterType;	// 1: Klingon, 2: Romulan, 3: Elasi
 	int16 _lastMissionId;
 	int16 _missionPoints[7];
@@ -414,6 +453,7 @@ private:
 	void applyHit(R3 *ship, R3 *projectile);
 	bool damageShipSystem(R3 *ship, int side, int16 damage);
 	void loadProjectileView(R3 *projectile);
+	void removeProjectiles();
 	void drawPhaserBeam(R3 *projectile);
 
 	// saveload.cpp
@@ -691,13 +731,9 @@ public:
 	void drawMenuButtonOutline(Bitmap *bitmap, byte color);
 	void showOptionsMenu(int x, int y);
 	void showBridgeMenu(Common::String menu, int x, int y);
-	void handleBridgeMenu(int menuEvent);
 	int showStarMap();
 	int chooseDestination();
 	void initSystemPlanet(int system);
-	void arrivedAtTargetPlanet();
-	void orbitPlanet();
-	void playOrbitSequence(bool enterOrbit, bool showText);
 	void captainsLog();
 
 	/**
@@ -884,6 +920,7 @@ public:
 	R3 _planetR3;
 	R3 _enemyShips[NUM_ENEMY_SHIPS];
 	R3 _projectiles[NUM_PROJECTILES];
+	R3 _orbitObjectR3;
 	R3 *_targetShip;
 	// Shared like the random number generator of the original
 	uint32 _msRandState;

@@ -521,6 +521,13 @@ void StarTrekEngine::updateProjectiles() {
 	}
 }
 
+void StarTrekEngine::removeProjectiles() {
+	for (int i = 0; i < NUM_PROJECTILES; i++) {
+		if (_projectiles[i].field1e == 3)
+			delR3(&_projectiles[i]);
+	}
+}
+
 void StarTrekEngine::applyHit(R3 *ship, R3 *projectile) {
 	Point3 local = multPointMatrix(projectile->pos - ship->pos, ship->matrix.invert());
 	ShipSide side = findSide(local);

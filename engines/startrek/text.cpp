@@ -26,6 +26,8 @@ static const TranslatedText kGermanTexts[] = {
 	  "Romulanischer Captain" },
 	{ "#BRID\\B_348#Unable to comply, Captain.  We're under attack.",
 	  "#BRID\\B_348#Kann ich nicht ausf\xfchren, Captain.  Wir werden angegriffen." },
+	{ "#BRID\\B_348#Unable to comply, Captain. We're under attack.",
+	  "#BRID\\B_348#Kann ich nicht ausf\xfchren, Captain. Wir werden angegriffen." },
 	{ "#BRID\\B_338#May I respectfully remind the Captain that we haven't accomplished our mission, Sir.",
 	  "#BRID\\B_338#Darf ich unseren Captain respektvoll erinnern, da\xdf wir die Mission nicht beendet haben, Sir." },
 	{ "#BRID\\B_349#We must first leave orbit, Sir.",
