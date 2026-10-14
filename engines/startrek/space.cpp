@@ -33,7 +33,6 @@ static int16 fixedMult2(int16 a, int16 b, int16 c, int16 d) {
 	return (int16)(((int32)a * b + (int32)c * d) >> 14);
 }
 
-// 2.14 fixed-point division
 static int16 fixedDiv(int16 a, int16 b) {
 	return (int16)(((int32)a << 14) / b);
 }
@@ -48,7 +47,6 @@ static Point3 multPointMatrix(const Point3 &p, const Matrix &m) {
 	return result;
 }
 
-// Multiplies two matrices
 static Matrix multMatrix(const Matrix &a, const Matrix &b) {
 	Matrix result;
 	for (int i = 0; i < 3; i++) {
@@ -63,7 +61,6 @@ static Matrix multMatrix(const Matrix &a, const Matrix &b) {
 static int16 vectorLength(int16 x, int16 y, int16 z) {
 	uint32 squared = (uint32)((int32)x * x + (int32)y * y + (int32)z * z);
 	uint32 root = (uint32)sqrt((double)squared);
-	// Make sure that the result is the integer square root
 	while (root * root > squared)
 		root--;
 	while ((root + 1) * (root + 1) <= squared)
@@ -72,7 +69,7 @@ static int16 vectorLength(int16 x, int16 y, int16 z) {
 }
 
 void StarTrekEngine::initTrigTables() {
-	// The original computes the tables at startup with these steps, truncating the values
+	// Same steps and truncation as the original
 	const double step = 0.00613592315234375;
 
 	double angle = 0.0;
@@ -196,9 +193,6 @@ int16 StarTrekEngine::angleAsin(int16 value) {
 	return negative ? -angle : angle;
 }
 
-/**
- * Sets up a ship from its descriptor file (*.dsc).
- */
 void StarTrekEngine::loadShipDescriptor(R3 *r3, const Common::String &name) {
 	Common::MemoryReadStreamEndian *file = _resource->loadFile(name + ".dsc", 0, false);
 	if (!file) {
@@ -329,10 +323,7 @@ void StarTrekEngine::drawStarfield() {
 	delete file;
 }
 
-/**
- * Compares 2 r3 objects for sorting them before drawing: objects that are farther away
- * are drawn first.
- */
+// Objects farther away are drawn first
 bool compareR3Objects(R3 *obj1, R3 *obj2) {
 	return obj1->field54 > obj2->field54;
 }
@@ -423,24 +414,17 @@ R3 *StarTrekEngine::sub_19f24(R3 *r3) {
 		return nullptr;
 }
 
-/**
- * Calculates how the view of a ship is mapped to the screen. Returns false if the
- * ship can't be drawn.
- * @param scale       Size of the ship on the screen
- * @param forward     2x2 matrix mapping the shape to the screen
- * @param inverse     2x2 matrix mapping the screen to the shape
- */
+// Returns false if the ship can't be drawn
 bool StarTrekEngine::calcShipViewTransform(R3 *r3, double scale, double forward[4], double inverse[4]) {
 	const Matrix &v = r3->shipViewMatrix;
 	const Matrix &m = r3->matrix2;
 	const Point3 &p = r3->field36;
 
-	// The original checks this to avoid an overflow in the divisions below
+	// Avoids an overflow in the divisions below
 	int16 limit = (int16)(ABS(p.z) << 1);
 	if (ABS(p.x) >= limit || ABS(p.y) >= limit)
 		return false;
 
-	// Use the two rows of the view matrix that are best suited
 	int16 rows01 = ABS(fixedMult2(v[0][0].raw(), v[1][1].raw(), -v[1][0].raw(), v[0][1].raw())) / 4;
 	int16 rows12 = ABS(fixedMult2(v[1][0].raw(), v[2][1].raw(), -v[2][0].raw(), v[1][1].raw())) / 2;
 	int16 rows02 = ABS(fixedMult2(v[0][0].raw(), v[2][1].raw(), -v[2][0].raw(), v[0][1].raw()));
@@ -701,8 +685,7 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 			int16 var3f6 = var3f2 * shpImageTop + (int16)(dbl40 * 256);
 			int16 var3f8 = var3f4 * shpImageTop + (int16)(dbl38 * 256);
 
-			// The shape is copied into a 256x256 buffer with a transparent border of 2 pixels,
-			// which keeps the positions in the shape within the buffer
+			// The shape gets a transparent border of 2 pixels
 			Bitmap tmpBitmap(256, 256);
 			memset(tmpBitmap.pixels, 0, 256 * 256);
 
@@ -784,9 +767,7 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 		freeShipView(r3);
 }
 
-/**
- * Checks if an object is in the view frustum, taking its radius (field22) into account.
- */
+// Checks if an object is in the view frustum. field22 is its radius.
 bool StarTrekEngine::sub_1c022(R3 *r3) {
 	const Point3 &p = r3->field36;
 	if (p.z < _flt_50898)
@@ -810,12 +791,10 @@ bool StarTrekEngine::sub_1c022(R3 *r3) {
 	return horizontal > 0 && vertical > 0;
 }
 
-// Name prefixes of the ship shapes (*.r3s), indexed by R3::field20
+// Indexed by R3::field20
 static const char *const kShipShapeNames[] = { "ENT", "KLING", "ORION", "ROM" };
 
-// Views of the ship shapes, indexed by azimuth (30 degree steps) and elevation
-// (from above to below). Bits 1-3 select the elevation and bits 5-7 the azimuth
-// of the shape file. Bit 15 marks views that are mirrored.
+// Indexed by azimuth and elevation. Bit 15 marks mirrored views.
 static const uint16 kShipViews[12][7] = {
 	{ 0, 0x0002, 0x0004, 0x0006, 0x0008, 0x000a, 0x000c },
 	{ 0, 0x0022, 0x0024, 0x0026, 0x0028, 0x002a, 0x000c },
@@ -831,10 +810,7 @@ static const uint16 kShipViews[12][7] = {
 	{ 0, 0x8022, 0x8024, 0x8026, 0x8028, 0x802a, 0x000c }
 };
 
-/**
- * Loads the view of a ship that is closest to the direction the ship is seen from.
- * Called before drawing a ship.
- */
+// Loads the view of a ship closest to the direction it is seen from
 void StarTrekEngine::loadShipView(R3 *r3) {
 	if (r3->field20 == 4) {
 		// TODO: Explosion (BigExp%02d.shp)
@@ -844,7 +820,6 @@ void StarTrekEngine::loadShipView(R3 *r3) {
 	if (r3->field54 < _flt_50898)
 		error("object too close.");
 
-	// Direction to the viewer, in the coordinates of the ship
 	Point3 toViewer = Point3() - r3->field36;
 	toViewer = multPointMatrix(toViewer, r3->matrix2.invert());
 
@@ -892,9 +867,6 @@ void StarTrekEngine::loadShipView(R3 *r3) {
 	r3->shipViewCode = view;
 }
 
-/**
- * Frees the view loaded by loadShipView(). Called after drawing a ship.
- */
 void StarTrekEngine::freeShipView(R3 *r3) {
 	delete r3->bitmap;
 	r3->bitmap = nullptr;

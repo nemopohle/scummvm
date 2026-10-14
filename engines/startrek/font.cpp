@@ -30,10 +30,7 @@ namespace StarTrek {
 static const byte CHARACTER_COUNT = 0x80;
 static const byte CHARACTER_SIZE = 0x40;
 
-// The German DOS version stores accented characters in otherwise unused
-// glyphs of its font. Its executable maps the Latin-1 text through this
-// table whenever a character is drawn. The English executable has no such
-// table and uses the character codes directly.
+// Maps Latin-1 characters to the extra glyphs of the German font
 static const byte kGermanCharMapping[][2] = {
 	{ 0x89, 0x88 }, { 0x92, 0x0f }, { 0xb2, 0x0f },
 	{ 0xc0, 0x06 }, { 0xc2, 0x07 }, { 0xc4, 0x02 }, { 0xc7, 0x0e },
@@ -72,8 +69,7 @@ Font::~Font() {
 byte *Font::getCharData(int i) {
 	byte c = _charMapping[i & 0xff];
 
-	// The font only has 128 glyphs. The original reads past the end of the
-	// font for higher character codes; draw a blank instead.
+	// The original reads past the end of the font here
 	if (c >= CHARACTER_COUNT)
 		c = ' ';
 

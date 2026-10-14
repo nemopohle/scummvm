@@ -10,9 +10,7 @@ struct TranslatedText {
 	const char *translated;
 };
 
-// Texts that are stored in the game executable rather than in the data
-// files. These are the German texts of the German DOS executable, keyed
-// by the text of the English executable.
+// Texts of the German executable, keyed by those of the English one
 static const TranslatedText kGermanTexts[] = {
 	{ "Captain's Log",
 	  "Logbuch des Captains" },

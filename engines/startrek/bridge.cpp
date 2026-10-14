@@ -671,9 +671,7 @@ void StarTrekEngine::bridgeCrewAction(int crewId) {
 				wrongDestinationRandomEncounter();
 				// TODO: Redraw sprites
 
-				// FIXME: Random encounters end in a space battle, which isn't
-				// implemented yet. End it right away, so that the player isn't
-				// stuck under attack.
+				// FIXME: Space battles are not implemented, end the encounter right away
 				_enterpriseState.underAttack = false;
 				_resource->setTxtFileName(_missionName);
 			} else {
@@ -1221,9 +1219,7 @@ void StarTrekEngine::handleBridgeMenu(int menuEvent) {
 	}
 }
 
-// Positions of the selectable stars on the star map. The first 20 are the
-// star systems, in the order of the planet IDs (kPlanetCenturius to
-// kPlanetChristgen). The others are stars without a destination.
+// The first 20 stars are the star systems, in the order of the planet IDs
 static const int16 kStarMapPositions[][2] = {
 	{  14,  16 }, {  28,  59 }, {  62,  32 }, { 102,  38 }, { 116,  33 },
 	{ 167,  18 }, { 245,  27 }, { 263,   8 }, { 294,  37 }, { 260,  63 },
@@ -1255,7 +1251,6 @@ int StarTrekEngine::showStarMap() {
 	_gfx->pushSprites();
 	_gfx->setMouseBitmap("cross");
 
-	// A circle marks the star closest to the mouse cursor
 	int star = getClosestStar(_gfx->getMousePos());
 	Sprite circleSprite;
 	_gfx->addSprite(&circleSprite);
@@ -1315,9 +1310,7 @@ int StarTrekEngine::showStarMap() {
 	_gfx->popSprites();
 	setBridgeMouseCursor();
 
-	// TODO: Warp animation through the starfield. This needs the space code.
-	// TODO: The original creates the planet of the selected star system here,
-	// to be shown on the main viewscreen.
+	// TODO: Warp animation, and the planet of the selected system on the viewscreen
 
 	_gfx->loadPalette("bridge");
 	_gfx->setBackgroundImage("bridge");

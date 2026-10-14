@@ -528,10 +528,7 @@ public:
 	void showTextbox(Common::String headerText, const Common::String &mainText, int xoffset, int yoffset, byte textColor, int maxTextLines); // TODO: better name. (return type?)
 
 	Common::String skipTextAudioPrompt(const Common::String &str);
-	/**
-	 * Returns the translation of a text that the original stores in its
-	 * executable, or the text itself if there is none.
-	 */
+	// For texts that the original stores in its executable
 	const char *localizeText(const char *text) const;
 	/**
 	 * Plays an audio prompt, if it exists, and returns the string starting at the end of the
@@ -614,10 +611,6 @@ public:
 	void showOptionsMenu(int x, int y);
 	void showBridgeMenu(Common::String menu, int x, int y);
 	void handleBridgeMenu(int menuEvent);
-	/**
-	 * Shows the star map and returns the selected star. The star systems use
-	 * the planet IDs.
-	 */
 	int showStarMap();
 	void arrivedAtTargetPlanet();
 	void orbitPlanet();
@@ -811,7 +804,7 @@ public:
 	int16 _sinTable[257];
 	int16 _cosTable[257];
 	int16 _tanTable[129];
-	// Allows ships to be drawn with dithering when they are close. Disabled during the intro.
+	// Disabled during the intro
 	bool _shipDitheringEnabled;
 
 	Graphics *_gfx;
