@@ -421,6 +421,8 @@ void StarTrekEngine::runBridge() {
 	while (_gameMode == GAMEMODE_BRIDGE && !_resetGameMode) {
 		if (_returnedFromAwayMission) {
 			_returnedFromAwayMission = false;
+			// The away mission has its own texts
+			_resource->setTxtFileName(_missionName);
 			handleMissionEvent(kMissionEventReturn, 0);
 			continue;
 		}
