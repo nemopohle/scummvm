@@ -310,7 +310,8 @@ void StarTrekEngine::showMissionPerformance(int missionId, int textId, int16 sco
 		speechIdPerformance.c_str(),
 		speechIdCommendationPoints.c_str(),
 		percent,
-		commendationPoints
+		commendationPoints,
+		"" // The German texts of sins and veng end with a stray %s
 	);
 
 	Common::String texts[] = {
