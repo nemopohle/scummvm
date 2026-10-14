@@ -103,7 +103,7 @@ enum sins1TextIds {
 
 // TODO: Finish floppy offsets
 extern const RoomTextOffsets sins1TextOffsets[] = {
-	{ TX_SPEAKER_KIRK, 300, 0, 0, 301 },
+	{ TX_SPEAKER_KIRK, 301, 0, 0, 301 },
 	{ TX_SPEAKER_MCCOY, 312, 0, 0, 312 },
 	{ TX_SPEAKER_SPOCK, 322, 0, 0, 322 },
 	{ TX_SPEAKER_MOSHER, 332, 0, 0, 332 },

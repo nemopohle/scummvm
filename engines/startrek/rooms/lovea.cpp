@@ -87,7 +87,7 @@ extern const RoomTextOffsets loveTextOffsets[] = {
 	{ TX_LOV5_019,  2931, 0, 0, 3028 },
 	{ TX_LOV5_027,  3444, 0, 0, 3559 },
 	{ TX_LOV5_030,  3348, 0, 0, 3462 },
-	{ TX_LOV5_038,   444, 0, 0, 3518 },
+	{ TX_LOV5_038,  3399, 0, 0, 3518 },
 	{ TX_LOVA_100,  4553, 0, 0, 4784 },
 	{ TX_LOVA_F01,  3995, 0, 0, 4170 },
 	{ TX_LOVA_F02,  4067, 0, 0, 4242 },
