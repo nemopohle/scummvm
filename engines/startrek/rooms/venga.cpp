@@ -33,26 +33,26 @@ enum vengTextIds {
 
 // TODO: Finish floppy offsets
 extern const RoomTextOffsets vengTextOffsets[] = {
-	{ TX_SPEAKER_KIRK, 6590, 0, 0, 0 },
-	{ TX_SPEAKER_MCCOY, 6601, 0, 0, 0 },
-	{ TX_SPEAKER_SPOCK, 6611, 0, 0, 0 },
-	{ TX_SPEAKER_UHURA, 6672, 0, 0, 0 },
-	{ TX_SPEAKER_ELASI_CAPTAIN, 6682, 0, 0, 0 },
-	{ TX_VEN2_098, 5016, 0, 0, 0 },
-	{ TX_VEN2_028, 6128, 0, 0, 0 },
-	{ TX_VEN2_066, 6206, 0, 0, 0 },
-	{ TX_VENA_F32, 5246, 0, 0, 0 },
-	{ TX_VENA_F34, 5516, 0, 0, 0 },
-	{ TX_VENA_F40, 5111, 0, 0, 0 },
-	{ TX_VEN6N007, 5735, 0, 0, 0 },
-	{ TX_VEN4N010, 5670, 0, 0, 0 },
-	{ TX_VEN2U093, 6021, 0, 0, 0 },
-	{ TX_MUD4_018, 5820, 0, 0, 0 },
-	{ TX_BRIDU146, 5889, 0, 0, 0 },
+	{ TX_SPEAKER_KIRK, 6590, 0, 0, 6996 },
+	{ TX_SPEAKER_MCCOY, 6601, 0, 0, 7007 },
+	{ TX_SPEAKER_SPOCK, 6611, 0, 0, 7017 },
+	{ TX_SPEAKER_UHURA, 6672, 0, 0, 7078 },
+	{ TX_SPEAKER_ELASI_CAPTAIN, 6682, 0, 0, 7088 },
+	{ TX_VEN2_098, 5016, 0, 0, 5345 },
+	{ TX_VEN2_028, 6128, 0, 0, 6523 },
+	{ TX_VEN2_066, 6206, 0, 0, 6605 },
+	{ TX_VENA_F32, 5246, 0, 0, 5589 },
+	{ TX_VENA_F34, 5516, 0, 0, 5886 },
+	{ TX_VENA_F40, 5111, 0, 0, 5454 },
+	{ TX_VEN6N007, 5735, 0, 0, 6125 },
+	{ TX_VEN4N010, 5670, 0, 0, 6057 },
+	{ TX_VEN2U093, 6021, 0, 0, 6417 },
+	{ TX_MUD4_018, 5820, 0, 0, 6205 },
+	{ TX_BRIDU146, 5889, 0, 0, 6273 },
 	//{ TX_DEM3_019, 0, 0, 0, 0 },	// Examining dead guy 1
 	//{ TX_VEN4_016, 0, 0, 0, 0 },	// Examining dead guy 2
 	//{ TX_G_014, 0, 0, 0, 0 },	// Examining dead guy 3
-	{ TX_VEN0_016, 8838, 0, 0, 0 },	// Examining dead guy 4
+	{ TX_VEN0_016, 8838, 0, 0, 9482 },	// Examining dead guy 4
 	{          -1, 0,    0, 0, 0 }
 };
 
