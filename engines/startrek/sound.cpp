@@ -153,6 +153,10 @@ bool Sound::isMidiPlaying() {
 	return false;
 }
 
+bool Sound::isMT32() const {
+	return _vm->_musicWorking && MidiDriver::getMusicType(_midiDevice) == MT_MT32;
+}
+
 void Sound::loadMusicFile(const Common::String &baseSoundName) {
 	bool isDemo = _vm->getFeatures() & GF_DEMO;
 

@@ -28,6 +28,12 @@ void StarTrekEngine::playIntro() {
 	_frameIndex = 0;
 	_shipDitheringEnabled = false;
 
+	// Sets up the instruments of the MT-32
+	if (_sound->isMT32()) {
+		_sound->loadMusicFile("init");
+		_sound->playMidiMusicTracks(MIDITRACK_0);
+	}
+
 	initStarfieldPosition();
 	initStarfield(10, 20, 309, 169, 128);
 
@@ -93,7 +99,11 @@ void StarTrekEngine::playIntro() {
 		waitForNextTick(true);
 	}
 
-	// TODO: With an MT-32, the original plays MIDI track 1 here and waits for its end
+	if (_sound->isMT32()) {
+		_sound->playMidiMusicTracks(MIDITRACK_1);
+		while (_sound->isMidiPlaying() && !shouldQuit())
+			waitForNextTick(true);
+	}
 
 	_gfx->fadeoutScreen();
 	_gfx->loadPalette("bridge");

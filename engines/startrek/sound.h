@@ -62,6 +62,7 @@ public:
 	void playMidiTrack(MidiTracks track);
 	void playMidiTrackInSlot(int slot, MidiTracks track);
 	bool isMidiPlaying();
+	bool isMT32() const;
 	void loadMusicFile(const Common::String &baseSoundName);
 	void playMidiMusicTracks(MidiTracks startTrack, MidiLoopType loopType = kLoopTypeNone);
 	void playVoc(const Common::String &baseSoundName);
