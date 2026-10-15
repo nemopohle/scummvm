@@ -671,6 +671,7 @@ public:
 	Common::String skipTextAudioPrompt(const Common::String &str);
 	// For texts that the original stores in its executable
 	const char *localizeText(const char *text) const;
+	const char *localizeMacText(const char *text) const;
 	/**
 	 * Plays an audio prompt, if it exists, and returns the string starting at the end of the
 	 * prompt.

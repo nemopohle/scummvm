@@ -586,6 +586,43 @@ static const TranslatedText kAmigaFrenchTexts[] = {
 	{ nullptr, nullptr }
 };
 
+// The Mac versions correct some texts of the DOS versions
+static const TranslatedText kMacTexts[] = {
+	{ "#BRID\\B_348#Unable to comply, Captain.  We're under attack.",
+	  "#BRID\\B_348#Unable to comply, Captain. We're under attack." },
+	{ "#BRID\\B_199#I'll be frank, Kirk. Starfleet expects more of you than that. Try to do better on your next assignment.",
+	  "#BRID\\B_199#I'll be frank, Kirk, Starfleet expects more out of you than that. Try to do better on your next assignment." },
+	{ "#BRID\\B_195#A perfect mission, Jim! You are a model for all Starfleet!",
+	  "#BRID\\B_195#A perfect mission, Jim! You are a model for all Starfleet." },
+	{ "#BRID\\C_060#Spock, come with me. Mr Scott, you have the conn.",
+	  "#BRID\\C_060#Spock, come with me. Mr. Scott, you have the conn." },
+	{ "#GENE\\GENER006#Load a previously saved game.",
+	  "#GENE\\GENER006#Open a previously saved game." },
+	{ nullptr, nullptr }
+};
+
+static const TranslatedText kMacFloppyTexts[] = {
+	{ "Captain, the shield's are up.",
+	  "Captain, the shields are up." },
+	{ "We're not in orbit Captain.",
+	  "We're not in orbit, Captain." },
+	{ "Spock, come with me. Mr Scott, you have the con.",
+	  "Spock, come with me. Mr. Scott, you have the conn." },
+	{ "I don't know how long she can take it Captain.",
+	  "I don't know how long she can take it, Captain." },
+	{ "She can't take it Captain.",
+	  "She can't take it, Captain." },
+	{ "I'll be frank, Kirk, Star Fleet expects more out of you than that. Try to do better on your next assignment.",
+	  "I'll be frank, Kirk, Starfleet expects more out of you than that. Try to do better on your next assignment." },
+	{ "The top brass at Star Fleet are impressed. Outstanding work, Jim.",
+	  "The top brass at Starfleet are impressed. Outstanding work, Jim." },
+	{ "A perfect mission, Jim! You are a model for all Star Fleet",
+	  "A perfect mission, Jim! You are a model for all Starfleet." },
+	{ "#GENE\\GENER028#Yes, quit the game.",
+	  "#GENE\\GENER028#Yes, quit the game without saving." },
+	{ nullptr, nullptr }
+};
+
 const char *StarTrekEngine::localizeText(const char *text) const {
 	bool isAmiga = getPlatform() == Common::kPlatformAmiga;
 	const TranslatedText *table;
@@ -593,10 +630,27 @@ const char *StarTrekEngine::localizeText(const char *text) const {
 		table = isAmiga ? kAmigaGermanTexts : kGermanTexts;
 	else if (getLanguage() == Common::FR_FRA)
 		table = isAmiga ? kAmigaFrenchTexts : kFrenchTexts;
+	else if (getPlatform() == Common::kPlatformMacintosh)
+		return localizeMacText(text);
 	else
 		return text;
 
 	for (const TranslatedText *t = table; t->english; t++) {
+		if (!strcmp(t->english, text))
+			return t->translated;
+	}
+
+	return text;
+}
+
+const char *StarTrekEngine::localizeMacText(const char *text) const {
+	if (isFloppyVersion()) {
+		for (const TranslatedText *t = kMacFloppyTexts; t->english; t++) {
+			if (!strcmp(t->english, text))
+				return t->translated;
+		}
+	}
+	for (const TranslatedText *t = kMacTexts; t->english; t++) {
 		if (!strcmp(t->english, text))
 			return t->translated;
 	}
