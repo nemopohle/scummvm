@@ -252,6 +252,24 @@ void Graphics::loadPri(const Common::String &priFile) {
 	Common::MemoryReadStream *priStream = _vm->_resource->loadFile(priFile + ".pri");
 	priStream->read(_priData, SCREEN_WIDTH * SCREEN_HEIGHT / 2);
 	delete priStream;
+
+	// The Amiga version has four bitplanes, the lowest bit first
+	if (_vm->getPlatform() == Common::kPlatformAmiga) {
+		const int planeSize = SCREEN_WIDTH * SCREEN_HEIGHT / 8;
+		byte planes[SCREEN_WIDTH * SCREEN_HEIGHT / 2];
+		memcpy(planes, _priData, sizeof(planes));
+		for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
+			byte value = 0;
+			for (int plane = 0; plane < 4; plane++) {
+				if (planes[plane * planeSize + i / 8] & (0x80 >> (i % 8)))
+					value |= 1 << plane;
+			}
+			if (i % 2)
+				_priData[i / 2] = (_priData[i / 2] & 0xf0) | value;
+			else
+				_priData[i / 2] = (_priData[i / 2] & 0x0f) | (value << 4);
+		}
+	}
 }
 
 void Graphics::clearPri() {
