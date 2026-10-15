@@ -296,6 +296,17 @@ inline Point_Fixed14 crossProduct(const Point_Fixed14 &a, const Point_Fixed14 &b
 	return result;
 }
 
+// For the distances to the camera, which may be longer than 16 bits
+inline int32 vectorLength32(int32 x, int32 y, int32 z) {
+	uint64 squared = (uint64)((int64)x * x + (int64)y * y + (int64)z * z);
+	uint64 root = (uint64)sqrt((double)squared);
+	while (root * root > squared)
+		root--;
+	while ((root + 1) * (root + 1) <= squared)
+		root++;
+	return (int32)root;
+}
+
 inline int16 vectorLength(int16 x, int16 y, int16 z) {
 	uint32 squared = (uint32)((int32)x * x + (int32)y * y + (int32)z * z);
 	uint32 root = (uint32)sqrt((double)squared);

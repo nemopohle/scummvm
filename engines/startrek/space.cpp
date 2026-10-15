@@ -389,13 +389,18 @@ void StarTrekEngine::loadPlanetView(R3 *r3) {
 		r3->field24 = r3->planetSize / 6;
 	}
 
-	// Direction to the camera, relative to the planet
+	// Direction to the camera, relative to the planet, shortened to 16 bits
 	Point3 relative = multPointMatrix(r3->field36, r3->matrix2.invert());
+	int32 distance = r3->field54;
+	while (distance > 0x7fff) {
+		relative = Point3(relative.x >> 1, relative.y >> 1, relative.z >> 1);
+		distance >>= 1;
+	}
 	int16 azimuth = angleAtan2((int16)relative.x, (int16)relative.z);
-	int16 elevation = angleAsin(fixedDiv((int16)relative.y, (int16)r3->field54));
+	int16 elevation = angleAsin(fixedDiv((int16)relative.y, (int16)distance));
 	if (elevation < -0x80 || elevation > 0x80) {
 		int16 horizontal = vectorLength((int16)relative.x, (int16)relative.z, 0);
-		elevation = angleAcos(fixedDiv(horizontal, (int16)r3->field54));
+		elevation = angleAcos(fixedDiv(horizontal, (int16)distance));
 		if (relative.y < 0)
 			elevation = -elevation;
 	}
@@ -1074,7 +1079,7 @@ R3 *StarTrekEngine::sub_19f24(R3 *r3) {
 	r3->matrix2 = r3->matrix;
 	r3->field36 = r3->pos;
 	r3->field36 -= _starfieldPosition;
-	r3->field54 = vectorLength(r3->field36.x, r3->field36.y, r3->field36.z);
+	r3->field54 = vectorLength32(r3->field36.x, r3->field36.y, r3->field36.z);
 	r3->field36 = multPointMatrix(r3->field36, _starPositionMatrix);
 
 	if (sub_1c022(r3)) {
@@ -1094,7 +1099,7 @@ bool StarTrekEngine::calcShipViewTransform(R3 *r3, double scale, double forward[
 	const Point3 &p = r3->field36;
 
 	// Avoids an overflow in the divisions below
-	int16 limit = (int16)(ABS(p.z) << 1);
+	int32 limit = ABS(p.z) << 1;
 	if (ABS(p.x) >= limit || ABS(p.y) >= limit)
 		return false;
 
@@ -1121,8 +1126,12 @@ bool StarTrekEngine::calcShipViewTransform(R3 *r3, double scale, double forward[
 	int16 b2 = fixedMult2(-vj0, m[i][1].raw(), vi0, m[j][1].raw());
 	int16 b3 = fixedMult2(-vj0, m[i][2].raw(), vi0, m[j][2].raw());
 
-	int16 projX = fixedDiv((int16)p.x, (int16)p.z);
-	int16 projY = fixedDiv((int16)p.y, (int16)p.z);
+	// The projection only needs the ratios, so far objects are shortened to 16 bits
+	Point3 q = p;
+	while (q.z > 0x3fff)
+		q = Point3(q.x >> 1, q.y >> 1, q.z >> 1);
+	int16 projX = fixedDiv((int16)q.x, (int16)q.z);
+	int16 projY = fixedDiv((int16)q.y, (int16)q.z);
 	double a = (int16)(a1 - fixedMult(a3, projX)) / 16384.0;
 	double b = (int16)(a2 - fixedMult(a3, projY)) / 16384.0;
 	double c = (int16)(b1 - fixedMult(b3, projX)) / 16384.0;
@@ -1521,18 +1530,24 @@ void StarTrekEngine::loadShipView(R3 *r3) {
 	if (r3->field54 < _flt_50898)
 		error("object too close.");
 
+	// The direction to the camera, shortened to 16 bits
 	Point3 toViewer = Point3() - r3->field36;
 	toViewer = multPointMatrix(toViewer, r3->matrix2.invert());
+	int32 distance = r3->field54;
+	while (distance > 0x7fff) {
+		toViewer = Point3(toViewer.x >> 1, toViewer.y >> 1, toViewer.z >> 1);
+		distance >>= 1;
+	}
 
 	int32 azimuth = angleAtan2(toViewer.x, toViewer.z);
 	if (azimuth < 0)
 		azimuth += 0x400;
 
-	int32 elevation = angleAcos(fixedDiv(toViewer.y, r3->field54));
+	int32 elevation = angleAcos(fixedDiv(toViewer.y, distance));
 	if (elevation < 0x80 || elevation > 0x180) {
 		// More precise near the poles
 		int16 horizontalDistance = vectorLength(toViewer.x, toViewer.z, 0);
-		elevation = angleAsin(fixedDiv(horizontalDistance, r3->field54));
+		elevation = angleAsin(fixedDiv(horizontalDistance, distance));
 		if (toViewer.y < 0)
 			elevation = 0x200 - elevation;
 	}
