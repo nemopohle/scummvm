@@ -277,7 +277,11 @@ Common::Point Graphics::getMousePos() {
 	// The DOS demo plays recorded input in the away mission
 	if (_vm->_demoEvents)
 		return _vm->_demoMousePos;
-	return _vm->_system->getEventManager()->getMousePos();
+	// After a dialog of ScummVM, the position may be outside of the game screen
+	Common::Point pos = _vm->_system->getEventManager()->getMousePos();
+	pos.x = CLIP<int16>(pos.x, 0, SCREEN_WIDTH - 1);
+	pos.y = CLIP<int16>(pos.y, 0, SCREEN_HEIGHT - 1);
+	return pos;
 }
 
 void Graphics::setMouseBitmap(Common::String bitmapName) {

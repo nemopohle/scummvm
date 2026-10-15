@@ -459,6 +459,8 @@ int StarTrekEngine::showActionMenu() {
 	if (action == ACTION_OPTIONS) {
 		showOptionsMenu(50, 50);
 		action = ACTION_WALK;
+		// The click chose the options, so Kirk doesn't walk there
+		addEventBack = false;
 	}
 
 	Common::Point mouse = _gfx->getMousePos();
