@@ -158,7 +158,8 @@ void StarTrekEngine::drawConsoleBars() {
 				if (weapon.nextFireTime <= _frameIndex) {
 					frame = 16;
 				} else {
-					length = 24 - (int16)((int32)(weapon.nextFireTime - _frameIndex) * 24 / weapon.cooldown);
+					uint32 remaining = MIN<uint32>(weapon.nextFireTime - _frameIndex, MAX<int16>(weapon.cooldown, 1));
+					length = 24 - (int16)(remaining * 24 / MAX<int16>(weapon.cooldown, 1));
 					frame = 8;
 				}
 			}

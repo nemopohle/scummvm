@@ -77,7 +77,7 @@ bool StarTrekEngine::showLoadMenu() {
 	return true;
 }
 
-const uint32 CURRENT_SAVEGAME_VERSION = 4;
+const uint32 CURRENT_SAVEGAME_VERSION = 5;
 
 bool StarTrekEngine::saveGame(int slot, Common::String desc) {
 	Common::String filename = getSavegameFilename(slot);
@@ -412,6 +412,17 @@ bool StarTrekEngine::saveOrLoadGameData(Common::SeekableReadStream *in, Common::
 
 	if (meta->version >= 2)
 		syncSpaceState(ser);
+
+	// The frame index above has only 16 bits, but the weapons wait for frames with 32 bits
+	if (meta->version >= 5) {
+		ser.syncAsUint32LE(_frameIndex);
+	} else if (ser.isLoading()) {
+		for (int i = -1; i < NUM_ENEMY_SHIPS; i++) {
+			R3 &ship = i < 0 ? _enterpriseR3 : _enemyShips[i];
+			for (int j = 0; j < ARRAYSIZE(ship.weapons); j++)
+				ship.weapons[j].nextFireTime = MIN<uint32>(ship.weapons[j].nextFireTime, _frameIndex);
+		}
+	}
 
 	if (meta->version >= 3) {
 		ser.syncAsSint16LE(_missionState);
