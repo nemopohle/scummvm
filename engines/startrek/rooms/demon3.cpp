@@ -293,6 +293,7 @@ void Room::demon3FinishedAnimation1() {
 // Just destroyed boulder 4 (revealing the miner)
 void Room::demon3FinishedAnimation2() {
 	loadActorAnim(13, "miner", 0xda, 0x6c, 0);
+	_awayMission->demon.missionScore += 3;
 }
 
 void Room::demon3FinishedWalking5() {

@@ -498,7 +498,7 @@ void Room::love4UseWaterOnRomulan() {
 			showText(TX_SPEAKER_KIRK, TX_LOV4_001);
 			if (!_awayMission->love.gotPointsForHydratingRomulans) {
 				_awayMission->love.gotPointsForHydratingRomulans = true;
-				_awayMission->love.missionScore += 2;
+				_awayMission->love.missionScore += 1;
 			}
 		}
 
