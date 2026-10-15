@@ -455,8 +455,11 @@ int StarTrekEngine::showDosDemoText(const char *const *textArray) {
 			switch (event.kbd.keycode) {
 			case Common::KEYCODE_RETURN:
 			case Common::KEYCODE_KP_ENTER:
-			case Common::KEYCODE_ESCAPE:
 				accept = true;
+				break;
+			case Common::KEYCODE_ESCAPE:
+				quitGame();
+				done = true;
 				break;
 			case Common::KEYCODE_SPACE:
 				if (numChoices > 1)

@@ -441,6 +441,9 @@ void StarTrekEngine::handleDemoBattleKey(Common::KeyCode key) {
 	case Common::KEYCODE_SLASH:
 		fireDemoEnterprise();
 		break;
+	case Common::KEYCODE_ESCAPE:
+		quitGame();
+		break;
 	default:
 		break;
 	}

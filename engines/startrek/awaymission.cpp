@@ -54,7 +54,7 @@ Common::String StarTrekEngine::getGroundText(int textId) {
 }
 
 void StarTrekEngine::runAwayMission() {
-	while (_gameMode == GAMEMODE_AWAYMISSION && !_resetGameMode) {
+	while (_gameMode == GAMEMODE_AWAYMISSION && !_resetGameMode && !shouldQuit()) {
 		// Original game manipulates the stack when the room changes to return execution
 		// to this point. Instead of doing that, just check if a variable is set.
 		if (_roomIndexToLoad != -1 && _spawnIndexToLoad != -1) {
@@ -233,6 +233,13 @@ void StarTrekEngine::handleAwayMissionEvents() {
 			break;
 
 		case TREKEVENT_KEYDOWN:
+			// The DOS demo only has the escape key, which ends the demo
+			if (getFeatures() & GF_DEMO) {
+				if (event.kbd.keycode == Common::KEYCODE_ESCAPE)
+					quitGame();
+				break;
+			}
+
 			if (_awayMission.disableInput)
 				break;
 
