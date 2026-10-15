@@ -198,8 +198,11 @@ Common::Error StarTrekEngine::run() {
 
 	_enterpriseR3 = R3();
 	_enterpriseR3.matrix = initMatrix();
-	loadShipDescriptor(&_enterpriseR3, "enterpri");
-	addR3(&_enterpriseR3);
+	// The DOS demo has no space flight
+	if (!isDemo) {
+		loadShipDescriptor(&_enterpriseR3, "enterpri");
+		addR3(&_enterpriseR3);
+	}
 
 	if (!isDemo)
 		loadBridgeComputerTopics();
@@ -268,8 +271,10 @@ void StarTrekEngine::restartGame() {
 
 	_enterpriseR3 = R3();
 	_enterpriseR3.matrix = initMatrix();
-	loadShipDescriptor(&_enterpriseR3, "enterpri");
-	addR3(&_enterpriseR3);
+	if (!(getFeatures() & GF_DEMO)) {
+		loadShipDescriptor(&_enterpriseR3, "enterpri");
+		addR3(&_enterpriseR3);
+	}
 	initSpaceObjects();
 
 	_enterpriseState = EnterpriseState();
