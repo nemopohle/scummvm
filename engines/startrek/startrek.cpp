@@ -114,6 +114,9 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 		_enemyShips[i] = R3();
 	for (int i = 0; i < NUM_PROJECTILES; i++)
 		_projectiles[i] = R3();
+	_enterpriseR3 = R3();
+	_planetR3 = R3();
+	_orbitObjectR3 = R3();
 	_msRandState = 1;
 	_spaceMessages = 0;
 	_cloakLutLevel = -1;
