@@ -658,87 +658,89 @@ const char *StarTrekEngine::localizeMacText(const char *text) const {
 	return text;
 }
 
-struct TypoFix {
-	Common::String origText;
-	Common::String newText;
+struct TextFix {
+	const char *prefix;
+	const char *origText;
+	const char *newText;
 };
 
-Common::String patchRoomMessage(const char *text) {
+// The speech files of these CD texts are missing or wrong
+static const TextFix kSpeechFixes[] = {
+	{ nullptr, "#LOV2\\LOV2_012#", "#LOV1\\LOV1_010#" },
+	{ nullptr, "#LOV3\\LOV3_#", "#LOV3\\LOV3N000#" },
+	{ nullptr, "#LOV3\\LOV3_005#", "#LOV0\\LOV0_008#" },
+	{ nullptr, "#SIN2\\SIN3_008#", "#SIN3\\SIN3_008#" },
+	{ nullptr, "#FEA3\\FEA3_030#", "#LOVA\\LOVA_100#" },	// McCoy instead of Spock
+	{ nullptr, "#FEA4\\FEA4N008#Still out, Jim.", "#FEA4\\FEA4_005#Still out, Jim." },
+	{ nullptr, "#FEA4\\FEA4N008#Ohne Reaktion, Jim.", "#FEA4\\FEA4_005#Ohne Reaktion, Jim." },
+	{ nullptr, "#FEA4\\FEA4N008#Toujours pas, Jim.", "#FEA4\\FEA4_005#Toujours pas, Jim." },
+	{ nullptr, "#TRI3\\TRI3U080#", "#TRI1\\TRI1U080#" },	// Without the filter of the radio
+	{ nullptr, "They are in no condition to talk right now.", "#LOV4\\LOV4N007#They are in no condition to talk right now." },
+	{ nullptr, nullptr, nullptr }
+};
+
+// Typos of the English CD texts, and texts that differ from their speech
+static const TextFix kEnglishTextFixes[] = {
+	{ "#LOVA\\LOVA_F08#", "spock", "Spock" },
+	{ "#LOVA\\LOVA_F55#", "sysnthesize", "synthesize" },
+	{ "#MUD0\\MUD0_023#", "gullability", "gullibility" },
+	{ "#MUD2\\MUD2_002#", "Well, now! I think", "Well, now I think" },
+	{ "#MUD3\\MUD3_011#", "to think after all the stunts that Harry has pulled", "to think that after all the stunts that Harry has pulled," },
+	{ "#MUD3\\MUD3_022#", "and they were certain", "and they are certain" },
+	{ "#MUD4\\MUD4_008#", "DId you know", "Did you know" },
+	{ "#FEA1\\FEA1_035#", "before it retreats Captain", "before it retreats, Captain" },
+	{ "#FEA1\\FEA1_041#", "it must have a nasty bite", "it may have a nasty bite" },
+	{ "#FEA3\\FEA3_012#", "he'll be up in about an hour", "he'll be up in about a half hour" },
+	{ "#FEA3\\FEA3_030#", "sHe's dead, Jim!", "He's dead, Jim!" },
+	{ "#FEA6\\FEA6_017#", "isn't that just great", "isn't this just great" },
+	{ "#FEA6\\FEA6_019#", "that action, Captain It may", "that action, Captain. It may" },
+	{ "#FEA6\\FEA6N016#", "that attack you", "that attacked you" },
+	{ "#SIN2\\SIN2_012#", "I'm a surgeon not a alien", "I'm a surgeon, not an alien" },
+	{ "#SIN4\\SIN4_023#", "to bypass it's lock system", "to bypass its lock system" },
+	{ "#SIN5\\SIN5N012#", "Sparks explode and", "Sparks fly and" },
+	{ "#TRI0\\TRI0_036#", "the Enterprise!We've", "the Enterprise! We've" },
+	{ "#TRI1\\TRI1_025#", "Male Human-Vulcan", "One male Human-Vulcan" },
+	{ "#TRI1\\TRI1_048#", "with a phaser", "with your phaser" },
+	{ "#TRI2\\TRI2_015#", "Male Human,", "He's a male Human," },
+	{ "#TRI2\\TRI2_017#", "Male Human-Vulcan", "One male Human-Vulcan" },
+	{ "#TRI3\\TRI3_013#", "He's a Male Human", "One male Human" },
+	{ "#TRI3\\TRI3_014#", "Male Human,", "He's a male Human," },
+	{ "#TRI3\\TRI3_016#", "Male Human-Vulcan", "One male Human-Vulcan" },
+	{ "#TRI3\\TRI3U084#", "Captain, come in please!", "Captain, please come in!" },
+	{ "#TRI4\\TRI4_003#", "I didn't want it", "I don't want it" },
+	{ "#TRI4\\TRI4_024#", "a fair trail", "a fair trial" },
+	{ "#TRI4\\TRI4_039#", "what an enemy does not expect", "what the enemy does not expect" },
+	{ "#TRI4\\TRI4_057#", "will believe you", "to believe you" },
+	{ "#TRI5\\TRI5_045#", "at which to transport you", "to which to transport you" },
+	{ "#TRI5\\TRI5N002#", "a beam light", "a beam of light" },
+	{ nullptr, "saphire", "sapphire" },
+	{ nullptr, "a emerald", "an emerald" },
+	{ "#VEN2\\VEN2_050#", "torpedo is loaded", "torpedoes are loaded" },
+	{ "#VEN6\\VEN6_005#", "><upon", "upon" },
+	{ "#VEN8\\VEN8_037#", "Its not", "It's not" },
+	{ nullptr, nullptr, nullptr }
+};
+
+static void applyTextFixes(Common::String &text, const TextFix *fixes) {
+	for (const TextFix *fix = fixes; fix->origText; fix++) {
+		if (fix->prefix && !text.hasPrefix(fix->prefix))
+			continue;
+		size_t pos = text.find(fix->origText);
+		if (pos != Common::String::npos)
+			text.replace(pos, strlen(fix->origText), fix->newText);
+	}
+}
+
+Common::String patchRoomMessage(const char *text, bool english) {
 	Common::String txt = text;
-	int i = 0;
 
-	TypoFix typoFixes[] = {
-	    { "#LOV2\\LOV2_012#", "#LOV1\\LOV1_010#" }, // LOV2_012: Audio file missing
-	    { "#LOV3\\LOV3_#", "#LOV3\\LOV3_000#" },       // LOV3_000: Message index missing
-		{ "They are in no condition to talk right now", "#LOV4\\LOV4N007#They are in no condition to talk right now." },	// LOV4N007: add missing audio
-		{ "#FEA3\\FEA3_030#", "#LOVA\\LOVA_100#" }, // FEA3_030: Wrong voice actor when McCoy says "He's dead, Jim"
-		{ "#FEA4\\TX_FEA4N008", "#FEA4\\FEA4_005" },	// FEA4N008: Fix wrong audio
-		{ "#TRI3\\TRI3U080", "#TRI1\\TRI1U080" },	// Fix audio with missing filter
-	    { "spock", "Spock" },	// LOVA_F08
-	    { "sysnthesize", "synthesize" },	// LOVA_F55
-	    { "gullability", "gullibility" },	// MUD0_023
-	    { "Well, now! I think", "Well, now I think" },	// MUD2_002
-	    { "I don't understand enough of the alien's thinking", "I don't understand enough of how the aliens thought," },	// MUD2_014
-	    { "to think after all the stunts that Harry has pulled", "to think that after all the stunts that Harry has pulled," },	// MUD3_011
-	    { "and they were certain", "and they are certain" },	// MUD3_022
-	    { "DId you know", "Did you know" },	// MUD4_008
-	    { "before it retreats Captain", "before it retreats, Captain" },	// FEA1_035
-	    { "it must have a nasty bite", "it may have a nasty bite" },	// FEA1_041
-	    { "he'll be up in about an hour", "he'll be up in about a half hour" },	// FEA3_012
-	    { "sHe's dead, Jim!", "He's dead, Jim!" },	// FEA3_030
-	    { "those thorns.You might", "those thorns. You might" },	// FEA5_009
-	    { "with our phaser not working", "with our phasers not working" },	// FEA5_018
-	    { "in a previous life", "in your previous life" },	// FEA5_020
-	    { "isn't that just great", "isn't this just great" },	// FEA6_017
-	    { "that action, Captain It may", "that action, Captain. It may" },	// FEA6_019
-	    { "that attack you", "that attacked you" },	// FEA6N016
-	    { "I'm a surgeon not a alien", "I'm a surgeon, not an alien" },	// SIN2_012
-	    { "to bypass it's lock system", "to bypass its lock system" },	// SIN4_023
-	    { "Sparks explode and", "Sparks fly and" },	// SIN5N012
-	    { "the Enterprise!We've", "the Enterprise! We've" },	// TRI0_036
-	    { "Male Human-Vulcan", "One male Human-Vulcan" },	// TRI1_025
-	    { "with a phaser", "with your phaser" },	// TRI1_048
-	    { "Male Human,", "He's a male Human," },	// TRI2_015
-	    { "Male Human-Vulcan", "One male Human-Vulcan" },	// TRI2_017
-	    { "He's a Male Human", "One male Human" },	// TRI3_013
-	    { "Male Human,", "He's a male Human," },	// TRI3_014
-	    { "Male Human-Vulcan", "One male Human-Vulcan" },	// TRI3_016
-	    { "Captain, come in please!", "Captain, please come in!" },	// TRI3U084
-	    { "I didn't want it", "I don't want it" },	// TRI4_003
-	    { "a fair trail", "a fair trial" },	// TRI4_024
-	    { "what an enemy does not expect", "what the enemy does not expect" },	// TRI4_039
-	    { "will believe you", "to believe you" },	// TRI4_057
-	    { "at which to transport you", "to which to transport you" },	// TRI5_045
-	    { "a beam light", "a beam of light" },	// TRI5N002
-	    { "saphire", "sapphire" },	// TRI5N016, TRI5N017, TRI5N018
-	    { "a emerald", "an emerald" },	// TRI5N019, TRI5N020, TRI5N021
-	    { "torpedo is loaded", "torpedoes are loaded" },	// VEN2_050
-	    { "><upon", "upon" },	// VEN6_005
-	    { "Its not", "It's not" },	// VEN8_037
-	    { "", "" }
-	};
+	if (english)
+		applyTextFixes(txt, kEnglishTextFixes);
+	applyTextFixes(txt, kSpeechFixes);
 
-	// Fix typos where some messages contain a hyphen instead of an underscore
-	// (e.g in LOV2)
-	if (txt[10] == '-')
-		txt.replace(10, 1, "_");
-
-	// Fix typos where some messages contain double spacing (e.g. in FEA3_020)
-	int32 spacePos = txt.find("  ");
-	if (spacePos > 0)
-		txt.deleteChar(spacePos);
-
-	// Fix typos
-	do {
-		const Common::String origText = typoFixes[i].origText;
-		const Common::String newText = typoFixes[i].newText;
-
-		int32 pos = txt.find(origText);
-		if (pos > 0)
-			txt.replace(pos, origText.size(), newText, pos, newText.size());
-
-		i++;
-	} while (typoFixes[i].origText != "");
+	// Some speech files are named with a hyphen instead of an underscore (e.g. in LOV2)
+	if (txt.size() > 10 && txt[0] == '#' && txt[5] == '\\' && txt[10] == '-')
+		txt.setChar('_', 10);
 
 	return txt;
 }

@@ -407,8 +407,13 @@ const char *Room::getText(uint16 textId) {
 	}
 
 	const char *text = textId < 5000 ? (const char *)_rdfData + offset : (const char *)_commonRdfData + offset;
-	//return patchRoomMessage(text).c_str();	// TODO
-	return text;
+	if (!isCD)
+		return text;
+
+	// The corrected texts stay valid as long as the room, like the ones in the RDF file
+	if (!_patchedTexts.contains(textId))
+		_patchedTexts[textId] = patchRoomMessage(text, _vm->getLanguage() == Common::EN_ANY);
+	return _patchedTexts[textId].c_str();
 }
 
 int Room::showMultipleTexts(const TextRef *textIDs) {

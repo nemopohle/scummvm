@@ -307,6 +307,8 @@ void Sound::playVoc(const Common::String &baseSoundName) {
 		// Sounds with a repeat block loop, like the ones named "....loop"
 		bool repeats = false;
 		Audio::RewindableAudioStream *srcStream = openCDSound("sfx\\" + baseSoundName, &repeats);
+		if (!srcStream)
+			return;
 		if (!loop && repeats) {
 			_loopingAudioName = baseSoundName;
 			loop = true;
@@ -350,18 +352,21 @@ void Sound::playSpeech(const Common::String &basename) {
 }
 
 Audio::RewindableAudioStream *Sound::openCDSound(const Common::String &name, bool *loop) {
+	// The original plays nothing when a file is missing
 	if (_vm->getPlatform() == Common::kPlatformMacintosh) {
 		Common::Path filename = Common::Path("Voice Data/").append(Common::Path(name, '\\'));
 		Audio::RewindableAudioStream *stream = Audio::makeQuickTimeStream(filename);
 		if (stream == nullptr)
-			error("Couldn't open '%s'", filename.toString().c_str());
+			warning("Couldn't open '%s'", filename.toString().c_str());
 		return stream;
 	}
 
 	Common::Path filename = Common::Path("voc/").append(Common::Path(name + ".voc", '\\'));
 	Common::SeekableReadStream *readStream = SearchMan.createReadStreamForMember(filename);
-	if (readStream == nullptr)
-		error("Couldn't open '%s'", filename.toString().c_str());
+	if (readStream == nullptr) {
+		warning("Couldn't open '%s'", filename.toString().c_str());
+		return nullptr;
+	}
 	if (loop)
 		*loop = hasVocRepeatBlock(readStream);
 	return Audio::makeVOCStream(readStream, Audio::FLAG_UNSIGNED, DisposeAfterUse::YES);
