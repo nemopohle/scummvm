@@ -620,7 +620,9 @@ TextBitmap *StarTrekEngine::initTextSprite(int *xoffsetPtr, int *yoffsetPtr, byt
 	sprite->bitmap = bitmap;	// This is deallocated explicitly at the end of showText()
 	sprite->textColor = textColor;
 
-	memset(bitmap->pixels, ' ', textHeight * TEXTBOX_WIDTH);
+	// The Amiga version draws the text lines instead of characters
+	if (!_gfx->_amigaFont)
+		memset(bitmap->pixels, ' ', textHeight * TEXTBOX_WIDTH);
 
 	int varC = SCREEN_WIDTH - 1 - xoffset - (bitmap->width + 0x1d) / 2;
 	if (varC < 0)
@@ -1010,6 +1012,7 @@ void StarTrekEngine::initTextInputSprite(int16 textboxX, int16 textboxY, const C
 
 
 	_textInputSprite.bitmap = new Bitmap(width, height);
+	memset(_textInputSprite.bitmap->pixels, 0, width * height);
 
 	_textInputSprite.bitmap->xoffset = width / 2;
 	if (textboxX + width / 2 >= SCREEN_WIDTH)

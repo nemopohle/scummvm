@@ -772,6 +772,9 @@ byte *Graphics::getFontGfx(char c) {
 }
 
 int Graphics::getFontHeight() const {
+	// The Amiga font has a height of 8 pixels
+	if (!_font)
+		return 8;
 	return _font->getCharHeight();
 }
 
