@@ -130,7 +130,7 @@ void Sound::playMidiTrack(MidiTracks track) {
 	if (!_vm->_musicEnabled || !_vm->_musicWorking)
 		return;
 
-	// TODO: Demo music
+	// The DOS demo plays its music files directly, see playDemoMusic()
 	if (_vm->getFeatures() & GF_DEMO)
 		return;
 
