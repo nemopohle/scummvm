@@ -1262,7 +1262,11 @@ void StarTrekEngine::captainsLog() {
 		captainsLogMessage = localizeText("#BRID\\C_007#No recent missions have been completed.");
 	}
 
-	showTextboxBridge(kBridgeTalkerCaptainsLog, captainsLogMessage);
+	// Unlike the other captain's logs, this one has no colon in the German Amiga version
+	if (getPlatform() == Common::kPlatformAmiga && getLanguage() == Common::DE_DEU)
+		showTextbox("Logbuch des Kapit\x8an", captainsLogMessage, 160, 130, 176, 0);
+	else
+		showTextboxBridge(kBridgeTalkerCaptainsLog, captainsLogMessage);
 }
 
 void StarTrekEngine::loadBridgeComputerTopics() {

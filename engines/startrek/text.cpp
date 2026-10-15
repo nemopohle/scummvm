@@ -273,6 +273,8 @@ static const TranslatedText kFrenchTexts[] = {
 static const TranslatedText kAmigaGermanTexts[] = {
 	{ "findObject: Clicked on an unknown sprite",
 	  "FindObject: clicked on unknown sprite." },
+	{ "Captain's Log",
+	  "Logbuch des Kapit\x8an:" },
 	{ "Capt. Kirk",
 	  "Kapit\x8an Kirk" },
 	{ "Lieutenant Uhura",
@@ -459,6 +461,8 @@ static const TranslatedText kAmigaFrenchTexts[] = {
 	  "Elasi Capitaine" },
 	{ "Admiral Kenka",
 	  "Amiral Kenka" },
+	{ "#BRID\\B_348#Unable to comply, Captain.  We're under attack.",
+	  "Impossible, Capitaine. Nous sommes attaqu\x8es." },
 	{ "#BRID\\B_348#Unable to comply, Captain. We're under attack.",
 	  "Impossible, Capitaine. Nous sommes attaqu\x8es." },
 	{ "#BRID\\B_338#May I respectfully remind the Captain that we haven't accomplished our mission, Sir.",
