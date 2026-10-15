@@ -63,7 +63,6 @@ void StarTrekEngine::playIntro() {
 		// The Mac loads the title music before its MacPlay logo
 		_sound->loadMusicFile("title");
 		showMacLogo(36);
-		_gfx->clearBackgroundImage();
 	} else {
 		_gfx->loadPalette("gold");
 		_gfx->setBackgroundImage("goldlogo");
@@ -125,6 +124,8 @@ void StarTrekEngine::playIntro() {
 	_gfx->fadeoutScreen();
 	_gfx->loadPalette("bridge");
 	_gfx->clearScreenAndPriBuffer();
+	// The logo must not show up where the subtitles were
+	_gfx->clearBackgroundImage();
 	if (!isMac)
 		_sound->loadMusicFile("title");
 	clockTicks = _clockTicks;
