@@ -126,6 +126,10 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_emergencyPowerDuration = 450;
 	_restoreFullscreenView = false;
 	_heldKey = Common::KEYCODE_INVALID;
+	_heldDirectionKey = Common::KEYCODE_INVALID;
+	_directionKeyChanged = false;
+	_directionKeyTick = 0;
+	_keyboardMouseTick = 0;
 	Common::fill(_r3List, _r3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);
 	Common::fill(_orderedR3List, _orderedR3List + NUM_SPACE_OBJECTS, (R3 *)nullptr);
 

@@ -309,23 +309,6 @@ void StarTrekEngine::handleAwayMissionEvents() {
 					handleBridgeComputer();
 				break;
 
-			case Common::KEYCODE_p:
-				// Pause game
-				// TODO
-				break;
-
-			case Common::KEYCODE_e:
-				if (event.kbd.flags & Common::KBD_CTRL) {
-					_sound->toggleSfx();
-				}
-				break;
-
-			case Common::KEYCODE_m:
-				if (event.kbd.flags & Common::KBD_CTRL) {
-					_sound->toggleMusic();
-				}
-				break;
-
 			case Common::KEYCODE_q:
 				if (event.kbd.flags & Common::KBD_CTRL) {
 					showQuitGamePrompt(20, 20);

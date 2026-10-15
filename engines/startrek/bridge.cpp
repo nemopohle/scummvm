@@ -536,15 +536,8 @@ void StarTrekEngine::handleBridgeEvents() {
 			case Common::KEYCODE_p:	// Pause game
 				_gameIsPaused = true;
 				break;
-			case Common::KEYCODE_e:	// Toggle SFX / emergency power
-				if (event.kbd.flags & Common::KBD_CTRL)
-					_sound->toggleSfx();
-				else
-					handleBridgeMenu(kBridgeScottyEmergencyPower);
-				break;
-			case Common::KEYCODE_m:
-				if (event.kbd.flags & Common::KBD_CTRL)
-					_sound->toggleMusic();
+			case Common::KEYCODE_e:	// Emergency power
+				handleBridgeMenu(kBridgeScottyEmergencyPower);
 				break;
 			case Common::KEYCODE_q:
 				if (event.kbd.flags & Common::KBD_CTRL)
@@ -637,6 +630,7 @@ void StarTrekEngine::setMouseControllingShip(bool enable) {
 	if (_mouseControllingShip || _viewscreenFullscreen)
 		_restoreFullscreenView = _viewscreenFullscreen;
 	_mouseControllingShip = enable;
+	_keyboardControlsMouse = enable;
 	setBridgeMouseCursor();
 
 	// The full screen view is only available while steering

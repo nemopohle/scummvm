@@ -23,6 +23,8 @@
 
 namespace StarTrek {
 
+static bool getKeyDirection(Common::KeyCode key, int16 *dx, int16 *dy);
+
 void StarTrekEngine::pollEvents(bool queueEvents) {
 	Common::Event event;
 	TrekEvent trekEvent;
@@ -67,6 +69,34 @@ void StarTrekEngine::pollEvents(bool queueEvents) {
 			// Like in DOS, the modifier keys alone are no key presses
 			if (event.kbd.keycode >= Common::KEYCODE_NUMLOCK && event.kbd.keycode <= Common::KEYCODE_COMPOSE)
 				break;
+
+			// These keys work everywhere
+			if (event.kbd.flags & Common::KBD_CTRL) {
+				if (event.kbd.keycode == Common::KEYCODE_s) {
+					_sound->toggleSfx();
+					break;
+				} else if (event.kbd.keycode == Common::KEYCODE_m) {
+					_sound->toggleMusic();
+					break;
+				} else if (event.kbd.keycode == Common::KEYCODE_p) {
+					pauseUntilKeyPress();
+					break;
+				}
+			}
+
+			if (getKeyDirection(event.kbd.keycode, nullptr, nullptr) && event.kbd.keycode != _heldDirectionKey) {
+				_heldDirectionKey = event.kbd.keycode;
+				_directionKeyChanged = true;
+			}
+
+			// The keypad + and - are the mouse buttons
+			if (queueEvents && !event.kbdRepeat
+			        && (event.kbd.keycode == Common::KEYCODE_KP_PLUS || event.kbd.keycode == Common::KEYCODE_KP_MINUS)) {
+				trekEvent.type = event.kbd.keycode == Common::KEYCODE_KP_PLUS ? TREKEVENT_LBUTTONDOWN : TREKEVENT_RBUTTONDOWN;
+				trekEvent.mouse = _gfx->getMousePos();
+				addEventToQueue(trekEvent);
+			}
+
 			_heldKey = event.kbd.keycode;
 			if (queueEvents) {
 				trekEvent.type = TREKEVENT_KEYDOWN;
@@ -77,6 +107,10 @@ void StarTrekEngine::pollEvents(bool queueEvents) {
 		case Common::EVENT_KEYUP:
 			if (event.kbd.keycode == _heldKey)
 				_heldKey = Common::KEYCODE_INVALID;
+			if (event.kbd.keycode == _heldDirectionKey) {
+				_heldDirectionKey = Common::KEYCODE_INVALID;
+				_directionKeyChanged = true;
+			}
 			break;
 
 		default:
@@ -88,6 +122,126 @@ void StarTrekEngine::pollEvents(bool queueEvents) {
 	// sends many events, so the screen is updated once for all of them.
 	if (mouseMoved)
 		_system->updateScreen();
+
+	updateKeyboardMouse(queueEvents);
+}
+
+static bool getKeyDirection(Common::KeyCode key, int16 *dx, int16 *dy) {
+	int16 x, y;
+	switch (key) {
+	case Common::KEYCODE_HOME:
+	case Common::KEYCODE_KP7:
+		x = -1;
+		y = -1;
+		break;
+	case Common::KEYCODE_UP:
+	case Common::KEYCODE_KP8:
+		x = 0;
+		y = -1;
+		break;
+	case Common::KEYCODE_PAGEUP:
+	case Common::KEYCODE_KP9:
+		x = 1;
+		y = -1;
+		break;
+	case Common::KEYCODE_LEFT:
+	case Common::KEYCODE_KP4:
+		x = -1;
+		y = 0;
+		break;
+	case Common::KEYCODE_RIGHT:
+	case Common::KEYCODE_KP6:
+		x = 1;
+		y = 0;
+		break;
+	case Common::KEYCODE_END:
+	case Common::KEYCODE_KP1:
+		x = -1;
+		y = 1;
+		break;
+	case Common::KEYCODE_DOWN:
+	case Common::KEYCODE_KP2:
+		x = 0;
+		y = 1;
+		break;
+	case Common::KEYCODE_PAGEDOWN:
+	case Common::KEYCODE_KP3:
+		x = 1;
+		y = 1;
+		break;
+	default:
+		return false;
+	}
+	if (dx)
+		*dx = x;
+	if (dy)
+		*dy = y;
+	return true;
+}
+
+void StarTrekEngine::updateKeyboardMouse(bool queueEvents) {
+	// The recorded input of the DOS demo moves the mouse
+	if (_demoEvents)
+		return;
+
+	int16 dx = 0, dy = 0;
+	getKeyDirection(_heldDirectionKey, &dx, &dy);
+	Common::Point pos;
+
+	if (_gameMode == GAMEMODE_BRIDGE && _mouseControllingShip) {
+		// The keys turn the ship as fast as possible, releasing them stops turning
+		if (_heldDirectionKey == Common::KEYCODE_INVALID && !_directionKeyChanged)
+			return;
+		const Common::Rect &r = _starfieldRect;
+		pos.x = (r.left + r.right - 1) / 2 + dx * 2 * ((r.right - 1 - r.left) / 4);
+		pos.y = (r.top + r.bottom - 1) / 2 + dy * 2 * ((r.bottom - 1 - r.top) / 4);
+		if (!_directionKeyChanged && pos == _gfx->getMousePos())
+			return;
+		_directionKeyChanged = false;
+	} else {
+		// The mouse moves once per tick, faster the longer the key is held
+		if (!_keyboardControlsMouse || _heldDirectionKey == Common::KEYCODE_INVALID || _keyboardMouseTick == _clockTicks)
+			return;
+		_keyboardMouseTick = _clockTicks;
+
+		int16 step;
+		if (_directionKeyChanged) {
+			_directionKeyChanged = false;
+			_directionKeyTick = _clockTicks;
+			step = 1;
+		} else if (_clockTicks > _directionKeyTick + 0x40) {
+			step = 0x80;
+		} else {
+			int16 n = (_clockTicks - _directionKeyTick) / 4;
+			step = n * ((n + 1) / 2);
+		}
+
+		pos = _gfx->getMousePos();
+		pos.x = CLIP<int16>(pos.x + dx * step, 0, SCREEN_WIDTH - 1);
+		pos.y = CLIP<int16>(pos.y + dy * step, 0, SCREEN_HEIGHT - 1);
+	}
+
+	_gfx->warpMouse(pos.x, pos.y);
+	if (queueEvents) {
+		TrekEvent trekEvent;
+		trekEvent.type = TREKEVENT_MOUSEMOVE;
+		trekEvent.mouse = pos;
+		addEventToQueue(trekEvent);
+	}
+}
+
+// Like in DOS, Ctrl+P waits for a key press
+void StarTrekEngine::pauseUntilKeyPress() {
+	while (!shouldQuit()) {
+		Common::Event event;
+		while (_eventMan->pollEvent(event)) {
+			if (event.type == Common::EVENT_KEYDOWN
+			        && (event.kbd.keycode < Common::KEYCODE_NUMLOCK || event.kbd.keycode > Common::KEYCODE_COMPOSE))
+				return;
+		}
+		_system->updateScreen();
+		_system->delayMillis(10);
+	}
 }
 
 void StarTrekEngine::waitForNextTick(bool queueEvents) {

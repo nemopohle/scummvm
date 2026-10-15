@@ -675,6 +675,8 @@ public:
 	 * This does not account for "tick" events (getNextEvent/popNextEvent handle that).
 	 */
 	void pollEvents(bool queueEvents = true);
+	void updateKeyboardMouse(bool queueEvents);
+	void pauseUntilKeyPress();
 	void waitForNextTick(bool queueEvents = true);
 	void initializeEventsAndMouse();
 	/**
@@ -987,10 +989,14 @@ public:
 	bool _mouseControllingShip;
 	Common::KeyCode _heldKey;
 
-	// TODO: make this work.
+	// The arrow and keypad keys move the mouse, or steer the ship on the bridge.
 	// When false, the keyboard generally acts in a more specific way (ie. move mouse
 	// between items in a menu).
 	bool _keyboardControlsMouse;
+	Common::KeyCode _heldDirectionKey;
+	bool _directionKeyChanged;
+	uint32 _directionKeyTick;
+	uint32 _keyboardMouseTick;
 
 	bool _inQuitGameMenu;
 	bool _showSubtitles;
