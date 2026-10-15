@@ -76,6 +76,9 @@ static const struct {
 
 static const int16 kMacFirstSoundEffect = 12000;
 
+// The songs that the original plays in a loop
+static const int16 kMacLoopingSongs[] = { 138, 141, 146, 152 };
+
 class MacSoundLoader : public Audio::HalestormLoader {
 public:
 	bool open() { return _resFork.open("Star Trek Audio") && _resFork.hasResFork(); }
@@ -98,7 +101,10 @@ bool Sound::initMacSound() {
 	_macDriver = new Audio::HalestormDriver(_macLoader, _vm->_system->getMixer());
 	if (!_macDriver->init(true, Audio::HalestormDriver::kSimple, 2, true))
 		return false;
-	_macDriver->changeSystemVoices(6, 4, 2);
+	// Like the original on a 68040: 4 song voices (3 of them polyphonic), 2 sound
+	// effect voices, 22 kHz with interpolation
+	_macDriver->changeSystemVoices(4, 3, 2);
+	_macDriver->doCommand(Audio::HalestormDriver::kSetRateAndIntrplMode, 5);
 
 	syncSoundSettings();
 	return true;
@@ -150,7 +156,13 @@ void Sound::playMacTrack(int track, bool music) {
 		return;
 	}
 
-	_macDriver->doCommand(Audio::HalestormDriver::kSongPlayOnce, id);
+	// There is only one song at a time, also for the sound effects that are songs
+	int command = Audio::HalestormDriver::kSongPlayOnce;
+	for (int i = 0; i < ARRAYSIZE(kMacLoopingSongs); i++) {
+		if (kMacLoopingSongs[i] == id)
+			command = Audio::HalestormDriver::kSongPlayLoop;
+	}
+	_macDriver->doCommand(command, id);
 	if (music)
 		_macMusicTrack = track;
 }
