@@ -21,6 +21,10 @@
 
 #include "base/plugins.h"
 
+#include "backends/keymapper/action.h"
+#include "backends/keymapper/keymap.h"
+#include "backends/keymapper/standard-actions.h"
+
 #include "engines/advancedDetector.h"
 
 #include "graphics/thumbnail.h"
@@ -115,6 +119,7 @@ public:
 	}
 
 	bool hasFeature(MetaEngineFeature f) const override;
+	Common::KeymapArray initKeymaps(const char *target) const override;
 	Common::Error createInstance(OSystem *syst, Engine **engine, const StarTrek::StarTrekGameDescription *desc) const override;
 
 	SaveStateList listSaves(const char *target) const override;
@@ -133,6 +138,20 @@ bool StarTrekMetaEngine::hasFeature(MetaEngineFeature f) const {
 	    (f == kSavesSupportCreationDate) ||
 	    (f == kSavesSupportPlayTime) ||
 	    (f == kSimpleSavesNames);
+}
+
+Common::KeymapArray StarTrekMetaEngine::initKeymaps(const char *target) const {
+	Common::KeymapArray keymaps = AdvancedMetaEngine::initKeymaps(target);
+
+	// Only enabled in the away missions, where the key is free
+	Common::Keymap *keymap = new Common::Keymap(Common::Keymap::kKeymapTypeGame, "startrek-away", _("Away mission keymappings"));
+	Common::Action *act = new Common::Action(Common::kStandardActionToggleHotspots, _("Show hotspots"));
+	act->setEvent(Common::EVENT_HOTSPOTS_SHOW);
+	act->addDefaultInputMapping("h");
+	keymap->addAction(act);
+	keymaps.push_back(keymap);
+
+	return keymaps;
 }
 
 Common::Error StarTrekMetaEngine::createInstance(OSystem *syst, Engine **engine, const StarTrek::StarTrekGameDescription *desc) const {

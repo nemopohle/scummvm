@@ -19,6 +19,10 @@
  *
  */
 
+#include "backends/keymapper/keymap.h"
+#include "backends/keymapper/keymapper.h"
+#include "graphics/hotspot_renderer.h"
+
 #include "startrek/iwfile.h"
 #include "startrek/resource.h"
 #include "startrek/room.h"
@@ -822,6 +826,64 @@ void StarTrekEngine::loadRoomIndex(int roomIndex, int spawnIndex) {
 
 	// WORKAROUND: original game calls "retrieveStackVars" to return execution directly to
 	// the top of "runAwayMission". That can't really be done here. But does it matter?
+}
+
+// The hotspot key of ScummVM is the key of Uhura on the bridge
+void StarTrekEngine::setAwayMissionKeymap(bool enable) {
+	Common::Keymap *keymap = _eventMan->getKeymapper()->getKeymap("startrek-away");
+	if (keymap)
+		keymap->setEnabled(enable);
+	if (!enable)
+		showHotspots(false);
+}
+
+// Returns the center of the bounding box of a polygon
+static Common::Point getPolygonCenter(Room *room, int offset) {
+	int numVertices = room->readRdfWord(offset + 2);
+	Common::Rect bounds;
+	for (int i = 0; i < numVertices; i++) {
+		int16 x = room->readRdfWord(offset + 4 + i * 4);
+		int16 y = room->readRdfWord(offset + 6 + i * 4);
+		if (i == 0)
+			bounds = Common::Rect(x, y, x, y);
+		else
+			bounds.extend(Common::Rect(x, y, x, y));
+	}
+	return bounds.center();
+}
+
+void StarTrekEngine::getHotspotPositions(Common::Array< ::Graphics::HotspotInfo> &hotspots) {
+	if (_gameMode != GAMEMODE_AWAYMISSION || !_room)
+		return;
+
+	// The actors of the room, without the crew
+	for (int i = OBJECT_REDSHIRT + 1; i < NUM_ACTORS; i++) {
+		const Sprite &sprite = _actorList[i].sprite;
+		if (_actorList[i].spriteDrawn && sprite.drawMode != 1 && !sprite.drawRect.isEmpty())
+			hotspots.push_back(::Graphics::HotspotInfo(sprite.drawRect.center(), Common::U32String(), ::Graphics::kHotspotObject));
+	}
+
+	// The objects of the room, the ones only for walking are exits
+	int offset = _room->getFirstHotspot();
+	while (offset != _room->getHotspotEnd()) {
+		uint16 word = _room->readRdfWord(offset);
+		::Graphics::HotspotType type = ::Graphics::kHotspotObject;
+		if (word & 0x8000) {
+			if ((word & 0x1f) == (1 << (ACTION_WALK - 1)))
+				type = ::Graphics::kHotspotExit;
+			offset += 6;
+		}
+		hotspots.push_back(::Graphics::HotspotInfo(getPolygonCenter(_room, offset), Common::U32String(), type));
+		offset += 4 + _room->readRdfWord(offset + 2) * 4;
+	}
+
+	// The doors and the other exits
+	for (offset = _room->getFirstDoorPolygonOffset(); offset != _room->getDoorPolygonEndOffset(); offset += 4 + _room->readRdfWord(offset + 2) * 4)
+		hotspots.push_back(::Graphics::HotspotInfo(getPolygonCenter(_room, offset), Common::U32String(), ::Graphics::kHotspotExit));
+	if (_warpHotspotsActive) {
+		for (offset = _room->getFirstWarpPolygonOffset(); offset != _room->getWarpPolygonEndOffset(); offset += 4 + _room->readRdfWord(offset + 2) * 4)
+			hotspots.push_back(::Graphics::HotspotInfo(getPolygonCenter(_room, offset), Common::U32String(), ::Graphics::kHotspotExit));
+	}
 }
 
 } // End of namespace StarTrek

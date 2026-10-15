@@ -658,6 +658,8 @@ void Graphics::forceDrawAllSprites(bool updateScreenFlag) {
 void Graphics::updateScreen() {
 	if (_lockedMousePos.x != -1)
 		updateLockedMouse();
+	if (_vm->_gameMode == GAMEMODE_AWAYMISSION)
+		_vm->updateHotspots();
 
 	_vm->_system->updateScreen();
 	_vm->_system->delayMillis(10);

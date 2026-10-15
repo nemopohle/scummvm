@@ -420,6 +420,8 @@ Common::Error StarTrekEngine::runGameMode(int mode, bool resume) {
 			}
 		}
 
+		setAwayMissionKeymap(_gameMode == GAMEMODE_AWAYMISSION);
+
 		// Run current game mode
 		switch (_gameMode) {
 		case GAMEMODE_BRIDGE:

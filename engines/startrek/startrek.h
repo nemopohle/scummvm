@@ -273,6 +273,11 @@ public:
 	Common::Error run() override;
 	void syncSoundSettings() override;
 	Common::Error runGameMode(int mode, bool resume);
+
+	// Markers of ScummVM for the objects of an away mission
+	void getHotspotPositions(Common::Array< ::Graphics::HotspotInfo> &hotspots) override;
+	void updateHotspots() { drawHotspots(); }
+	void setAwayMissionKeymap(bool enable);
 	void restartGame();
 
 	// Transporter room
