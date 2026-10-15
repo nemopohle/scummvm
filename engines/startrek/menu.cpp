@@ -965,12 +965,19 @@ void StarTrekEngine::chooseMouseBitmapForAction(int action, bool withRedOutline)
 }
 
 void StarTrekEngine::showQuitGamePrompt(int x, int y) {
-	const char *options[] = {
+	const char *gameOptions[] = {
 		"Quit Game",
 		"#GENE\\GENER028#Yes, quit the game.",
 		"#GENE\\GENER008#No, do not quit the game.",
 		""
 	};
+	const char *demoOptions[] = {
+		"Quit Demo",
+		"Yes, quit the demo.",
+		"No, do not quit the demo.",
+		""
+	};
+	const char **options = isMacDemo() ? demoOptions : gameOptions;
 
 	if (_inQuitGameMenu)
 		return;
@@ -986,13 +993,21 @@ void StarTrekEngine::showQuitGamePrompt(int x, int y) {
 }
 
 void StarTrekEngine::showGameOverMenu() {
-	const char *options[] = {
+	const char *gameOptions[] = {
 		"Game Over",
 		"#GENE\\GENER006#Load a previously saved game.",
 		"#GENE\\GENER020#Restart the game.",
 		"#GENE\\GENER018#Quit the game.",
 		""
 	};
+	// The Mac demo can only be restarted or quit
+	const char *demoOptions[] = {
+		"Demo Over",
+		"Restart the demo.",
+		"Quit the demo.",
+		""
+	};
+	const char **options = isMacDemo() ? demoOptions : gameOptions;
 
 	// The game is already being left
 	if (_resetGameMode)
@@ -1002,6 +1017,8 @@ void StarTrekEngine::showGameOverMenu() {
 		_inQuitGameMenu = true;
 		int selected = showText(&StarTrekEngine::readTextFromArray, (uintptr)options, 20, 20, TEXTCOLOR_YELLOW, true, false, true);
 		_inQuitGameMenu = false;
+		if (isMacDemo() && selected >= 0)
+			selected++;
 
 		switch (selected) {
 		case 0: // Load game

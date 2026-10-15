@@ -247,7 +247,7 @@ static const StarTrekGameDescription gameDescriptions[] = {
 			GUIO2(GUIO_RENDERVGA, GUIO_RENDEREGA)
 		},
 		GType_ST25,
-		GF_DEMO,
+		0,
 	},
 
 

@@ -778,6 +778,13 @@ bool StarTrekEngine::isPositionSolid(int16 x, int16 y) {
 }
 
 void StarTrekEngine::loadRoomIndex(int roomIndex, int spawnIndex) {
+	// The Mac demo ends when the first room is left
+	if (isMacDemo() && roomIndex != 0) {
+		showTextbox("", "Thank you for playing Star Trek 25th Anniversary!", 20, 20, TEXTCOLOR_YELLOW, 0);
+		showGameOverMenu();
+		return;
+	}
+
 	unloadRoom();
 	_sound->loadMusicFile("ground");
 

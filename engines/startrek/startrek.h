@@ -841,6 +841,8 @@ public:
 	uint32 getFeatures() const;
 	bool isFloppyVersion() const { return !(getFeatures() & GF_CDROM); }
 	Common::Platform getPlatform() const;
+	// The Mac demo is the floppy version with the first room of "Demon World" only
+	bool isMacDemo() const;
 	uint8 getGameType() const;
 	Common::Language getLanguage() const;
 

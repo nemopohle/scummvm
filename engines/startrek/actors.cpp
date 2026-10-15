@@ -460,6 +460,9 @@ void StarTrekEngine::drawActorToScreen(Actor *actor, const Common::String &_anim
 	Common::String animFilename = _animName;
 	if (_animName.hasPrefixIgnoreCase("stnd") /* && word_45d20 == -1 */) // TODO
 		animFilename += 'j';
+	// The Mac demo only has the standing animations without fidgeting
+	else if (isMacDemo() && _animName.contains("stnd") && !_animName.hasSuffixIgnoreCase("j"))
+		animFilename += 'j';
 
 	actor->animFilename = _animName;
 	actor->animType = 2;

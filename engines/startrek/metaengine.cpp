@@ -51,6 +51,10 @@ Common::Language StarTrekEngine::getLanguage() const {
 	return _gameDescription->desc.language;
 }
 
+bool StarTrekEngine::isMacDemo() const {
+	return getPlatform() == Common::kPlatformMacintosh && (_gameDescription->desc.flags & ADGF_DEMO);
+}
+
 } // End of Namespace StarTrek
 
 class StarTrekMetaEngine : public AdvancedMetaEngine<StarTrek::StarTrekGameDescription> {
