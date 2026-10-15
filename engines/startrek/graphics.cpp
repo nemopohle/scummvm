@@ -292,6 +292,12 @@ void Graphics::setMouseBitmap(Common::String bitmapName) {
 		0
 	);
 
+	_cursorPixels.resize(bitmap->width * bitmap->height);
+	if (!_cursorPixels.empty())
+		memcpy(_cursorPixels.data(), bitmap->pixels, _cursorPixels.size());
+	_cursorSize = Common::Point(bitmap->width, bitmap->height);
+	_cursorHotspot = Common::Point(bitmap->xoffset, bitmap->yoffset);
+
 	delete bitmap;
 }
 
@@ -305,10 +311,24 @@ void Graphics::toggleMouse(bool visible) {
 
 void Graphics::lockMousePosition(int16 x, int16 y) {
 	_lockedMousePos = Common::Point(x, y);
+	updateLockedMouse();
 }
 
 void Graphics::unlockMousePosition() {
+	if (_lockedMousePos.x == -1)
+		return;
 	_lockedMousePos = Common::Point(-1, -1);
+	updateLockedMouse();
+}
+
+// Like the original, this moves the cursor image instead of the mouse
+void Graphics::updateLockedMouse() {
+	if (_cursorPixels.empty())
+		return;
+	Common::Point hotspot = _cursorHotspot;
+	if (_lockedMousePos.x != -1)
+		hotspot += getMousePos() - _lockedMousePos;
+	CursorMan.replaceCursor(_cursorPixels.data(), _cursorSize.x, _cursorSize.y, hotspot.x, hotspot.y, 0);
 }
 
 void Graphics::warpMouse(int16 x, int16 y) {
@@ -633,7 +653,7 @@ void Graphics::forceDrawAllSprites(bool updateScreenFlag) {
 
 void Graphics::updateScreen() {
 	if (_lockedMousePos.x != -1)
-		_vm->_system->warpMouse(_lockedMousePos.x, _lockedMousePos.y);
+		updateLockedMouse();
 
 	_vm->_system->updateScreen();
 	_vm->_system->delayMillis(10);

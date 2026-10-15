@@ -120,8 +120,10 @@ void StarTrekEngine::pollEvents(bool queueEvents) {
 
 	// WORKAROUND: this improves the responsiveness of the mouse. A fast mouse
 	// sends many events, so the screen is updated once for all of them.
-	if (mouseMoved)
+	if (mouseMoved) {
+		_gfx->updateLockedMouse();
 		_system->updateScreen();
+	}
 
 	updateKeyboardMouse(queueEvents);
 }

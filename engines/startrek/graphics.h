@@ -106,6 +106,7 @@ public:
 	 */
 	void lockMousePosition(int16 x, int16 y);
 	void unlockMousePosition();
+	void updateLockedMouse();
 	void warpMouse(int16 x, int16 y);
 
 	void drawSprite(const Sprite &sprite, ::Graphics::Surface *surface);
@@ -184,7 +185,11 @@ private:
 	Sprite *_pushedSprites[MAX_SPRITES];
 	int _pushedNumSprites;
 
+	// The cursor is drawn at the locked position while the mouse moves freely
 	Common::Point _lockedMousePos;
+	Common::Array<byte> _cursorPixels;
+	Common::Point _cursorSize;
+	Common::Point _cursorHotspot;
 };
 
 } // End of namespace StarTrek
