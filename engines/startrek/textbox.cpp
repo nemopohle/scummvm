@@ -994,13 +994,6 @@ void StarTrekEngine::initTextInputSprite(int16 textboxX, int16 textboxY, const C
 	const char *headerPos = headerText.c_str();
 	int row = 0;
 
-	/*
-	// TODO: investigate this (might be unused...)
-	if (word_53100 != 0) {
-		// ...
-	}
-	*/
-
 	do {
 		headerPos = getNextTextLine(headerPos, textBuf + row * TEXTBOX_WIDTH, headerLen);
 		row++;

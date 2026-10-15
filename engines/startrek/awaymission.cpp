@@ -35,7 +35,9 @@ void StarTrekEngine::initAwayMission() {
 	if (!(getFeatures() & GF_DEMO)) {
 		_resource->setTxtFileName("ground");
 
-		// sub_23a60(); // TODO
+		// Each mission starts with the default equipment
+		for (int i = 0; i < NUM_ITEMS; i++)
+			_itemList[i].have = g_itemList[i].have;
 		_sound->loadMusicFile("ground");
 	}
 
@@ -71,8 +73,6 @@ void StarTrekEngine::runAwayMission() {
 
 		assert(_actionQueue.size() <= 16);
 		while (!_actionQueue.empty()) {
-			// sub_200e7(); // TODO
-			// sub_20118();
 			handleAwayMissionAction();
 		}
 	}
@@ -541,7 +541,7 @@ void StarTrekEngine::awayMissionGetLookOrTalk(int16 clickedObject) {
 
 void StarTrekEngine::unloadRoom() {
 	_gfx->fadeoutScreen();
-	// sub_2394b(); // TODO
+	hideInventoryIcons();
 	removeDrawnActorsFromScreen();
 	delete _room;
 	_room = nullptr;
