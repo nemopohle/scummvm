@@ -39,6 +39,7 @@ HotspotRenderer::~HotspotRenderer() {
 void HotspotRenderer::render(Surface *surface,
 		const Common::Array<HotspotInfo> &hotspots,
 		int gameWidth, int gameHeight,
+		const Common::Rect &gameArea,
 		int overlayWidth, int overlayHeight,
 		const PixelFormat &format,
 		MarkerShape markerShape,
@@ -49,8 +50,8 @@ void HotspotRenderer::render(Surface *surface,
 	if (format.bytesPerPixel < 2)
 		return;
 
-	float scaleX = (float)overlayWidth / (float)gameWidth;
-	float scaleY = (float)overlayHeight / (float)gameHeight;
+	float scaleX = (float)gameArea.width() / (float)gameWidth;
+	float scaleY = (float)gameArea.height() / (float)gameHeight;
 
 	_sizeScale = scaleX;
 	_markerSize = MAX(2, (int)(kBaseMarkerSize * _sizeScale));
@@ -66,8 +67,8 @@ void HotspotRenderer::render(Surface *surface,
 		int gameX = hotspots[i].position.x;
 		int gameY = hotspots[i].position.y;
 
-		int overlayX = (int)(gameX * scaleX);
-		int overlayY = (int)(gameY * scaleY);
+		int overlayX = gameArea.left + (int)(gameX * scaleX);
+		int overlayY = gameArea.top + (int)(gameY * scaleY);
 
 		drawMarker(surface, overlayX, overlayY, format, markerShape);
 

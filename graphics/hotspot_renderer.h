@@ -80,6 +80,7 @@ public:
 	 * @param hotspots      Array of hotspot information
 	 * @param gameWidth     Width of game screen
 	 * @param gameHeight    Height of game screen
+	 * @param gameArea      Area of the game screen in overlay coordinates
 	 * @param overlayWidth  Width of overlay
 	 * @param overlayHeight Height of overlay
 	 * @param format        Pixel format of overlay
@@ -89,6 +90,7 @@ public:
 	void render(Surface *surface,
 		const Common::Array<HotspotInfo> &hotspots,
 		int gameWidth, int gameHeight,
+		const Common::Rect &gameArea,
 		int overlayWidth, int overlayHeight,
 		const PixelFormat &format,
 		MarkerShape markerShape,

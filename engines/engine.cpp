@@ -791,6 +791,9 @@ void Engine::drawHotspots() {
 
 	g_system->clearOverlay();
 
+	// The game screen may only cover a part of the overlay
+	Common::Rect gameArea = g_system->getGameAreaInOverlay();
+
 	Graphics::Surface overlayBuffer;
 	overlayBuffer.create(overlayWidth, overlayHeight, overlayFormat);
 	g_system->grabOverlay(overlayBuffer);
@@ -802,7 +805,7 @@ void Engine::drawHotspots() {
 	int markerType = ConfMan.getInt("hotspot_marker");
 
 	Graphics::HotspotRenderer renderer;
-	renderer.render(&overlayBuffer, hotspots, gameWidth, gameHeight,
+	renderer.render(&overlayBuffer, hotspots, gameWidth, gameHeight, gameArea,
 		overlayWidth, overlayHeight, overlayFormat,
 		(Graphics::MarkerShape)markerType, showText);
 
