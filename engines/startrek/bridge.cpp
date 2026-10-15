@@ -849,8 +849,10 @@ int StarTrekEngine::showStarMap() {
 	_gfx->setMouseBitmap("cross");
 
 	// Without copy protection, the destination of the mission is preselected
-	if (!ConfMan.getBool("copy_protection") && _targetPlanet >= 0 && _targetPlanet < ARRAYSIZE(kStarMapPositions))
+	if (!ConfMan.getBool("copy_protection") && _targetPlanet >= 0 && _targetPlanet < ARRAYSIZE(kStarMapPositions)) {
+		discardMouseMoveEvents();
 		_gfx->warpMouse(kStarMapPositions[_targetPlanet][0], kStarMapPositions[_targetPlanet][1]);
+	}
 
 	int star = getClosestStar(_gfx->getMousePos());
 	Sprite circleSprite;

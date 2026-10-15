@@ -334,6 +334,18 @@ void StarTrekEngine::removeNextEvent() {
 	_eventQueue.pop_front();
 }
 
+// Mouse movements from before a warp of the mouse would move it back
+void StarTrekEngine::discardMouseMoveEvents() {
+	pollEvents(false);
+	for (Common::List<TrekEvent>::iterator i = _eventQueue.begin(); i != _eventQueue.end();) {
+		if (i->type == TREKEVENT_MOUSEMOVE)
+			i = _eventQueue.erase(i);
+		else
+			++i;
+	}
+	_mouseMoveEventInQueue = false;
+}
+
 bool StarTrekEngine::popNextEvent(TrekEvent *e, bool poll) {
 	if (!getNextEvent(e, poll))
 		return false;

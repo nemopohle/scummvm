@@ -677,6 +677,7 @@ public:
 	void pollEvents(bool queueEvents = true);
 	void updateKeyboardMouse(bool queueEvents);
 	void pauseUntilKeyPress();
+	void discardMouseMoveEvents();
 	void waitForNextTick(bool queueEvents = true);
 	void initializeEventsAndMouse();
 	/**
