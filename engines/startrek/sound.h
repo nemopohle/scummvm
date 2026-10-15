@@ -80,6 +80,14 @@ public:
 	void toggleMusic();
 	void toggleSfx();
 	void syncSoundSettings();
+
+	// The DOS demo plays MIDI files, for the MT-32 only. The setup of the
+	// MT-32 plays along the music.
+	void playDemoMusic(const Common::String &name);
+	void startDemoMusicSetup();
+	bool isDemoMusicSetupPlaying();
+	void stopDemoMusic();
+
 	void checkLoopMusic();
 	MidiTracks getPlayingMidiTrack();
 	bool isPlayingSpeech() const;
@@ -135,6 +143,9 @@ private:
 
 	byte *_loadedSoundData;
 	int _loadedSoundDataSize;
+	byte *_demoMusicData[2];
+
+	void playDemoMidiFile(int slot, const Common::String &name);
 	uint32 _midiDevice;
 
 	// VOC-related variables

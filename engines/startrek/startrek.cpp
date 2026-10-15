@@ -219,9 +219,11 @@ Common::Error StarTrekEngine::run() {
 	}
 
 	if (!loadedSave) {
-		if (isCd || !isDemo)
+		// The DOS demo has its own intro and space flight
+		if (isCd || !isDemo) {
 			playIntro();
-		initSpaceObjects();
+			initSpaceObjects();
+		}
 	}
 
 	if (isCd && getPlatform() == Common::kPlatformMacintosh) {
@@ -247,8 +249,7 @@ Common::Error StarTrekEngine::run() {
 			_missionState = kMissionDemonStart;
 			runGameMode(GAMEMODE_BRIDGE, false);
 		} else {
-			_missionToLoad = "DEMO";
-			runGameMode(GAMEMODE_AWAYMISSION, false);
+			runDosDemo();
 		}
 	} else {
 		_roomIndexToLoad = -1;

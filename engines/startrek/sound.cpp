@@ -86,6 +86,7 @@ Sound::Sound(StarTrekEngine *vm) : _vm(vm) {
 	_soundHandle = new Audio::SoundHandle();
 	_loadedSoundData = nullptr;
 	_loadedSoundDataSize = 0;
+	_demoMusicData[0] = _demoMusicData[1] = nullptr;
 
 	for (int i = 1; i < NUM_MIDI_SLOTS; i++) {
 		_midiSlotList.push_back(&_midiSlots[i]);
@@ -112,6 +113,8 @@ Sound::~Sound() {
 	delete _midiDriver;
 	delete _soundHandle;
 	delete[] _loadedSoundData;
+	delete[] _demoMusicData[0];
+	delete[] _demoMusicData[1];
 	delete[] _amigaBank;
 	deinitMacSound();
 }
@@ -370,6 +373,40 @@ Audio::RewindableAudioStream *Sound::openCDSound(const Common::String &name, boo
 	if (loop)
 		*loop = hasVocRepeatBlock(readStream);
 	return Audio::makeVOCStream(readStream, Audio::FLAG_UNSIGNED, DisposeAfterUse::YES);
+}
+
+void Sound::playDemoMidiFile(int slot, const Common::String &name) {
+	// Without a Roland the demo plays no music
+	if (!_vm->_musicWorking || !_vm->_musicEnabled || !isMT32())
+		return;
+
+	clearMidiSlot(slot);
+	delete[] _demoMusicData[slot];
+	Common::MemoryReadStreamEndian *stream = _vm->_resource->loadFile(name + ".mus");
+	uint32 size = stream->size();
+	_demoMusicData[slot] = new byte[size];
+	stream->read(_demoMusicData[slot], size);
+	delete stream;
+
+	_midiSlots[slot].track = 0;
+	_midiSlots[slot].midiParser->loadMusic(_demoMusicData[slot], size);
+	_midiSlots[slot].midiParser->setTrack(0);
+}
+
+void Sound::playDemoMusic(const Common::String &name) {
+	playDemoMidiFile(0, name);
+}
+
+void Sound::startDemoMusicSetup() {
+	playDemoMidiFile(1, "sta0v2");
+}
+
+bool Sound::isDemoMusicSetupPlaying() {
+	return _midiDriver && _midiSlots[1].midiParser->isPlaying();
+}
+
+void Sound::stopDemoMusic() {
+	clearMidiSlot(0);
 }
 
 void Sound::stopAllVocSounds() {

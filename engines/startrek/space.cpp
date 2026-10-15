@@ -883,7 +883,23 @@ void StarTrekEngine::drawStarfield() {
 	int16 yvar = var2a / 2;
 	int16 var8 = _starfieldPointDivisor << 3;
 
-	Common::MemoryReadStreamEndian *file = _resource->loadFile("stars.shp");
+	Common::MemoryReadStreamEndian *file;
+	if (getFeatures() & GF_DEMO) {
+		// The DOS demo has the 16 star images as separate files
+		Common::Array<byte> data;
+		for (int i = 0; i < 16; i++) {
+			Common::MemoryReadStreamEndian *star = _resource->loadFile(Common::String::format("star%02d.bmp", i));
+			uint32 pos = data.size();
+			data.resize(pos + star->size());
+			star->read(&data[pos], star->size());
+			delete star;
+		}
+		byte *buffer = (byte *)malloc(data.size());
+		memcpy(buffer, data.data(), data.size());
+		file = new Common::MemoryReadStreamEndian(buffer, data.size(), false, DisposeAfterUse::YES);
+	} else {
+		file = _resource->loadFile("stars.shp");
+	}
 	if (getPlatform() == Common::kPlatformAmiga) {
 		// The Amiga version doesn't use this file. Only its first header was converted to big endian.
 		uint32 size = file->size();
@@ -1513,7 +1529,9 @@ void StarTrekEngine::loadShipView(R3 *r3) {
 			elevation = 0x200 - elevation;
 	}
 
-	int row = MIN<int32>((elevation * 6 + 0x100) / 0x200, 6);
+	// The DOS demo only has the views of the ships from the side and from below
+	const bool isDosDemo = getFeatures() & GF_DEMO;
+	int row = isDosDemo ? MIN<int32>(elevation * 7 / 0x200, 6) : MIN<int32>((elevation * 6 + 0x100) / 0x200, 6);
 	azimuth += 0x2a;
 	if (azimuth >= 0x400)
 		azimuth -= 0x400;
@@ -1522,15 +1540,25 @@ void StarTrekEngine::loadShipView(R3 *r3) {
 	uint16 view = kShipViews[column][row];
 
 	freeShipView(r3);
-	Common::String filename = Common::String::format("%s%02x.r3s", kShipShapeNames[r3->field20], (view >> 1) & 0x77);
+	Common::String filename = Common::String::format("%s%02x.r3s", kShipShapeNames[r3->field20], isDosDemo ? view & 0xff : (view >> 1) & 0x77);
 	debugC(6, kDebugSpace, "loadShipView: azimuth %d, elevation %d -> %s", azimuth, elevation, filename.c_str());
 	Common::MemoryReadStreamEndian *file = _resource->loadFile(filename);
-	for (int i = 0; i < 3; i++) {
-		r3->shipViewMatrix[i].x = Fixed14::fromRaw(file->readSint16());
-		r3->shipViewMatrix[i].y = Fixed14::fromRaw(file->readSint16());
-		r3->shipViewMatrix[i].z = Fixed14::fromRaw(file->readSint16());
+	if (isDosDemo) {
+		// The matrices of the DOS demo are 16.16 fixed point values
+		for (int i = 0; i < 3; i++) {
+			r3->shipViewMatrix[i].x = Fixed14::fromRaw(file->readSint32() >> 2);
+			r3->shipViewMatrix[i].y = Fixed14::fromRaw(file->readSint32() >> 2);
+			r3->shipViewMatrix[i].z = Fixed14::fromRaw(file->readSint32() >> 2);
+		}
+		file->skip(36); // Unused second matrix
+	} else {
+		for (int i = 0; i < 3; i++) {
+			r3->shipViewMatrix[i].x = Fixed14::fromRaw(file->readSint16());
+			r3->shipViewMatrix[i].y = Fixed14::fromRaw(file->readSint16());
+			r3->shipViewMatrix[i].z = Fixed14::fromRaw(file->readSint16());
+		}
+		file->skip(18); // Unused second matrix
 	}
-	file->skip(18); // Unused second matrix
 	r3->bitmap = new Bitmap(file);
 
 	r3->shipViewMirrored = (view & 0x8000) != 0;

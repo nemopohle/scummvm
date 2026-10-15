@@ -10,6 +10,7 @@ MODULE_OBJS = \
 	bridgemissions.o \
 	common.o \
 	console.o \
+	dosdemo.o \
 	events.o \
 	font.o \
 	graphics.o \

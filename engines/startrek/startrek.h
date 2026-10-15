@@ -370,6 +370,25 @@ private:
 	int16 _missionPoints[7];
 
 public:
+	// dosdemo.cpp
+	void runDosDemo();
+	void initDemoEnterprise();
+	void initDemoStarfield();
+	void clearDemoScreen();
+	void waitDemoTicks(int ticks);
+	void runDemoFrame(bool fadeIn);
+	void playDemoIntro();
+	void showDemoLogo();
+	void showDemoSubtitles(const Common::String &name);
+	Common::String loadDemoText(const Common::String &name);
+	const char *readDemoTextLine(const char *pos, Common::String &line, uint maxLength);
+	void initDemoR3ObjectToMove(R3 *r3, int16 srcDepth, int16 srcAngle, int16 destDepth, int16 destAngle, int16 ticks);
+	void moveDemoEnterprise();
+	void showDemoTitle();
+	void showDemoLog();
+	void playDemoMontage();
+	void playDemoEnding();
+
 	void playMovie(Common::String filename);
 	void playMovieMac(Common::String filename);
 	/**
