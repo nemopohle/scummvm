@@ -599,6 +599,7 @@ void StarTrekEngine::playWarpSequence() {
 		updateEnemyShips();
 		updateStarfieldAndShips(false);
 		_gfx->drawAllSprites();
+		cycleBridgeColors();
 		_frameIndex++;
 		waitForNextTick(false);
 	}
@@ -649,6 +650,7 @@ void StarTrekEngine::playOrbitArrivalSequence() {
 			_gfx->decPaletteFadeLevel();
 		updateStarfieldAndShips(false);
 		_gfx->drawAllSprites();
+		cycleBridgeColors();
 		_frameIndex++;
 		waitForNextTick(false);
 	}
@@ -693,6 +695,7 @@ void StarTrekEngine::playOrbitDepartureSequence() {
 			_gfx->decPaletteFadeLevel();
 		updateStarfieldAndShips(false);
 		_gfx->drawAllSprites();
+		cycleBridgeColors();
 		_frameIndex++;
 		waitForNextTick(false);
 		speed += 4;

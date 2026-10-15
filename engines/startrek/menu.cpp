@@ -1194,7 +1194,7 @@ void StarTrekEngine::showRepublicMap(int16 arg0, int16 turbolift) {
 		switch (event.type) {
 		case TREKEVENT_TICK:
 			_frameIndex++;
-			// sub_12fff(); // TODO
+			cycleBridgeColors();
 			_gfx->drawAllSprites();
 			break;
 
