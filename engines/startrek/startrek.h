@@ -280,6 +280,7 @@ public:
 
 	// Bridge
 	void initBridge(bool b);
+	void setBridgeTexts();
 	void loadBridge();
 	void loadBridgeActors();
 	void cleanupBridge();

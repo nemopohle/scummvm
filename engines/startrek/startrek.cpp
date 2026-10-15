@@ -349,8 +349,11 @@ Common::Error StarTrekEngine::runGameMode(int mode, bool resume) {
 				_pendingLoadSlot = -1;
 				loadGame(slot);
 			}
-			if (!_sound->_loopingAudioName.empty())
+			// The loop of a loaded game may play already
+			if (!_sound->_loopingAudioName.empty()) {
+				_sound->stopAllVocSounds();
 				_sound->playVoc(_sound->_loopingAudioName);
+			}
 			_resetGameMode = false;
 		}
 		TrekEvent event;

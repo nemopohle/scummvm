@@ -159,8 +159,18 @@ bool StarTrekEngine::loadGame(int slot) {
 		initBridge(true);
 		_lastGameMode = GAMEMODE_BRIDGE;
 	} else {
-		_resource->setTxtFileName(_missionToLoad);
+		_missionName = _missionToLoad;
+		setBridgeTexts();
+
+		// The bridge loads its own music, but the game continues with the saved one
+		Common::String music = _sound->_loadedMidiFilename;
+		MidiTracks track = _sound->_loopingMidiTrack;
 		initBridge(false);
+		if (!music.empty()) {
+			_sound->loadMusicFile(music);
+			_sound->_loopingMidiTrack = track;
+			_sound->playMidiTrackInSlot(0, track);
+		}
 	}
 
 	return true;

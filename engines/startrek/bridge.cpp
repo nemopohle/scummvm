@@ -1063,7 +1063,18 @@ void StarTrekEngine::wrongDestinationRandomEncounter() {
 		}
 	}
 
+	setBridgeTexts();
+	_enterpriseState.underAttack = true;
+	_sound->loadMusicFile(count >= 3 ? "bridgeb" : "bridge");
+	_randomEncounterCountdown = 10;
+}
+
+// A random encounter has its own texts instead of the ones of the mission
+void StarTrekEngine::setBridgeTexts() {
 	switch (_randomEncounterType) {
+	case kRandomEncounterNone:
+		_resource->setTxtFileName(_missionName);
+		break;
 	case kRandomEncounterKlingon:
 		_resource->setTxtFileName("klingon");
 		break;
@@ -1074,9 +1085,6 @@ void StarTrekEngine::wrongDestinationRandomEncounter() {
 		_resource->setTxtFileName("elasi");
 		break;
 	}
-	_enterpriseState.underAttack = true;
-	_sound->loadMusicFile(count >= 3 ? "bridgeb" : "bridge");
-	_randomEncounterCountdown = 10;
 }
 
 // Replaces the mission script during a random encounter
