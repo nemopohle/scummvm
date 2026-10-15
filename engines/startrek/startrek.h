@@ -903,6 +903,8 @@ public:
 	Common::Platform getPlatform() const;
 	// The Mac demo is the floppy version with the first room of "Demon World" only
 	bool isMacDemo() const;
+	bool easierCombat() const;
+	bool charactersAnimate() const;
 	uint8 getGameType() const;
 	Common::Language getLanguage() const;
 

@@ -160,7 +160,7 @@ void StarTrekEngine::updateEnemyShip(R3 *ship) {
 	}
 
 	distributeEnergy(ship);
-	if ((_frameIndex & 0x1f) == 7)
+	if ((_frameIndex & (easierCombat() ? 0x7f : 0x1f)) == 7)
 		repairShipSystems(ship);
 	if (ship->canCloak)
 		ship->cloakRequested = true;
@@ -454,6 +454,8 @@ bool StarTrekEngine::fireWeapon(R3 *ship, int weaponIndex, const Point3 *directi
 	}
 
 	weapon.nextFireTime = _frameIndex + weapon.cooldown;
+	if (ship != &_enterpriseR3 && easierCombat())
+		weapon.nextFireTime += 3 * weapon.cooldown;
 	addR3(projectile);
 	return true;
 }

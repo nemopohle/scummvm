@@ -174,7 +174,7 @@ static const StarTrekGameDescription gameDescriptions[] = {
 			Common::EN_ANY,
 			Common::kPlatformMacintosh,
 			ADGF_MACRESFORK | ADGF_UNSTABLE,
-			GUIO2(GUIO_RENDERVGA, GUIO_RENDEREGA)
+			GUIO4(GUIO_RENDERVGA, GUIO_RENDEREGA, GAMEOPTION_EASIER_COMBAT, GAMEOPTION_CHARACTERS_ANIMATE)
 		},
 		GType_ST25,
 		0,
@@ -202,7 +202,7 @@ static const StarTrekGameDescription gameDescriptions[] = {
 			Common::EN_ANY,
 			Common::kPlatformMacintosh,
 			ADGF_MACRESFORK | ADGF_CD | ADGF_UNSTABLE,
-			GUIO2(GUIO_RENDERVGA, GUIO_RENDEREGA)
+			GUIO4(GUIO_RENDERVGA, GUIO_RENDEREGA, GAMEOPTION_EASIER_COMBAT, GAMEOPTION_CHARACTERS_ANIMATE)
 		},
 		GType_ST25,
 		GF_CDROM,
@@ -230,7 +230,7 @@ static const StarTrekGameDescription gameDescriptions[] = {
 			Common::EN_ANY,
 			Common::kPlatformMacintosh,
 			ADGF_MACRESFORK | ADGF_CD | ADGF_UNSTABLE,
-			GUIO2(GUIO_RENDERVGA, GUIO_RENDEREGA)
+			GUIO4(GUIO_RENDERVGA, GUIO_RENDEREGA, GAMEOPTION_EASIER_COMBAT, GAMEOPTION_CHARACTERS_ANIMATE)
 		},
 		GType_ST25,
 		GF_CDROM,

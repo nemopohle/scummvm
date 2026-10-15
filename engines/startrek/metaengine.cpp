@@ -28,6 +28,7 @@
 #include "common/config-manager.h"
 #include "common/file.h"
 #include "common/savefile.h"
+#include "common/translation.h"
 
 #include "startrek/startrek.h"
 
@@ -55,12 +56,51 @@ bool StarTrekEngine::isMacDemo() const {
 	return getPlatform() == Common::kPlatformMacintosh && (_gameDescription->desc.flags & ADGF_DEMO);
 }
 
+// Options of the Mac versions
+bool StarTrekEngine::easierCombat() const {
+	return getPlatform() == Common::kPlatformMacintosh && ConfMan.getBool("easier_combat");
+}
+
+bool StarTrekEngine::charactersAnimate() const {
+	return getPlatform() != Common::kPlatformMacintosh || ConfMan.getBool("characters_animate");
+}
+
 } // End of Namespace StarTrek
+
+static const ADExtraGuiOptionsMap optionsList[] = {
+	{
+		GAMEOPTION_EASIER_COMBAT,
+		{
+			_s("Easier combat"),
+			_s("Makes starship combat extremely easy"),
+			"easier_combat",
+			false,
+			0,
+			0
+		}
+	},
+	{
+		GAMEOPTION_CHARACTERS_ANIMATE,
+		{
+			_s("Characters animate"),
+			_s("Lets the characters move while they are standing"),
+			"characters_animate",
+			true,
+			0,
+			0
+		}
+	},
+	AD_EXTRA_GUI_OPTIONS_TERMINATOR
+};
 
 class StarTrekMetaEngine : public AdvancedMetaEngine<StarTrek::StarTrekGameDescription> {
 public:
 	const char *getName() const override {
 		return "startrek";
+	}
+
+	const ADExtraGuiOptionsMap *getAdvancedExtraGuiOptions() const override {
+		return optionsList;
 	}
 
 	bool hasFeature(MetaEngineFeature f) const override;

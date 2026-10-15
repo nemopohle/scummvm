@@ -460,7 +460,8 @@ void StarTrekEngine::removeDrawnActorsFromScreen() {
 
 void StarTrekEngine::drawActorToScreen(Actor *actor, const Common::String &_animName, int16 x, int16 y, Fixed8 scale, bool addSprite) {
 	Common::String animFilename = _animName;
-	if (_animName.hasPrefixIgnoreCase("stnd") /* && word_45d20 == -1 */) // TODO
+	// Without the "Characters Animate" option the crew stands still
+	if (_animName.size() > 4 && !scumm_strnicmp(_animName.c_str() + 1, "stnd", 4) && !charactersAnimate())
 		animFilename += 'j';
 	// The Mac demo only has the standing animations without fidgeting
 	else if (isMacDemo() && _animName.contains("stnd") && !_animName.hasSuffixIgnoreCase("j"))

@@ -24,6 +24,9 @@
 
 #include "engines/advancedDetector.h"
 
+#define GAMEOPTION_EASIER_COMBAT      GUIO_GAMEOPTIONS1
+#define GAMEOPTION_CHARACTERS_ANIMATE GUIO_GAMEOPTIONS2
+
 namespace StarTrek {
 
 enum StarTrekGameType {

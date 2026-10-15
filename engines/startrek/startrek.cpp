@@ -61,6 +61,9 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	if (getGameType() == GType_STJR)
 		error("Star Trek: Judgment Rites is not yet supported");
 
+	ConfMan.registerDefault("easier_combat", false);
+	ConfMan.registerDefault("characters_animate", true);
+
 	_gfx = nullptr;
 	_activeMenu = nullptr;
 	_sound = nullptr;
