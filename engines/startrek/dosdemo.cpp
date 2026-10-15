@@ -367,6 +367,7 @@ bool StarTrekEngine::readDemoEvent() {
 				return false;
 			}
 			event.tick = ++_clockTicks;
+			_frameStartMillis = _system->getMillis();
 		} else if (type == TREKEVENT_KEYDOWN) {
 			switch (ascii) {
 			case '\r':
