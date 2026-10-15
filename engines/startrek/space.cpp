@@ -988,7 +988,7 @@ void StarTrekEngine::updateStarfieldAndShips(bool arg0) {
 			continue;
 		r3->field34 = 0;
 
-		switch (r3->field1e) { // TODO
+		switch (r3->field1e) {
 		case 1:
 			r3 = sub_19f24(r3);
 			break;
@@ -1035,7 +1035,7 @@ void StarTrekEngine::updateStarfieldAndShips(bool arg0) {
 			R3 *r3 = _orderedR3List[i];
 			r3->field34 = 1;
 
-			switch (r3->field1e) { // TODO
+			switch (r3->field1e) {
 			case 1:
 				drawR3Shape(r3);
 				break;

@@ -619,9 +619,8 @@ void Room::endMission(int16 score, int16 maxScore, int16 endFlag) {
 	_vm->_returnedFromAwayMission = true;
 }
 
-void Room::showGameOverMenu() { // TODO: takes an optional parameter?
+void Room::showGameOverMenu() {
 	_vm->showGameOverMenu();
-	// TODO: finish. Shouldn't do this within a room due to deletion of current room?
 }
 
 int Room::showCodeInputBox(const char * const *codes) {
