@@ -305,6 +305,9 @@ int StarTrekEngine::showText(TextGetterFunc textGetter, uintptr var, int xoffset
 
 	int16 tmpTextDisplayMode = _textDisplayMode;
 
+	// Speech that ended before, like the mission title, doesn't close this textbox
+	_finishedPlayingSpeech = false;
+
 	uint32 ticksUntilClickingEnabled = 8;
 	if (_frameIndex > _textboxVar2 + 1) {
 		ticksUntilClickingEnabled = 0x10;

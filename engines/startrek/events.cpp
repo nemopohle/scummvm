@@ -36,6 +36,11 @@ void StarTrekEngine::pollEvents(bool queueEvents) {
 			break;
 
 		case Common::EVENT_MOUSEMOVE:
+			// The mouse stays inside of the viewscreen while steering the ship
+			if (_gameMode == GAMEMODE_BRIDGE && _mouseControllingShip) {
+				restrictBridgeMouse();
+				trekEvent.mouse = _gfx->getMousePos();
+			}
 			if (queueEvents) {
 				trekEvent.type = TREKEVENT_MOUSEMOVE;
 				addEventToQueue(trekEvent);
@@ -61,6 +66,9 @@ void StarTrekEngine::pollEvents(bool queueEvents) {
 			break;
 
 		case Common::EVENT_KEYDOWN:
+			// Like in DOS, the modifier keys alone are no key presses
+			if (event.kbd.keycode >= Common::KEYCODE_NUMLOCK && event.kbd.keycode <= Common::KEYCODE_COMPOSE)
+				break;
 			_heldKey = event.kbd.keycode;
 			if (queueEvents) {
 				trekEvent.type = TREKEVENT_KEYDOWN;
