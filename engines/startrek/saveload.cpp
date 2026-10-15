@@ -458,8 +458,13 @@ bool StarTrekEngine::saveOrLoadGameData(Common::SeekableReadStream *in, Common::
 			_orbitObjectR3.bitmap = nullptr;
 		}
 		syncR3(ser, _orbitObjectR3);
-		if (ser.isLoading() && _orbitObjectR3.field1e != 0)
-			addOrbitObject();
+		if (ser.isLoading()) {
+			// Older savegames may contain an uninitialized orbit object
+			if (_orbitObjectR3.field1e != 3 || _orbitObjectR3.field20 < 4 || _orbitObjectR3.field20 > 7)
+				_orbitObjectR3 = R3();
+			else
+				addOrbitObject();
+		}
 	} else if (ser.isLoading()) {
 		// Older savegames only know the mission, so continue with its away mission
 		static const struct {
