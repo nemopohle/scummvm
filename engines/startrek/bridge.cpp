@@ -856,6 +856,7 @@ int StarTrekEngine::showStarMap() {
 	_gfx->setBackgroundImage("starmap");
 	_gfx->copyBackgroundScreen();
 	_gfx->drawAllSprites();
+	_gfx->fadeinScreen();
 
 	bool selected = false;
 	while (!selected) {
