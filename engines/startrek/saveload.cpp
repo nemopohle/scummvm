@@ -420,8 +420,18 @@ bool StarTrekEngine::saveOrLoadGameData(Common::SeekableReadStream *in, Common::
 		ser.syncAsSint16LE(_warpHotspotsActive);
 	}
 
-	if (meta->version >= 2)
+	if (meta->version >= 2) {
 		syncSpaceState(ser);
+	} else if (ser.isLoading()) {
+		// Older savegames have no ships in space
+		for (int i = 0; i < NUM_ENEMY_SHIPS; i++) {
+			if (_enemyShips[i].field1e != 0)
+				delR3(&_enemyShips[i]);
+			_enemyShips[i] = R3();
+		}
+		removeProjectiles();
+		_targetShip = nullptr;
+	}
 
 	// The frame index above has only 16 bits, but the weapons wait for frames with 32 bits
 	if (meta->version >= 5) {
