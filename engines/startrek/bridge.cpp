@@ -19,6 +19,7 @@
  *
  */
 
+#include "common/config-manager.h"
 #include "common/str-array.h"
 
 #include "startrek/bridge.h"
@@ -846,6 +847,10 @@ static int getClosestStar(const Common::Point &pos) {
 int StarTrekEngine::showStarMap() {
 	_gfx->pushSprites();
 	_gfx->setMouseBitmap("cross");
+
+	// Without copy protection, the destination of the mission is preselected
+	if (!ConfMan.getBool("copy_protection") && _targetPlanet >= 0 && _targetPlanet < ARRAYSIZE(kStarMapPositions))
+		_gfx->warpMouse(kStarMapPositions[_targetPlanet][0], kStarMapPositions[_targetPlanet][1]);
 
 	int star = getClosestStar(_gfx->getMousePos());
 	Sprite circleSprite;
