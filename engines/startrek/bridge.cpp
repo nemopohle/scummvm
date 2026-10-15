@@ -205,6 +205,8 @@ void StarTrekEngine::bridgeCrewAction(int crewId) {
 				showTextboxBridge(kBridgeTalkerKirk, transporterTextFeather);
 			else if (_missionName != "VENG")
 				showTextboxBridge(kBridgeTalkerKirk, transporterText);
+			// Each away mission starts in its first room, also after loading a savegame
+			_roomIndexToLoad = 0;
 			_gameMode = GAMEMODE_BEAMDOWN;
 		}
 		break;
