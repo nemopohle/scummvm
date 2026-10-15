@@ -354,6 +354,11 @@ void StarTrekEngine::loadPlanetView(R3 *r3) {
 		Common::MemoryReadStreamEndian *file = _resource->loadFile("planet.dat");
 		_planetSphereMap = new byte[file->size()];
 		file->read(_planetSphereMap, file->size());
+		// The Amiga version has the words in big endian
+		if (getPlatform() == Common::kPlatformAmiga) {
+			for (int i = 0; i + 1 < file->size(); i += 2)
+				SWAP(_planetSphereMap[i], _planetSphereMap[i + 1]);
+		}
 		delete file;
 	}
 
