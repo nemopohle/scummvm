@@ -18,14 +18,91 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// ST_DEBUG_HARNESS BEGIN (temporary, do not commit)
+#define FORBIDDEN_SYMBOL_EXCEPTION_getenv
+#include <stdlib.h>
+#include "common/file.h"
+#include "graphics/paletteman.h"
+#include "graphics/surface.h"
+#include "image/png.h"
+// ST_DEBUG_HARNESS END
 #include "startrek/console.h"
 #include "startrek/startrek.h"
 
 namespace StarTrek {
 
+// ST_DEBUG_HARNESS BEGIN (temporary, do not commit)
+void stDebugHarness(OSystem *sys, Common::EventManager *em) {
+	static uint32 lastDump = 0;
+	static int scriptPos = 0;
+	uint32 now = sys->getMillis();
+	const char *dir = getenv("ST_DUMP_DIR");
+	const char *dumpMsStr = getenv("ST_DUMP_MS");
+	uint32 dumpMs = dumpMsStr ? atoi(dumpMsStr) : 2000;
+	if (dir && now - lastDump >= dumpMs) {
+		lastDump = now;
+		::Graphics::Surface *s = sys->lockScreen();
+		if (s) {
+			byte pal[256 * 3];
+			if (s->format.bytesPerPixel == 1)
+				sys->getPaletteManager()->grabPalette(pal, 0, 256);
+			Common::DumpFile f;
+			if (f.open(Common::Path(Common::String::format("%s/f%06u.png", dir, now))))
+				Image::writePNG(f, *s, s->format.bytesPerPixel == 1 ? pal : nullptr);
+			sys->unlockScreen();
+		}
+	}
+	// ST_SCRIPT: comma separated list of <ms>:<action>, action = k<ascii> | c<x>x<y> | r<x>x<y>
+	const char *script = getenv("ST_SCRIPT");
+	if (!script)
+		return;
+	Common::String sc(script);
+	int idx = 0;
+	uint start = 0;
+	while (start < sc.size()) {
+		int end = sc.findFirstOf(',', start);
+		if (end < 0) end = sc.size();
+		Common::String item = sc.substr(start, end - start);
+		start = end + 1;
+		if (idx++ < scriptPos)
+			continue;
+		int colon = item.findFirstOf(':');
+		uint32 t = atoi(item.substr(0, colon).c_str());
+		if (now < t)
+			return;
+		scriptPos++;
+		Common::String act = item.substr(colon + 1);
+		Common::Event ev;
+		if (act[0] == 'k') {
+			int code = atoi(act.c_str() + 1);
+			ev.type = Common::EVENT_KEYDOWN;
+			ev.kbd = Common::KeyState((Common::KeyCode)code, code);
+			em->pushEvent(ev);
+			debug("ST_SCRIPT %u: key %d", now, code);
+		} else if (act[0] == 'c' || act[0] == 'r' || act[0] == 'm') {
+			int x = atoi(act.c_str() + 1);
+			int y = atoi(act.c_str() + act.findFirstOf('x') + 1);
+			sys->warpMouse(x, y);
+			ev.mouse = Common::Point(x, y);
+			ev.type = Common::EVENT_MOUSEMOVE;
+			em->pushEvent(ev);
+			if (act[0] != 'm') {
+				ev.type = act[0] == 'c' ? Common::EVENT_LBUTTONDOWN : Common::EVENT_RBUTTONDOWN;
+				em->pushEvent(ev);
+				ev.type = act[0] == 'c' ? Common::EVENT_LBUTTONUP : Common::EVENT_RBUTTONUP;
+				em->pushEvent(ev);
+			}
+			debug("ST_SCRIPT %u: %c %d,%d", now, act[0], x, y);
+		}
+		return;
+	}
+}
+// ST_DEBUG_HARNESS END
+
 void StarTrekEngine::pollEvents(bool queueEvents) {
 	Common::Event event;
 	TrekEvent trekEvent;
+	bool mouseMoved = false;
 	while (_eventMan->pollEvent(event)) {
 		trekEvent.mouse = event.mouse;
 		trekEvent.kbd = event.kbd;
@@ -45,10 +122,7 @@ void StarTrekEngine::pollEvents(bool queueEvents) {
 				trekEvent.type = TREKEVENT_MOUSEMOVE;
 				addEventToQueue(trekEvent);
 			}
-
-			// WORKAROUND: this improves the responsiveness of the mouse.
-			_system->updateScreen();
-			_system->delayMillis(10);
+			mouseMoved = true;
 			break;
 
 		case Common::EVENT_LBUTTONDOWN:
@@ -85,6 +159,11 @@ void StarTrekEngine::pollEvents(bool queueEvents) {
 			break;
 		}
 	}
+
+	// WORKAROUND: this improves the responsiveness of the mouse. A fast mouse
+	// sends many events, so the screen is updated once for all of them.
+	if (mouseMoved)
+		_system->updateScreen();
 }
 
 void StarTrekEngine::waitForNextTick(bool queueEvents) {
