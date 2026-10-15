@@ -87,6 +87,8 @@ public:
 	void startDemoMusicSetup();
 	bool isDemoMusicSetupPlaying();
 	void stopDemoMusic();
+	void playDemoJingle(const Common::String &name);
+	void restartDemoMusic();
 
 	void checkLoopMusic();
 	MidiTracks getPlayingMidiTrack();
@@ -144,6 +146,7 @@ private:
 	byte *_loadedSoundData;
 	int _loadedSoundDataSize;
 	byte *_demoMusicData[2];
+	Common::String _demoBackgroundMusic;
 
 	void playDemoMidiFile(int slot, const Common::String &name);
 	uint32 _midiDevice;

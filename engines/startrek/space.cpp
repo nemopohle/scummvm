@@ -1161,7 +1161,15 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 		loadProjectileView(r3);
 
 	if (r3->bitmap != nullptr) {
-		double dbl68 = ((double)r3->field24 * _starfieldPointDivisor) / r3->field36.z;
+		// The DOS demo has the sizes of the objects at the distance of 1, without the field of view
+		double dbl68;
+		if (getFeatures() & GF_DEMO) {
+			dbl68 = (double)r3->field24 / r3->field36.z;
+			if (r3->field1e == 2)
+				dbl68 = CLIP(dbl68, 0.125, 2.0);
+		} else {
+			dbl68 = ((double)r3->field24 * _starfieldPointDivisor) / r3->field36.z;
+		}
 		double dbl70 = 1.0 / dbl68;
 
 		double dbl30 = 1.0;

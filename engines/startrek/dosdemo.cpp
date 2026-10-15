@@ -52,6 +52,7 @@ void StarTrekEngine::runDosDemo() {
 		playDemoIntro();
 		playDemoAwayMission();
 		playDemoMontage();
+		playDemoBattle();
 		playDemoEnding();
 	}
 }
@@ -62,7 +63,7 @@ void StarTrekEngine::initDemoEnterprise() {
 	_enterpriseR3.field1e = 2;
 	_enterpriseR3.field20 = 0;
 	_enterpriseR3.field22 = 200;
-	_enterpriseR3.field24 = 3;
+	_enterpriseR3.field24 = 450;
 	addR3(&_enterpriseR3);
 }
 
@@ -245,7 +246,7 @@ void StarTrekEngine::showDemoTitle() {
 		parts[i].bitmap = new Bitmap(_resource->loadBitmapFile(Common::String::format("logo%02d", i)));
 		parts[i].field1e = 3;
 		parts[i].field22 = 2000;
-		parts[i].field24 = 3000 / _starfieldPointDivisor;
+		parts[i].field24 = 3000;
 		initDemoR3ObjectToMove(&parts[i], kParts[i].srcDepth, kParts[i].srcAngle, 3000, 0, 20);
 		dest[i] = getDemoR3Destination(parts[i], 20);
 		addR3(&parts[i]);
@@ -348,7 +349,7 @@ int StarTrekEngine::showDosDemoText(const char *const *textArray) {
 	Sprite sprite;
 	_gfx->addSprite(&sprite);
 	int choice = 0;
-	const char *nextPage = drawDosDemoTextbox(&sprite, speaker, textArray[1]);
+	const char *nextPage = drawDosDemoTextbox(&sprite, speaker, textArray[1], SCREEN_WIDTH / 2, 100);
 	int ticksUntilClickingEnabled = 20;
 	bool done = false;
 
@@ -409,10 +410,10 @@ int StarTrekEngine::showDosDemoText(const char *const *textArray) {
 
 		if (numChoices > 1 && nextChoice != choice) {
 			choice = (nextChoice + numChoices) % numChoices;
-			drawDosDemoTextbox(&sprite, speaker, textArray[choice + 1]);
+			drawDosDemoTextbox(&sprite, speaker, textArray[choice + 1], SCREEN_WIDTH / 2, 100);
 		} else if (accept && ticksUntilClickingEnabled == 0) {
 			if (numChoices == 1 && *nextPage) {
-				nextPage = drawDosDemoTextbox(&sprite, speaker, nextPage);
+				nextPage = drawDosDemoTextbox(&sprite, speaker, nextPage, SCREEN_WIDTH / 2, 100);
 				ticksUntilClickingEnabled = 20;
 			} else {
 				done = true;
@@ -426,8 +427,8 @@ int StarTrekEngine::showDosDemoText(const char *const *textArray) {
 	return choice;
 }
 
-// Draws a page of up to 11 lines, and returns the rest of the text
-const char *StarTrekEngine::drawDosDemoTextbox(Sprite *sprite, const Common::String &speaker, const char *text) {
+// Draws a page of up to 11 lines above the position, and returns the rest of the text
+const char *StarTrekEngine::drawDosDemoTextbox(Sprite *sprite, const Common::String &speaker, const char *text, int16 x, int16 y) {
 	const int maxLines = 11;
 	const int charWidth = 8;
 	const int lineHeight = 8;
@@ -448,18 +449,22 @@ const char *StarTrekEngine::drawDosDemoTextbox(Sprite *sprite, const Common::Str
 	int height = (lines.size() + 1) * lineHeight;
 	Bitmap *bitmap = new Bitmap(width, height);
 	memset(bitmap->pixels, 0, width * height);
-	bitmap->xoffset = width / 2;
-	bitmap->yoffset = MIN(height, 100);
-	for (int x = 1; x < width - 1; x++)
-		bitmap->pixels[width + x] = bitmap->pixels[(height - 2) * width + x] = borderColor;
-	for (int y = 1; y < height - 1; y++)
-		bitmap->pixels[y * width + 1] = bitmap->pixels[y * width + width - 2] = borderColor;
+	bitmap->xoffset = CLIP<int16>(width / 2, x + width - SCREEN_WIDTH, x);
+	bitmap->yoffset = height;
+	if (y + height >= SCREEN_HEIGHT)
+		bitmap->yoffset += y + height - (SCREEN_HEIGHT - 1);
+	if (y < height)
+		bitmap->yoffset += y - height;
+	for (int i = 1; i < width - 1; i++)
+		bitmap->pixels[width + i] = bitmap->pixels[(height - 2) * width + i] = borderColor;
+	for (int i = 1; i < height - 1; i++)
+		bitmap->pixels[i * width + 1] = bitmap->pixels[i * width + width - 2] = borderColor;
 	for (uint i = 0; i < lines.size(); i++)
 		drawTextLineToBitmap(lines[i].c_str(), lines[i].size(), 4, i * lineHeight + 4, bitmap);
 
 	sprite->setBitmap(bitmap);
 	sprite->drawMode = 2;
-	sprite->setXYAndPriority(SCREEN_WIDTH / 2, 100, 14);
+	sprite->setXYAndPriority(x, y, 14);
 	_gfx->drawAllSprites();
 	return text;
 }

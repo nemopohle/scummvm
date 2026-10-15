@@ -394,7 +394,18 @@ void Sound::playDemoMidiFile(int slot, const Common::String &name) {
 }
 
 void Sound::playDemoMusic(const Common::String &name) {
+	_demoBackgroundMusic = name;
 	playDemoMidiFile(0, name);
+}
+
+// Jingles interrupt the background music
+void Sound::playDemoJingle(const Common::String &name) {
+	playDemoMidiFile(0, name);
+}
+
+void Sound::restartDemoMusic() {
+	if (_midiDriver && !_midiSlots[0].midiParser->isPlaying() && !_demoBackgroundMusic.empty())
+		playDemoMidiFile(0, _demoBackgroundMusic);
 }
 
 void Sound::startDemoMusicSetup() {
@@ -406,6 +417,7 @@ bool Sound::isDemoMusicSetupPlaying() {
 }
 
 void Sound::stopDemoMusic() {
+	_demoBackgroundMusic.clear();
 	clearMidiSlot(0);
 }
 

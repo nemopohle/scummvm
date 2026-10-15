@@ -208,6 +208,14 @@ struct TrekEvent {
 	uint32 tick;
 };
 
+// A message on the bridge in the battle of the DOS demo
+struct DemoMessage {
+	Common::String speaker;
+	Common::String text;
+	int16 x;
+	int16 y;
+};
+
 struct ComputerTopic {
 	Common::String fileName;
 	Common::String topic;
@@ -390,8 +398,30 @@ public:
 	void initDemoItems();
 	void loadDemoRoomActors();
 	int showDosDemoText(const char *const *textArray);
-	const char *drawDosDemoTextbox(Sprite *sprite, const Common::String &speaker, const char *text);
+	const char *drawDosDemoTextbox(Sprite *sprite, const Common::String &speaker, const char *text, int16 x, int16 y);
 	void playDemoMontage();
+	void playDemoBattle();
+	void initDemoBattle();
+	void cleanupDemoBattle();
+	void initDemoShip(R3 *ship, int16 shape, int16 size, const int16 *strengths);
+	void updateDemoBattle();
+	void runDemoBattleScript();
+	void moveDemoKlingons();
+	void fireDemoKlingon(R3 *ship);
+	void fireDemoEnterprise();
+	void moveDemoShip(R3 *ship);
+	void updateDemoShipEnergy(R3 *ship);
+	void repairDemoShip(R3 *ship);
+	void handleDemoBattleEvent(const TrekEvent &event);
+	void handleDemoBattleKey(Common::KeyCode key);
+	void toggleDemoShields();
+	void toggleDemoWeapons();
+	void showDemoCrewMenu(int actor);
+	void addDemoBridgeMessage(const Common::String &speaker, const Common::String &text, int16 x, int16 y);
+	void updateDemoBridgeMessages();
+	void drawDemoShipPanels();
+	void drawDemoPanelBitmap(Bitmap *bitmap, int16 x, int16 y);
+	void applyDemoHit(R3 *ship, R3 *projectile);
 	void playDemoEnding();
 
 	void playMovie(Common::String filename);
@@ -973,6 +1003,14 @@ public:
 	R3 _planetR3;
 	R3 _enemyShips[NUM_ENEMY_SHIPS];
 	R3 _projectiles[NUM_PROJECTILES];
+
+	// The battle of the DOS demo
+	int _demoBattleFrame;
+	int _demoFireTime;
+	uint32 _demoShieldMessageTime;
+	Common::List<DemoMessage> _demoMessages;
+	Sprite _demoMessageSprite;
+	int _demoMessageEnd;
 	R3 _orbitObjectR3;
 	R3 *_targetShip;
 	// Shared like the random number generator of the original

@@ -99,7 +99,10 @@ void StarTrekEngine::updateScanner() {
 		bitmap->yoffset = 8;
 		_gfx->addSprite(&_scannerSprite);
 		_scannerSprite.setBitmap(bitmap);
-		_scannerSprite.setXYAndPriority(159, 140, 2);
+		if (getFeatures() & GF_DEMO)
+			_scannerSprite.setXYAndPriority(160, 141, 2);
+		else
+			_scannerSprite.setXYAndPriority(159, 140, 2);
 	}
 
 	// The Enterprise is in the center, ships behind it are on the outer ring

@@ -11,6 +11,7 @@ MODULE_OBJS = \
 	common.o \
 	console.o \
 	dosdemo.o \
+	dosdemobattle.o \
 	events.o \
 	font.o \
 	graphics.o \

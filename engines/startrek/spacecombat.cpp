@@ -434,7 +434,7 @@ bool StarTrekEngine::fireWeapon(R3 *ship, int weaponIndex, const Point3 *directi
 	projectile->field1e = 3;
 	projectile->field20 = weapon.shape;
 	projectile->field22 = 60;
-	projectile->field24 = 3;
+	projectile->field24 = (getFeatures() & GF_DEMO) ? 200 : 3;
 	updateShipSpeed(projectile, ((int32)weapon.speed << 16) + ship->currentSpeed);
 	projectile->projectileOwner = ship;
 	projectile->projectileLife = weapon.lifetime;
@@ -506,7 +506,7 @@ void StarTrekEngine::updateProjectiles() {
 					projectile->field20 = 3;
 					projectile->projectileLife = 8;
 					projectile->field22 = 60;
-					projectile->field24 = 6;
+					projectile->field24 = (getFeatures() & GF_DEMO) ? 400 : 6;
 					projectile->matrix = target->matrix;
 					projectile->speed = target->speed;
 					applyHit(target, projectile);
@@ -529,6 +529,11 @@ void StarTrekEngine::removeProjectiles() {
 }
 
 void StarTrekEngine::applyHit(R3 *ship, R3 *projectile) {
+	if (getFeatures() & GF_DEMO) {
+		applyDemoHit(ship, projectile);
+		return;
+	}
+
 	Point3 local = multPointMatrix(projectile->pos - ship->pos, ship->matrix.invert());
 	ShipSide side = findSide(local);
 	int16 &damage = projectile->projectileDamage;
@@ -576,6 +581,61 @@ bool StarTrekEngine::damageShipSystem(R3 *ship, int side, int16 damage) {
 	return false;
 }
 
+// The DOS demo reports the damage of the Enterprise, and has no explosions. The hull
+// loses what the hit system had left.
+void StarTrekEngine::applyDemoHit(R3 *ship, R3 *projectile) {
+	static const char *const kSideNames[] = { "starboard", "aft", "port", "forward", "upper", "lower" };
+	static const char *const kSystemNames[] = {
+		"Hull", "Bridge", "port torpedoes", "starboard torpedoes", "port phasers",
+		"starboard phasers", "sensors", "impulse engines", "port warp engine", "starboard warp engine"
+	};
+
+	Point3 local = multPointMatrix(projectile->pos - ship->pos, ship->matrix.invert());
+	ShipSide side = findSide(local);
+	int16 damage = projectile->projectileDamage;
+	bool isEnterprise = ship == &_enterpriseR3;
+
+	if (ship->shieldsActive) {
+		ShipSystem &shield = ship->systems[side];
+		int16 strength = shield.strength;
+		int16 absorbed = MIN(damage, strength);
+		shield.strength -= absorbed;
+		if (shield.strength == 0 && absorbed != 0 && isEnterprise && _frameIndex > _demoShieldMessageTime) {
+			addDemoBridgeMessage("Scotty", Common::String::format("We just lost our %s shield!.", kSideNames[side]), 0, 150);
+			_demoShieldMessageTime = _frameIndex + 120;
+		}
+		damage -= damage * strength / shield.maxStrength;
+	}
+
+	int16 percentage = msRand() % 100;
+	const HitArea *area = nullptr;
+	for (int i = 0; i < kHitAreas[side].count; i++) {
+		area = &kHitAreas[side].areas[i];
+		if (area->low <= percentage && percentage <= area->high)
+			break;
+	}
+
+	ShipSystem &system = ship->systems[area->system];
+	int16 absorbed = MIN(damage, system.strength);
+	system.strength -= absorbed;
+	if (absorbed == damage)
+		return;
+
+	ShipSystem &hull = ship->systems[6];
+	hull.strength -= absorbed;
+	if (hull.strength >= 1) {
+		if (isEnterprise)
+			addDemoBridgeMessage("Scotty", Common::String::format("They've crippled the %s!", kSystemNames[area->system - 6]), 0, 160);
+	} else if (isEnterprise) {
+		const char *const text[] = { "", "Enterprise destroyed.", "" };
+		showDosDemoText(text);
+		quitGame();
+	} else {
+		delR3(ship);
+		ship->field1e = 0;
+	}
+}
+
 void StarTrekEngine::loadProjectileView(R3 *projectile) {
 	Common::String name;
 	switch (projectile->field20) {
@@ -589,7 +649,7 @@ void StarTrekEngine::loadProjectileView(R3 *projectile) {
 		break;
 	case 3:
 		name = Common::String::format("expl0%d", projectile->projectileLife & 3);
-		if (projectile->projectileLife == 5)
+		if (projectile->projectileLife == 5 && !(getFeatures() & GF_DEMO))
 			_sound->playSoundEffectIndex(kSfxShieldHit);
 		break;
 	default:
