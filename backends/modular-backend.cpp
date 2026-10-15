@@ -257,6 +257,10 @@ Common::Rect ModularGraphicsBackend::getSafeOverlayArea(int16 *width, int16 *hei
 	return _graphicsManager->getSafeOverlayArea(width, height);
 }
 
+Common::Rect ModularGraphicsBackend::getGameAreaInOverlay() const {
+	return _graphicsManager->getGameAreaInOverlay();
+}
+
 float ModularGraphicsBackend::getHiDPIScreenFactor() const {
 	return _graphicsManager->getHiDPIScreenFactor();
 }

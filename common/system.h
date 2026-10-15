@@ -1481,6 +1481,15 @@ public:
 	 */
 	virtual Common::Rect getSafeOverlayArea(int16 *width = nullptr, int16 *height = nullptr) const;
 
+	/**
+	 * Return the area of the overlay that covers the game screen.
+	 * It differs from the whole overlay when the game screen is
+	 * displayed with borders, e.g. to keep its aspect ratio.
+	 *
+	 * @return The area of the game screen in overlay coordinates.
+	 */
+	virtual Common::Rect getGameAreaInOverlay() const;
+
 	/** @} */
 
 

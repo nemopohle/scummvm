@@ -118,13 +118,27 @@ public:
 				MAX(safeTop, MIN((int)_overlayDrawRect.bottom, _windowHeight - insets.bottom)));
 
 		// Convert this safe area in the overlay coordinate space
+		if (width) *width = getOverlayWidth();
+		if (height) *height = getOverlayHeight();
+		return convertWindowRectToOverlay(safeArea);
+	}
+
+	Common::Rect getGameAreaInOverlay() const override {
+		if (_overlayDrawRect.isEmpty())
+			return Common::Rect(getOverlayWidth(), getOverlayHeight());
+		return convertWindowRectToOverlay(_gameDrawRect);
+	}
+
+protected:
+	/**
+	 * Converts the given rectangle from the window's coordinate space to the
+	 * overlay's coordinate space.
+	 */
+	Common::Rect convertWindowRectToOverlay(Common::Rect rect) const {
 		const int targetWidth = getOverlayWidth(),
 		          targetHeight = getOverlayHeight(),
 		          sourceWidth = _overlayDrawRect.width(),
 		          sourceHeight = _overlayDrawRect.height();
-
-		if (width) *width = targetWidth;
-		if (height) *height = targetHeight;
 
 		int rotatedTargetWidth = targetWidth,
 		    rotatedTargetHeight = targetHeight;
@@ -133,10 +147,10 @@ public:
 		}
 
 		// First make it relative to overlay origin and scale it
-		safeArea.left = ((safeArea.left - _overlayDrawRect.left) * rotatedTargetWidth) / sourceWidth;
-		safeArea.top = ((safeArea.top - _overlayDrawRect.top) * rotatedTargetHeight) / sourceHeight;
-		safeArea.right = ((safeArea.right - _overlayDrawRect.left) * rotatedTargetWidth) / sourceWidth;
-		safeArea.bottom = ((safeArea.bottom - _overlayDrawRect.top) * rotatedTargetHeight) / sourceHeight;
+		rect.left = ((rect.left - _overlayDrawRect.left) * rotatedTargetWidth) / sourceWidth;
+		rect.top = ((rect.top - _overlayDrawRect.top) * rotatedTargetHeight) / sourceHeight;
+		rect.right = ((rect.right - _overlayDrawRect.left) * rotatedTargetWidth) / sourceWidth;
+		rect.bottom = ((rect.bottom - _overlayDrawRect.top) * rotatedTargetHeight) / sourceHeight;
 
 		// Now rotate it
 		switch (_rotationMode) {
@@ -145,38 +159,39 @@ public:
 			// Nothing to do
 			break;
 		case Common::kRotation90: {
-			int16 tmp = safeArea.left;
-			safeArea.left = safeArea.top;
-			safeArea.top = rotatedTargetWidth - safeArea.right;
-			//safeArea.right = targetWidth - (rotatedTargetHeight - safeArea.bottom);
-			safeArea.right = safeArea.bottom; // targetWidth == rotatedTargetHeight
-			safeArea.bottom = targetHeight - tmp;
+			int16 tmp = rect.left;
+			rect.left = rect.top;
+			rect.top = rotatedTargetWidth - rect.right;
+			//rect.right = targetWidth - (rotatedTargetHeight - rect.bottom);
+			rect.right = rect.bottom; // targetWidth == rotatedTargetHeight
+			rect.bottom = targetHeight - tmp;
 			break;
 		}
 		case Common::kRotation180: {
 			int16 tmp;
-			tmp = safeArea.left;
-			safeArea.left = rotatedTargetWidth - safeArea.right;
-			safeArea.right = rotatedTargetWidth - tmp;
-			tmp = safeArea.top;
-			safeArea.top = rotatedTargetHeight - safeArea.bottom;
-			safeArea.bottom = rotatedTargetHeight - tmp;
+			tmp = rect.left;
+			rect.left = rotatedTargetWidth - rect.right;
+			rect.right = rotatedTargetWidth - tmp;
+			tmp = rect.top;
+			rect.top = rotatedTargetHeight - rect.bottom;
+			rect.bottom = rotatedTargetHeight - tmp;
 			break;
 		}
 		case Common::kRotation270: {
-			int16 tmp = safeArea.left;
-			safeArea.left = rotatedTargetHeight - safeArea.bottom;
-			//safeArea.bottom = targetHeight - (rotatedTargetWidth - safeArea.right);
-			safeArea.bottom = safeArea.right; // targetHeight == rotatedTargetWidth
-			safeArea.right = targetWidth - safeArea.top;
-			safeArea.top = tmp;
+			int16 tmp = rect.left;
+			rect.left = rotatedTargetHeight - rect.bottom;
+			//rect.bottom = targetHeight - (rotatedTargetWidth - rect.right);
+			rect.bottom = rect.right; // targetHeight == rotatedTargetWidth
+			rect.right = targetWidth - rect.top;
+			rect.top = tmp;
 			break;
 		}
 		}
 
-		return safeArea;
+		return rect;
 	}
 
+public:
 	void setShakePos(int shakeXOffset, int shakeYOffset) override {
 		if (_gameScreenShakeXOffset != shakeXOffset || _gameScreenShakeYOffset != shakeYOffset) {
 			_gameScreenShakeXOffset = shakeXOffset;
