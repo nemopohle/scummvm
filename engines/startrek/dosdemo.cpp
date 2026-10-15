@@ -19,6 +19,8 @@
  *
  */
 
+#include "common/file.h"
+
 #include "startrek/graphics.h"
 #include "startrek/resource.h"
 #include "startrek/room.h"
@@ -307,11 +309,84 @@ void StarTrekEngine::playDemoAwayMission() {
 	_gfx->warpMouse(SCREEN_WIDTH / 2, 100);
 	_gfx->toggleMouse(true);
 
+	startDemoPlayback();
 	initAwayMission();
 	runAwayMission();
+	stopDemoPlayback();
 
 	unloadRoom();
 	_gfx->toggleMouse(false);
+}
+
+// The away mission plays the input that is recorded in EVENTS.SAV, if it exists
+void StarTrekEngine::startDemoPlayback() {
+	Common::File *file = new Common::File();
+	if (!file->open("events.sav")) {
+		delete file;
+		return;
+	}
+
+	_demoEvents = file;
+	_demoEventsStart = file->readUint32LE();
+	_demoPlaybackStartMillis = _system->getMillis();
+	_demoMousePos = Common::Point(SCREEN_WIDTH / 2, 100);
+	_eventQueue.clear();
+	_mouseMoveEventInQueue = false;
+	_tickEventInQueue = false;
+}
+
+void StarTrekEngine::stopDemoPlayback() {
+	delete _demoEvents;
+	_demoEvents = nullptr;
+}
+
+// Each poll of the original is recorded, with the type 7 if there was no event. The
+// ticks wait for their time.
+bool StarTrekEngine::readDemoEvent() {
+	while (true) {
+		int16 type = _demoEvents->readSint16LE();
+		if (_demoEvents->eos()) {
+			stopDemoPlayback();
+			return false;
+		}
+		if (type == 7)
+			continue;
+
+		byte ascii = _demoEvents->readByte();
+		_demoEvents->skip(3);
+		int16 x = _demoEvents->readSint16LE();
+		int16 y = _demoEvents->readSint16LE();
+		uint32 time = _demoEvents->readUint32LE();
+
+		TrekEvent event;
+		event.type = (TrekEventType)type;
+		if (type == TREKEVENT_TICK) {
+			uint32 due = _demoPlaybackStartMillis + (uint32)((time - _demoEventsStart) * 1000 / 18.206);
+			if (_system->getMillis() < due) {
+				_demoEvents->seek(-14, SEEK_CUR);
+				return false;
+			}
+			event.tick = ++_clockTicks;
+		} else if (type == TREKEVENT_KEYDOWN) {
+			switch (ascii) {
+			case '\r':
+				event.kbd = Common::KeyState(Common::KEYCODE_RETURN, ascii);
+				break;
+			case 0x1b:
+				event.kbd = Common::KeyState(Common::KEYCODE_ESCAPE, ascii);
+				break;
+			default:
+				event.kbd = Common::KeyState((Common::KeyCode)tolower(ascii), ascii);
+				break;
+			}
+		} else {
+			_demoMousePos = Common::Point(x, y);
+			event.mouse = _demoMousePos;
+			_system->warpMouse(x, y);
+		}
+		addEventToQueue(event);
+		return true;
+	}
 }
 
 // The DOS demo has fewer items, and other names for some of them

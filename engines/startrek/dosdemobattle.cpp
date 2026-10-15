@@ -77,8 +77,7 @@ void StarTrekEngine::initDemoBattle() {
 	_gfx->setBackgroundImage("bridge");
 	_gfx->loadPri("bridge");
 	_gfx->copyBackgroundScreen();
-	_gfx->setMouseBitmap("cursor");
-	_gfx->toggleMouse(true);
+	_gfx->toggleMouse(false);
 	_sound->playDemoMusic("sta8v1");
 
 	initStarfieldPosition();

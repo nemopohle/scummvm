@@ -97,6 +97,7 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_roomIndexToLoad = 0;
 	_mapFile = nullptr;
 	_iwFile = nullptr;
+	_demoEvents = nullptr;
 
 	_showSubtitles = true;
 	_shipDitheringEnabled = true;
@@ -169,6 +170,7 @@ StarTrekEngine::~StarTrekEngine() {
 	delete _sound;
 	delete _resource;
 	delete[] _planetSphereMap;
+	delete _demoEvents;
 }
 
 Common::Error StarTrekEngine::run() {

@@ -274,6 +274,9 @@ byte Graphics::getPriValue(int x, int y) {
 }
 
 Common::Point Graphics::getMousePos() {
+	// The DOS demo plays recorded input in the away mission
+	if (_vm->_demoEvents)
+		return _vm->_demoMousePos;
 	return _vm->_system->getEventManager()->getMousePos();
 }
 

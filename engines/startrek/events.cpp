@@ -80,6 +80,9 @@ void StarTrekEngine::pollEvents(bool queueEvents) {
 }
 
 void StarTrekEngine::waitForNextTick(bool queueEvents) {
+	// The recorded input of the DOS demo has its own ticks
+	if (_demoEvents)
+		queueEvents = false;
 	pollEvents(queueEvents);
 
 	uint nextFrame = _frameStartMillis + 1000 / 18.206;
@@ -109,6 +112,15 @@ void StarTrekEngine::initializeEventsAndMouse() {
 
 bool StarTrekEngine::getNextEvent(TrekEvent *e, bool poll) {
 	while (poll && _eventQueue.empty()) {
+		if (_demoEvents) {
+			pollEvents(false);
+			if (shouldQuit())
+				return false;
+			if (!readDemoEvent())
+				_system->delayMillis(5);
+			continue;
+		}
+
 		pollEvents(true);
 
 		// Check for tick event

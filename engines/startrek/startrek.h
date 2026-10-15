@@ -395,6 +395,9 @@ public:
 	void showDemoTitle();
 	void showDemoLog();
 	void playDemoAwayMission();
+	void startDemoPlayback();
+	void stopDemoPlayback();
+	bool readDemoEvent();
 	void initDemoItems();
 	void loadDemoRoomActors();
 	int showDosDemoText(const char *const *textArray);
@@ -1003,6 +1006,12 @@ public:
 	R3 _planetR3;
 	R3 _enemyShips[NUM_ENEMY_SHIPS];
 	R3 _projectiles[NUM_PROJECTILES];
+
+	// The recorded input of the away mission in the DOS demo
+	Common::SeekableReadStream *_demoEvents;
+	uint32 _demoEventsStart;
+	uint32 _demoPlaybackStartMillis;
+	Common::Point _demoMousePos;
 
 	// The battle of the DOS demo
 	int _demoBattleFrame;
