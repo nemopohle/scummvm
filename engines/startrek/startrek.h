@@ -791,6 +791,7 @@ public:
 	 * This can be called from startup or from the options menu.
 	 * On startup, this tries to load the setting without user input.
 	 */
+	void showTurboliftBlockedText(int area);
 	void showTextConfigurationMenu(bool fromOptionMenu);
 
 	int loadTextDisplayMode();

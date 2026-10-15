@@ -1042,6 +1042,19 @@ void StarTrekEngine::showGameOverMenu() {
 	}
 }
 
+void StarTrekEngine::showTurboliftBlockedText(int area) {
+	// Only the CD versions have these texts
+	if (isFloppyVersion())
+		return;
+
+	Common::String text;
+	if (area == 6)
+		text = "#GENE\\GENE_F14#Turbolift access is blocked by an extremely high radiation level.";
+	else
+		text = "#GENE\\GENE_F15#This Turbolift cannot reach that area of the ship.";
+	showTextbox("Mr. Spock", text, 50, 50, TEXTCOLOR_YELLOW, 0); // ENHANCEMENT: Speaker is Spock
+}
+
 void StarTrekEngine::showTextConfigurationMenu(bool fromOptionMenu) {
 	const char *options[] = {
 		"Text display",
@@ -1182,12 +1195,8 @@ void StarTrekEngine::showRepublicMap(int16 arg0, int16 turbolift) {
 		case TREKEVENT_LBUTTONDOWN:
 			clickedArea = getRepublicMapAreaOrFailure(turbolift);
 			if (clickedArea == 0) {
-			} else if (clickedArea == 6) {
-				Common::String text = "#GENE\\GENE_F14#Turbolift access is blocked by an extremely high radiation level.";
-				showTextbox("Mr. Spock", text, 50, 50, TEXTCOLOR_YELLOW, 0); // ENHANCEMENT: Speaker is Spock
-			} else if (clickedArea == 7) {
-				Common::String text = "#GENE\\GENE_F15#This Turbolift cannot reach that area of the ship.";
-				showTextbox("Mr. Spock", text, 50, 50, TEXTCOLOR_YELLOW, 0); // ENHANCEMENT: Speaker is Spock
+			} else if (clickedArea == 6 || clickedArea == 7) {
+				showTurboliftBlockedText(clickedArea);
 			} else
 				exitLoop = true;
 			break;
@@ -1225,12 +1234,8 @@ void StarTrekEngine::showRepublicMap(int16 arg0, int16 turbolift) {
 				// Same as TREKEVENT_LBUTTONDOWN
 				clickedArea = getRepublicMapAreaOrFailure(turbolift);
 				if (clickedArea == 0) {
-				} else if (clickedArea == 6) {
-					Common::String text = "#GENE\\GENE_F14#Turbolift access is blocked by an extremely high radiation level.";
-					showTextbox("Mr. Spock", text, 50, 50, TEXTCOLOR_YELLOW, 0); // ENHANCEMENT: Speaker is Spock
-				} else if (clickedArea == 7) {
-					Common::String text = "#GENE\\GENE_F15#This Turbolift cannot reach that area of the ship.";
-					showTextbox("Mr. Spock", text, 50, 50, TEXTCOLOR_YELLOW, 0); // ENHANCEMENT: Speaker is Spock
+				} else if (clickedArea == 6 || clickedArea == 7) {
+					showTurboliftBlockedText(clickedArea);
 				} else
 					exitLoop = true;
 				break;
