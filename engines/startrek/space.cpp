@@ -909,7 +909,8 @@ void StarTrekEngine::drawStarfield() {
 		file = _resource->loadFile("stars.shp");
 	}
 	if (getPlatform() == Common::kPlatformAmiga) {
-		// The Amiga version doesn't use this file. Only its first header was converted to big endian.
+		// The Amiga version has these images in its executable. Only the first header
+		// of this file was converted to big endian.
 		uint32 size = file->size();
 		byte *data = (byte *)malloc(size);
 		file->read(data, size);
@@ -919,16 +920,34 @@ void StarTrekEngine::drawStarfield() {
 		file = new Common::MemoryReadStreamEndian(data, size, false, DisposeAfterUse::YES);
 	}
 
+	uint32 imageOffsets[NUM_STARS];
+	for (int i = 0; i < NUM_STARS; i++) {
+		imageOffsets[i] = file->pos();
+		file->readUint32();
+		int16 size = file->readUint16() * file->readUint16();
+		file->seek(size, SEEK_CUR);
+	}
+
+	// The Amiga version uses the images in another order and places the larger
+	// stars farther away
+	static const int kAmigaStarImages[] = { 13, 4, 5, 8, 10, 1, 2, 3, 6, 7, 9, 11, 12, 0, 15, 14 };
+	const bool amiga = getPlatform() == Common::kPlatformAmiga;
+
 	for (int i = 0; i < NUM_STARS; i++) {
 		Star *star = &_starList[i];
-		if ((i & 0xf) == 0) {
-			file->seek(0, SEEK_SET);
-		}
+		file->seek(imageOffsets[amiga ? kAmigaStarImages[i] : i], SEEK_SET);
+		file->readUint32();
+		int16 width = file->readUint16();
+		int16 height = file->readUint16();
+		file->seek(-8, SEEK_CUR);
+
+		int16 depth = amiga ? height * _starfieldPointDivisor : var8;
+		int32 maxDepth = amiga ? 2 * depth : 0x3fff;
 
 		if (!star->active) {
-			int16 var4 = getRandomWord() / var28 - xvar;
-			int16 var6 = getRandomWord() / var2a - yvar;
-			Point3 point = constructPoint3ForStarfield(var4, var6, var8);
+			int16 var4 = getRandomWord() % var28 - xvar;
+			int16 var6 = getRandomWord() % var2a - yvar;
+			Point3 point = constructPoint3ForStarfield(var4, var6, depth);
 			star->pos = matrixMult(_starPositionMatrix, point) + _starfieldPosition;
 			star->active = true;
 		}
@@ -936,21 +955,21 @@ void StarTrekEngine::drawStarfield() {
 		Point3 p = star->pos - _starfieldPosition;
 		Point3 point2 = matrixMult(p, _starPositionMatrix);
 
-		if (point2.z > _flt_50898 && point2.z < 0x3fff
+		if (point2.z > _flt_50898 && point2.z < maxDepth
 		        && abs(point2.x) < point2.z && abs(point2.y) < point2.z) {
 
 			int16 x = _starfieldXVar1 + scaleSpacePosition(point2.x, point2.z);
 			int16 y = _starfieldYVar1 - scaleSpacePosition(point2.y, point2.z);
 
-			int fileOffset = file->pos();
-			file->readUint32();
-			int16 width = file->readUint16();
-			int16 height = file->readUint16();
+			// The Amiga version replaces the stars outside of the viewscreen
+			if (amiga && (x >= _starfieldRect.right - 1 || y >= _starfieldRect.bottom - 1
+			        || x + width - 1 <= _starfieldRect.left || y + height - 1 <= _starfieldRect.top)) {
+				star->active = false;
+				continue;
+			}
 
 			Common::Rect starRect(x, y, x + width, y + height);
 			Common::Rect drawRect = _starfieldRect.findIntersectingRect(starRect);
-
-			file->seek(fileOffset, SEEK_SET);
 
 			Bitmap *bitmap = new Bitmap(file, false);
 			if (!drawRect.isEmpty())
@@ -958,10 +977,6 @@ void StarTrekEngine::drawStarfield() {
 			delete bitmap;
 		} else {
 			star->active = false;
-
-			file->readUint32();
-			int16 offset2 = file->readUint16() * file->readUint16();
-			file->seek(file->pos() + offset2, SEEK_SET);
 		}
 	}
 
