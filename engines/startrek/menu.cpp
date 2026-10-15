@@ -616,9 +616,11 @@ int StarTrekEngine::mouseMoveEvent() {
 
 	Common::String bitmapName;
 	Common::Point lockMousePoint(-1, -1);
+	bool isDemo = getFeatures() & GF_DEMO;
 
-	// Check if the mouse is hovering over one of the selectable actions
-	if (relMouse.x >= 39 && relMouse.x <= 50 && relMouse.y >= 2 && relMouse.y <= 17) {
+	// Check if the mouse is hovering over one of the selectable actions.
+	// The DOS demo has no options.
+	if (relMouse.x >= 39 && relMouse.x <= 50 && relMouse.y >= 2 && relMouse.y <= 17 && !isDemo) {
 		action = ACTION_OPTIONS;
 		bitmapName = "options";
 		lockMousePoint = Common::Point(pos.x + 44, pos.y + 2);
@@ -637,10 +639,10 @@ int StarTrekEngine::mouseMoveEvent() {
 	} else if (relMouse.x >= 40 && relMouse.x <= 53 && relMouse.y >= 34 && relMouse.y <= 43) {
 		action = ACTION_GET;
 		bitmapName = "get";
-		lockMousePoint = Common::Point(pos.x + 44, pos.y + 38);
+		lockMousePoint = isDemo ? Common::Point(pos.x + 42, pos.y + 36) : Common::Point(pos.x + 44, pos.y + 38);
 	} else {
 		action = ACTION_WALK;
-		bitmapName = "walk";
+		bitmapName = isDemo ? "cursor" : "walk";
 	}
 
 	_gfx->setMouseBitmap(bitmapName);
@@ -911,8 +913,12 @@ void StarTrekEngine::chooseMouseBitmapForAction(int action, bool withRedOutline)
 		"lookh3"
 	};
 
-	if (getFeatures() & GF_DEMO)
+	// The DOS demo has one cursor for each action
+	if (getFeatures() & GF_DEMO) {
+		static const char *const demoBitmaps[] = { "cursor", "use", "get", "look", "talk" };
+		_gfx->setMouseBitmap(action >= ACTION_WALK && action <= ACTION_TALK ? demoBitmaps[action - ACTION_WALK] : "cursor");
 		return;
+	}
 
 	Common::String bitmapName;
 

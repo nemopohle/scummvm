@@ -21,6 +21,7 @@
 
 #include "startrek/graphics.h"
 #include "startrek/resource.h"
+#include "startrek/room.h"
 #include "startrek/sound.h"
 #include "startrek/startrek.h"
 
@@ -49,6 +50,7 @@ void StarTrekEngine::runDosDemo() {
 
 	while (!shouldQuit()) {
 		playDemoIntro();
+		playDemoAwayMission();
 		playDemoMontage();
 		playDemoEnding();
 	}
@@ -292,6 +294,174 @@ void StarTrekEngine::showDemoLog() {
 	_gfx->fadeoutScreen();
 
 	_gfx->delSprite(&sprite);
+}
+
+// Two rooms of "Demon World", until McCoy scans the Nauian
+void StarTrekEngine::playDemoAwayMission() {
+	initDemoItems();
+	_missionToLoad = "demo";
+	_roomIndexToLoad = 0;
+	_gameMode = GAMEMODE_AWAYMISSION;
+	_gfx->setMouseBitmap("cursor");
+	_gfx->warpMouse(SCREEN_WIDTH / 2, 100);
+	_gfx->toggleMouse(true);
+
+	initAwayMission();
+	runAwayMission();
+
+	unloadRoom();
+	_gfx->toggleMouse(false);
+}
+
+// The DOS demo has fewer items, and other names for some of them
+void StarTrekEngine::initDemoItems() {
+	for (int i = 0; i < NUM_OBJECTS; i++) {
+		_itemList[i] = g_itemList[i];
+		_itemList[i].have = false;
+	}
+	Common::strcpy_s(_itemList[OBJECT_IPHASERS - ITEMS_START].name, "iphaser");
+	_itemList[OBJECT_IPHASERS - ITEMS_START].have = true;
+	_itemList[OBJECT_ISTRICOR - ITEMS_START].have = true;
+	_itemList[OBJECT_IMTRICOR - ITEMS_START].have = true;
+}
+
+// The rooms of the DOS demo have a list of actors instead of the BAN files
+void StarTrekEngine::loadDemoRoomActors() {
+	int16 addr = _room->getBanDataStart();
+	for (int i = 8; addr != _room->getBanDataEnd(); i++, addr += 14) {
+		Common::String name((const char *)&_room->_rdfData[addr], 10);
+		name.trim();
+		loadActorAnim(i, name, _room->readRdfWord(addr + 10), _room->readRdfWord(addr + 12), 1.0);
+	}
+}
+
+// The textbox of the DOS demo has no buttons. A click on it chooses the shown text, a
+// click elsewhere shows the next choice.
+int StarTrekEngine::showDosDemoText(const char *const *textArray) {
+	Common::String speaker = textArray[0] ? textArray[0] : "";
+	int numChoices = 0;
+	while (textArray[numChoices + 1] && *textArray[numChoices + 1])
+		numChoices++;
+	if (numChoices == 0)
+		return 0;
+
+	Sprite sprite;
+	_gfx->addSprite(&sprite);
+	int choice = 0;
+	const char *nextPage = drawDosDemoTextbox(&sprite, speaker, textArray[1]);
+	int ticksUntilClickingEnabled = 20;
+	bool done = false;
+
+	while (!done && !shouldQuit()) {
+		TrekEvent event;
+		if (!popNextEvent(&event))
+			continue;
+
+		int nextChoice = choice;
+		bool accept = false;
+
+		switch (event.type) {
+		case TREKEVENT_TICK:
+			if (ticksUntilClickingEnabled > 0)
+				ticksUntilClickingEnabled--;
+			_gfx->drawAllSprites();
+			break;
+
+		case TREKEVENT_LBUTTONDOWN:
+		case TREKEVENT_RBUTTONDOWN:
+			if (numChoices > 1 && _gfx->getSpriteAt(_gfx->getMousePos()) != &sprite)
+				nextChoice = choice + 1;
+			else
+				accept = true;
+			break;
+
+		case TREKEVENT_KEYDOWN:
+			switch (event.kbd.keycode) {
+			case Common::KEYCODE_RETURN:
+			case Common::KEYCODE_KP_ENTER:
+			case Common::KEYCODE_ESCAPE:
+				accept = true;
+				break;
+			case Common::KEYCODE_SPACE:
+				if (numChoices > 1)
+					nextChoice = choice - 1;
+				else
+					accept = true;
+				break;
+			case Common::KEYCODE_UP:
+			case Common::KEYCODE_KP8:
+			case Common::KEYCODE_8:
+				nextChoice = choice - 1;
+				break;
+			case Common::KEYCODE_DOWN:
+			case Common::KEYCODE_KP2:
+			case Common::KEYCODE_2:
+				nextChoice = choice + 1;
+				break;
+			default:
+				break;
+			}
+			break;
+
+		default:
+			break;
+		}
+
+		if (numChoices > 1 && nextChoice != choice) {
+			choice = (nextChoice + numChoices) % numChoices;
+			drawDosDemoTextbox(&sprite, speaker, textArray[choice + 1]);
+		} else if (accept && ticksUntilClickingEnabled == 0) {
+			if (numChoices == 1 && *nextPage) {
+				nextPage = drawDosDemoTextbox(&sprite, speaker, nextPage);
+				ticksUntilClickingEnabled = 20;
+			} else {
+				done = true;
+			}
+		}
+	}
+
+	sprite.dontDrawNextFrame();
+	_gfx->drawAllSprites();
+	_gfx->delSprite(&sprite);
+	return choice;
+}
+
+// Draws a page of up to 11 lines, and returns the rest of the text
+const char *StarTrekEngine::drawDosDemoTextbox(Sprite *sprite, const Common::String &speaker, const char *text) {
+	const int maxLines = 11;
+	const int charWidth = 8;
+	const int lineHeight = 8;
+	const byte borderColor = 0x78;
+
+	int lineWidth = MIN<int>(MAX<int>(strlen(text), speaker.size()), 25);
+	Common::Array<Common::String> lines;
+	if (!speaker.empty())
+		lines.push_back(Common::String((size_t)MAX<int>(lineWidth - speaker.size(), 0) / 2, ' ') + speaker);
+
+	char line[26];
+	while (*text && lines.size() < maxLines) {
+		text = getNextTextLine(text, line, lineWidth);
+		lines.push_back(line);
+	}
+
+	int width = (lineWidth + 1) * charWidth;
+	int height = (lines.size() + 1) * lineHeight;
+	Bitmap *bitmap = new Bitmap(width, height);
+	memset(bitmap->pixels, 0, width * height);
+	bitmap->xoffset = width / 2;
+	bitmap->yoffset = MIN(height, 100);
+	for (int x = 1; x < width - 1; x++)
+		bitmap->pixels[width + x] = bitmap->pixels[(height - 2) * width + x] = borderColor;
+	for (int y = 1; y < height - 1; y++)
+		bitmap->pixels[y * width + 1] = bitmap->pixels[y * width + width - 2] = borderColor;
+	for (uint i = 0; i < lines.size(); i++)
+		drawTextLineToBitmap(lines[i].c_str(), lines[i].size(), 4, i * lineHeight + 4, bitmap);
+
+	sprite->setBitmap(bitmap);
+	sprite->drawMode = 2;
+	sprite->setXYAndPriority(SCREEN_WIDTH / 2, 100, 14);
+	_gfx->drawAllSprites();
+	return text;
 }
 
 // Pictures of the planets of the game

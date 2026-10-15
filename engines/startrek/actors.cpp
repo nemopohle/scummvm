@@ -124,8 +124,10 @@ bool StarTrekEngine::actorWalkToPosition(int actorIndex, const Common::String &a
 		updateActorPositionWhileWalking(actor, (actor->granularPosX + 0.5).toInt(), (actor->granularPosY + 0.5).toInt());
 		return true;
 	} else {
-		actor->iwSrcPosition = _iwFile->getClosestKeyPosition(srcX, srcY);
-		actor->iwDestPosition = _iwFile->getClosestKeyPosition(destX, destY);
+		if (_iwFile) {
+			actor->iwSrcPosition = _iwFile->getClosestKeyPosition(srcX, srcY);
+			actor->iwDestPosition = _iwFile->getClosestKeyPosition(destX, destY);
+		}
 
 		if (actor->iwSrcPosition == -1 || actor->iwDestPosition == -1) {
 			// No path exists; face south by default.
@@ -715,6 +717,9 @@ int StarTrekEngine::findObjectAt(int x, int y) {
 		} else {
 			if (_room->isPointInPolygon(offset, x, y)) {
 				int actorIndex = _room->readRdfWord(offset);
+				// The hotspots of the DOS demo start at 0x10
+				if (getFeatures() & GF_DEMO)
+					actorIndex += 0x10;
 				return actorIndex;
 			}
 
@@ -728,18 +733,16 @@ int StarTrekEngine::findObjectAt(int x, int y) {
 
 Bitmap *StarTrekEngine::loadAnimationFrame(const Common::String &filename, Fixed8 scale) {
 	Bitmap *bitmapToReturn = nullptr;
-	bool isDemo = getFeatures() & GF_DEMO;
 
 	char basename[5];
 	strncpy(basename, filename.c_str() + 1, 4);
 	basename[4] = '\0';
 
-	char mcCoyChar = !isDemo ? 'm' : 'b';
-
+	// The DOS demo has the frames of all crewmen
 	char c = filename[0];
 	if ((strcmp(basename, "stnd") == 0 || strcmp(basename, "tele") == 0)
-	        && (c == mcCoyChar || c == 's' || c == 'k' || c == 'r')) {
-		if (c == mcCoyChar) {
+	        && (c == 'm' || c == 's' || c == 'k' || c == 'r') && !(getFeatures() & GF_DEMO)) {
+		if (c == 'm') {
 			// Mccoy has the "base" animations for all crewmen
 			bitmapToReturn = new Bitmap(_resource->loadBitmapFile(filename));
 		} else {
@@ -752,9 +755,7 @@ Bitmap *StarTrekEngine::loadAnimationFrame(const Common::String &filename, Fixed
 
 			if (bitmapToReturn == nullptr) {
 				Common::String mccoyFilename = filename;
-				mccoyFilename.setChar(mcCoyChar, 0);
-				if (isDemo && mccoyFilename.hasPrefix("bstnds"))
-					mccoyFilename.setChar('m', 0);
+				mccoyFilename.setChar('m', 0);
 				Bitmap *bitmap = new Bitmap(_resource->loadBitmapFile(mccoyFilename));
 
 				uint16 width = bitmap->width;
@@ -777,7 +778,6 @@ Bitmap *StarTrekEngine::loadAnimationFrame(const Common::String &filename, Fixed
 					colorShift = 0;
 					break;
 				case 'm': // McCoy
-				case 'b': // McCoy (demo)
 					colorShift = 0;
 					break;
 				default:
@@ -802,24 +802,22 @@ Bitmap *StarTrekEngine::loadAnimationFrame(const Common::String &filename, Fixed
 				}
 
 				// Redraw face with XOR file
-				if (!isDemo) {
-					Common::MemoryReadStreamEndian *xorFile = _resource->loadFile(filename + ".xor");
-					xorFile->seek(0, SEEK_SET);
-					uint16 xoffset = bitmap->xoffset - xorFile->readUint16();
-					uint16 yoffset = bitmap->yoffset - xorFile->readUint16();
-					uint16 xorWidth = xorFile->readUint16();
-					uint16 xorHeight = xorFile->readUint16();
+				Common::MemoryReadStreamEndian *xorFile = _resource->loadFile(filename + ".xor");
+				xorFile->seek(0, SEEK_SET);
+				uint16 xoffset = bitmap->xoffset - xorFile->readUint16();
+				uint16 yoffset = bitmap->yoffset - xorFile->readUint16();
+				uint16 xorWidth = xorFile->readUint16();
+				uint16 xorHeight = xorFile->readUint16();
 
-					byte *dest = bitmapToReturn->pixels + yoffset * bitmap->width + xoffset;
+				byte *dest = bitmapToReturn->pixels + yoffset * bitmap->width + xoffset;
 
-					for (int i = 0; i < xorHeight; i++) {
-						for (int j = 0; j < xorWidth; j++)
-							*dest++ ^= xorFile->readByte();
-						dest += (bitmap->width - xorWidth);
-					}
-
-					delete xorFile;
+				for (int i = 0; i < xorHeight; i++) {
+					for (int j = 0; j < xorWidth; j++)
+						*dest++ ^= xorFile->readByte();
+					dest += (bitmap->width - xorWidth);
 				}
+
+				delete xorFile;
 
 				delete bitmap;
 			}
@@ -929,9 +927,11 @@ int StarTrekEngine::selectObjectForUseAction() {
 }
 
 Common::String StarTrekEngine::getCrewmanAnimFilename(int actorIndex, const Common::String &basename) {
-	bool isDemo = getFeatures() & GF_DEMO;
-	const char *crewmanChars = !isDemo ? "ksmr" : "ksbr";	// Kirk, Spock, McCoy (Bones), RedShirt
+	const char *crewmanChars = "ksmr";	// Kirk, Spock, McCoy, RedShirt
 	assert(actorIndex >= 0 && actorIndex < 4);
+	// The DOS demo has "btele" (Bones) for McCoy beaming in
+	if ((getFeatures() & GF_DEMO) && actorIndex == OBJECT_MCCOY && basename == "tele")
+		return "b" + basename;
 	return crewmanChars[actorIndex] + basename;
 }
 
@@ -1046,6 +1046,10 @@ void StarTrekEngine::showInventoryIcons(bool showItem) {
 	};
 
 	Common::String itemFilename;
+
+	// The DOS demo only shows the inventory menu
+	if (getFeatures() & GF_DEMO)
+		return;
 
 	if (showItem) {
 		int i = _awayMission.activeObject;
@@ -1185,6 +1189,17 @@ int StarTrekEngine::showInventoryMenu(int x, int y, bool restoreMouse) {
 			numItems++;
 		}
 		itemIndex++;
+	}
+
+	// The DOS demo has the crewmen in the inventory
+	if (getFeatures() & GF_DEMO) {
+		static const char *const crewmanFilenames[] = { "ispock", "imccoy", "iredshir" };
+		for (int i = OBJECT_SPOCK; i <= OBJECT_REDSHIRT; i++) {
+			Common::strcpy_s(itemNames[numItems], crewmanFilenames[i - OBJECT_SPOCK]);
+			itemPositions[numItems] = Common::Point((numItems % ITEMS_PER_ROW) * 32 + x, (numItems / ITEMS_PER_ROW) * 32 + y);
+			itemIndices[numItems] = i;
+			numItems++;
+		}
 	}
 
 	Sprite itemSprites[NUM_OBJECTS];

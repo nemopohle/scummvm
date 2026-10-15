@@ -31,10 +31,13 @@ void StarTrekEngine::initAwayMission() {
 
 	// memset(bitmapBuffer->pixels, 0, 0xfa00);
 
-	_resource->setTxtFileName("ground");
+	// The DOS demo has no default texts and no music in the away mission
+	if (!(getFeatures() & GF_DEMO)) {
+		_resource->setTxtFileName("ground");
 
-	// sub_23a60(); // TODO
-	_sound->loadMusicFile("ground");
+		// sub_23a60(); // TODO
+		_sound->loadMusicFile("ground");
+	}
 
 	loadRoom(_missionToLoad, _roomIndexToLoad);
 	_roomIndexToLoad = -1;
@@ -101,8 +104,7 @@ void StarTrekEngine::loadRoom(const Common::String &missionName, int roomIndex) 
 	// Original sets up bytes 0-3 of rdf file as "remote function caller"
 
 	bool isDemo = getFeatures() & GF_DEMO;
-	if (!isDemo)
-		_room->loadMapFile(getScreenName());
+	_room->loadMapFile(getScreenName());
 
 	_awayMission.activeAction = ACTION_WALK;
 
@@ -122,6 +124,8 @@ void StarTrekEngine::loadRoom(const Common::String &missionName, int roomIndex) 
 			loadBanFile(name);
 			addr += strlen((char *)&_room->_rdfData[addr]) + 1;
 		}
+	} else {
+		loadDemoRoomActors();
 	}
 }
 
@@ -135,6 +139,16 @@ void StarTrekEngine::initAwayCrewPositions(int warpEntryIndex) {
 	case 1:
 	case 2:
 	case 3:
+		// The crew of the DOS demo doesn't walk into the room
+		if (getFeatures() & GF_DEMO) {
+			for (int i = 0; i < 4; i++) {
+				Common::Point pos = _room->getDemoCrewPosition(warpEntryIndex, i);
+				loadActorAnimWithRoomScaling(i, getCrewmanAnimFilename(i, "stnde"), pos.x, pos.y);
+			}
+			_warpHotspotsActive = true;
+			break;
+		}
+
 		for (int i = 0; i < (_awayMission.redshirtDead ? 3 : 4); i++) {
 			Common::String anim = getCrewmanAnimFilename(i, "walk");
 
@@ -411,6 +425,17 @@ void StarTrekEngine::awayMissionSelectAction(bool openActionMenu) {
 		_awayMission.activeAction = showActionMenu();
 	}
 
+	// The DOS demo chooses the object from the inventory right away
+	if (_awayMission.activeAction == ACTION_USE && (getFeatures() & GF_DEMO)) {
+		int16 clickedObject = showInventoryMenu(50, 50, false);
+		if (clickedObject == -1)
+			_awayMission.activeAction = ACTION_WALK;
+		else
+			_awayMission.activeObject = clickedObject;
+		chooseMouseBitmapForAction(_awayMission.activeAction, false);
+		return;
+	}
+
 	if (_awayMission.activeAction == ACTION_USE) {
 		int16 clickedObject = selectObjectForUseAction();
 		if (clickedObject == -1)
@@ -433,6 +458,11 @@ void StarTrekEngine::awayMissionSelectAction(bool openActionMenu) {
 
 void StarTrekEngine::awayMissionUseObject(int16 clickedObject) {
 	_awayMission.passiveObject = clickedObject;
+
+	if (getFeatures() & GF_DEMO) {
+		addAction(ACTION_USE, _awayMission.activeObject, clickedObject < 0 ? 0xff : clickedObject, 0);
+		return;
+	}
 
 	bool activeIsCrewman = _awayMission.activeObject <= OBJECT_REDSHIRT;
 	bool activeIsItem = _awayMission.activeObject >= ITEMS_START && _awayMission.activeObject < ITEMS_END;
@@ -566,6 +596,14 @@ void StarTrekEngine::handleAwayMissionAction() {
 
 	if (_room->handleAction(action))
 		return;
+
+	// The DOS demo only has default actions for walking and warping
+	if (getFeatures() & GF_DEMO) {
+		if (action.type == ACTION_USE)
+			_room->handleAction(ACTION_USE, action.b1, 0xff, 0);
+		if (action.type != ACTION_WALK && action.type != ACTION_TOUCHED_WARP)
+			return;
+	}
 
 	// Action not defined for the room, check for default behaviour
 
@@ -710,7 +748,8 @@ void StarTrekEngine::handleAwayMissionAction() {
 			byte warpIndex = action.b1;
 			int16 roomIndex = _room->readRdfWord(RDF_WARP_ROOM_INDICES + warpIndex * 2);
 			unloadRoom();
-			_sound->loadMusicFile("ground");
+			if (!(getFeatures() & GF_DEMO))
+				_sound->loadMusicFile("ground");
 			loadRoom(_missionName, roomIndex);
 			initAwayCrewPositions(warpIndex ^ 1);
 		}

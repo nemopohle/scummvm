@@ -141,6 +141,7 @@ public:
 	 * all rooms).
 	 */
 	Common::Point getBeamInPosition(int crewmanIndex);
+	Common::Point getDemoCrewPosition(int entryIndex, int crewmanIndex);
 
 	/**
 	 * This is analogous to above, but instead of beaming in, they just appear in a spot.
@@ -273,6 +274,7 @@ private:
 	 * Cmd 0x11
 	 */
 	void endMission(int16 score, int16 maxScore, int16 endFlag);
+	void endDosDemoMission();
 	/**
 	 * Cmd 0x12
 	 */
@@ -2941,6 +2943,26 @@ public:
 	void vengf1LookAtBrittany();
 	void vengf1TouchedHotspot0();
 	void vengf1WalkToDoor();
+
+	// DEMO0 (DOS demo)
+	void demo0Tick100();
+	void demo0TalkToPrelate();
+	void demo0OffendPrelate();
+	void demo0LookAtPrelate();
+	void demo0UsePhaserOnPrelate();
+	void demo0LookAtSign();
+	void demo0LookAtColonists();
+	void demo0LookAtMountain();
+	void demo0LookAtSpock();
+	void demo0TalkToSpock();
+	void demo0TalkToRedshirt();
+	void demo0TalkToMccoy();
+	void demo0UseSTricorderAnywhere();
+	void demo0UseMTricorderOnPrelate();
+
+	// DEMO1 (DOS demo)
+	void demo1UseSTricorderOnAlien();
+	void demo1UseMTricorderOnAlien();
 
 public:
 	// Room-specific variables. This is memset'ed to 0 when the room is initialized.

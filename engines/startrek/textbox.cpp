@@ -300,6 +300,9 @@ Common::String StarTrekEngine::playTextAudio(const Common::String &str) {
 }
 
 int StarTrekEngine::showText(TextGetterFunc textGetter, uintptr var, int xoffset, int yoffset, int textColor, bool loopChoices, int maxTextLines, bool rclickCancelsChoice) {
+	if ((getFeatures() & GF_DEMO) && textGetter == &StarTrekEngine::readTextFromArrayWithChoices)
+		return showDosDemoText((const char *const *)var);
+
 	int16 tmpTextDisplayMode = _textDisplayMode;
 
 	uint32 ticksUntilClickingEnabled = 8;

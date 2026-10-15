@@ -122,6 +122,9 @@ Room::Room(StarTrekEngine *vm, const Common::String &name) : _vm(vm), _awayMissi
 		ADD_FLOPPY_ROOM(veng1, vengf1)
 	}
 
+	ADD_ROOM(demo0)
+	ADD_ROOM(demo1)
+
 	if (_roomActionList == nullptr) {
 		warning("Room \"%s\" unimplemented", name.c_str());
 	}
@@ -219,9 +222,15 @@ Common::Point Room::getBeamInPosition(int crewmanIndex) {
 		int base = RDF_BEAM_IN_POSITIONS + crewmanIndex * 4;
 		return Common::Point(readRdfWord(base), readRdfWord(base + 2));
 	} else {
-		// TODO
-		return Common::Point(86, 158);
+		return getDemoCrewPosition(4, crewmanIndex);
 	}
+}
+
+// The crew of the DOS demo appears around one position of the room
+Common::Point Room::getDemoCrewPosition(int entryIndex, int crewmanIndex) {
+	static const int16 offsets[][2] = { { 0, 0 }, { -20, -10 }, { 20, -10 }, { 0, -20 } };
+	int base = RDF_ROOM_ENTRY_POSITIONS + entryIndex * 8;
+	return Common::Point(readRdfWord(base) + offsets[crewmanIndex][0], readRdfWord(base + 2) + offsets[crewmanIndex][1]);
 }
 
 Common::Point Room::getSpawnPosition(int crewmanIndex) {
@@ -518,8 +527,9 @@ void Room::loadMapFile(const Common::String &name) {
 	delete _vm->_mapFile;
 	_vm->_mapFile = _vm->_resource->loadFile(name + ".map");
 
+	// The DOS demo has no paths around obstacles
 	delete _vm->_iwFile;
-	_vm->_iwFile = new IWFile(_vm, name + ".iw");
+	_vm->_iwFile = !(_vm->getFeatures() & GF_DEMO) ? new IWFile(_vm, name + ".iw") : nullptr;
 }
 
 Common::MemoryReadStreamEndian *Room::loadBitmapFile(Common::String baseName) {
@@ -574,6 +584,11 @@ void Room::playSoundEffectIndex(SoundEffects soundEffect) {
 
 void Room::playMidiMusicTracks(MidiTracks startTrack, MidiLoopType loopType) {
 	_vm->_sound->playMidiMusicTracks(startTrack, loopType);
+}
+
+// The away mission of the DOS demo ends without beaming up
+void Room::endDosDemoMission() {
+	_vm->_gameMode = GAMEMODE_START;
 }
 
 void Room::endMission(int16 score, int16 maxScore, int16 endFlag) {

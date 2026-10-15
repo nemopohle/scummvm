@@ -386,6 +386,11 @@ public:
 	void moveDemoEnterprise();
 	void showDemoTitle();
 	void showDemoLog();
+	void playDemoAwayMission();
+	void initDemoItems();
+	void loadDemoRoomActors();
+	int showDosDemoText(const char *const *textArray);
+	const char *drawDosDemoTextbox(Sprite *sprite, const Common::String &speaker, const char *text);
 	void playDemoMontage();
 	void playDemoEnding();
 
