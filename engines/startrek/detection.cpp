@@ -194,21 +194,21 @@ static const StarTrekGameDescription gameDescriptions[] = {
 		GF_DEMO,
 	},
 
-	{ // ST25 MAC CD demo (EN)
+	{ // ST25 Mac Enhanced CD-ROM (EN), resource fork with header
 		{
 			"st25",
-			"CD Demo",
+			"CD",
 			AD_ENTRY1s("Star Trek Data", "871fa51c7680c0a43df9622128f1569f", 42617),
 			Common::EN_ANY,
 			Common::kPlatformMacintosh,
-			ADGF_MACRESFORK | ADGF_DEMO | ADGF_CD | ADGF_UNSTABLE,
+			ADGF_MACRESFORK | ADGF_CD | ADGF_UNSTABLE,
 			GUIO2(GUIO_RENDERVGA, GUIO_RENDEREGA)
 		},
 		GType_ST25,
-		GF_DEMO,
+		GF_CDROM,
 	},
 
-	{ // ST25 MAC demo (EN, 1993)
+	{ // ST25 Mac demo (EN, August 1993), resource fork with header
 		{
 			"st25",
 			"Demo",
@@ -219,7 +219,7 @@ static const StarTrekGameDescription gameDescriptions[] = {
 			GUIO2(GUIO_RENDERVGA, GUIO_RENDEREGA)
 		},
 		GType_ST25,
-		GF_DEMO,
+		0,
 	},
 
 	{ // ST25 Mac Enhanced CD-ROM (EN)
