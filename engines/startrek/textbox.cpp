@@ -805,7 +805,7 @@ Common::String StarTrekEngine::readTextFromArrayWithChoices(int choiceIndex, uin
 }
 
 Common::String StarTrekEngine::readTextFromFoundComputerTopics(int choiceIndex, uintptr data, Common::String *headerTextOutput) {
-	if (choiceIndex >= 10)
+	if (choiceIndex >= 16)
 		return Common::String();
 
 	Common::String topicFile = (char *)data + 8 * choiceIndex;

@@ -148,6 +148,8 @@ static const TranslatedText kGermanTexts[] = {
 	  "#BRID\\SCOTENGI#Antrieb" },
 	{ "Magnification %d",
 	  "Vergr\xf6\xdf" "erung %d" },
+	{ "#COMP\\COMPUNOT#Topic not available, Captain.",
+	  "#COMP\\COMPUNOT#Keine Daten \xfc" "ber angegebenes Thema gespeichert." },
 	{ nullptr, nullptr }
 };
 
@@ -266,6 +268,8 @@ static const TranslatedText kFrenchTexts[] = {
 	  "#GENE\\GENE_F15#Ce trubo-transporteur ne peut pas atteindre cette partie du vaisseau." },
 	{ "#GENE\\SPACE000#The Enterprise has been destroyed!",
 	  "#GENE\\SPACE000#L\x92" "Enterprise a \xe9t\xe9 d\xe9truit!" },
+	{ "#COMP\\COMPUNOT#Topic not available, Captain.",
+	  "#COMP\\COMPUNOT#Aucune r\xe9" "f\xe9rence sur la question." },
 	{ nullptr, nullptr }
 };
 
@@ -441,6 +445,8 @@ static const TranslatedText kAmigaGermanTexts[] = {
 	  "Die Enterprise wurde zerst\x9art!" },
 	{ " choice %d",
 	  " auswahl %d" },
+	{ "No references for specified topic.",
+	  "Keine Daten \x9f" "ber angegebenes Thema gespeichert." },
 	{ nullptr, nullptr }
 };
 
@@ -587,6 +593,10 @@ static const TranslatedText kAmigaFrenchTexts[] = {
 	  "L\xd5" "Enterprise a \x8et\x8e d\x8etruit!" },
 	{ " choice %d",
 	  " choix %d" },
+	{ "Computer",
+	  "Ordinateur" },
+	{ "No references for specified topic.",
+	  "Aucune r\x8e" "f\x8erence sur la question." },
 	{ nullptr, nullptr }
 };
 

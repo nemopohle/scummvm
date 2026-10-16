@@ -1299,25 +1299,40 @@ void StarTrekEngine::loadBridgeComputerTopics() {
 }
 
 void StarTrekEngine::handleBridgeComputer() {
-	Common::String line;
-	Common::String input = showComputerInputBox();
-	if (input.size() < 3)
-		return;
+	// Like the original, the computer asks again until nothing is entered
+	while (!shouldQuit()) {
+		Common::String input = showComputerInputBox();
+		if (input.empty())
+			return;
 
-	char topics[10][8];
-	int topicIndex = 0;
+		char topics[16][8];
+		int topicIndex = 0;
+		memset(topics, 0, sizeof(topics));
 
-	memset(topics, 0, ARRAYSIZE(topics) * 8);
+		// A topic is found by the beginning of any of its words
+		if (input.size() >= 3) {
+			Common::String search = " " + input;
+			search.toUppercase();
+			for (Common::List<ComputerTopic>::const_iterator i = _computerTopics.begin(), end = _computerTopics.end(); i != end; ++i) {
+				Common::String keys = " " + i->topic;
+				keys.toUppercase();
+				if (keys.contains(search)) {
+					memcpy(topics[topicIndex++], i->fileName.c_str(), i->fileName.size());
+					if (topicIndex >= ARRAYSIZE(topics))
+						break;
+				}
+			}
+		}
 
-	for (Common::List<ComputerTopic>::const_iterator i = _computerTopics.begin(), end = _computerTopics.end(); i != end; ++i) {
-		if (i->topic.hasPrefixIgnoreCase(input)) {
-			memcpy(topics[topicIndex++], i->fileName.c_str(), i->fileName.size());
-			if (topicIndex >= ARRAYSIZE(topics))
-				break;
+		if (topicIndex == 0) {
+			if (isFloppyVersion())
+				showTextbox(localizeText("Computer"), localizeText("No references for specified topic."), 294, 106, 44, 0);
+			else
+				showTextbox("Spock", localizeText("#COMP\\COMPUNOT#Topic not available, Captain."), 294, 106, 44, 0);
+		} else {
+			showText(&StarTrekEngine::readTextFromFoundComputerTopics, (uintptr)topics, 20, 20, TEXTCOLOR_YELLOW, true, false, true);
 		}
 	}
-
-	showText(&StarTrekEngine::readTextFromFoundComputerTopics, (uintptr)topics, 20, 20, TEXTCOLOR_YELLOW, true, false, true);
 }
 
 } // End of namespace StarTrek
