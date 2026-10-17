@@ -60,9 +60,12 @@ bool StarTrekEngine::isMacDemo() const {
 	return getPlatform() == Common::kPlatformMacintosh && (_gameDescription->desc.flags & ADGF_DEMO);
 }
 
-// Options of the Mac versions
 bool StarTrekEngine::easierCombat() const {
 	return ConfMan.getBool("easier_combat");
+}
+
+bool StarTrekEngine::oneHitCombat() const {
+	return ConfMan.getBool("one_hit_combat");
 }
 
 bool StarTrekEngine::charactersAnimate() const {
@@ -78,6 +81,17 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 			_s("Easier combat"),
 			_s("Makes starship combat extremely easy"),
 			"easier_combat",
+			false,
+			0,
+			0
+		}
+	},
+	{
+		GAMEOPTION_ONE_HIT_COMBAT,
+		{
+			_s("Very easy combat"),
+			_s("One hit defeats an enemy ship"),
+			"one_hit_combat",
 			false,
 			0,
 			0

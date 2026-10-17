@@ -159,6 +159,13 @@ void StarTrekEngine::updateEnemyShip(R3 *ship) {
 		return;
 	}
 
+	const ShipSystem &hull = ship->systems[6];
+	if (oneHitCombat() && !ship->retreating && hull.strength * 2 < hull.maxStrength) {
+		destroyShip(ship);
+		moveR3(ship);
+		return;
+	}
+
 	distributeEnergy(ship);
 	if ((_frameIndex & (easierCombat() ? 0x7f : 0x1f)) == 7)
 		repairShipSystems(ship);
@@ -536,6 +543,16 @@ void StarTrekEngine::applyHit(R3 *ship, R3 *projectile) {
 		return;
 	}
 
+	// Very easy combat: a hit takes the shields and half of the hull. The missions let
+	// some ships flee then, the others are destroyed in the next tick.
+	if (ship != &_enterpriseR3 && oneHitCombat()) {
+		for (int i = 0; i < 6; i++)
+			ship->systems[i].strength = 0;
+		ShipSystem &hull = ship->systems[6];
+		hull.strength = MIN<int16>(hull.strength, MAX((hull.maxStrength >> 1) - 1, 1));
+		return;
+	}
+
 	Point3 local = multPointMatrix(projectile->pos - ship->pos, ship->matrix.invert());
 	ShipSide side = findSide(local);
 	int16 &damage = projectile->projectileDamage;
@@ -548,17 +565,20 @@ void StarTrekEngine::applyHit(R3 *ship, R3 *projectile) {
 			damage -= (int16)(damage * strength) / shield.maxStrength;
 	}
 
-	if (damageShipSystem(ship, side, damage) && !ship->exploding) {
-		// Track 4 of the bridge music is not a sound effect
-		if (ship == &_enterpriseR3)
-			_sound->playMidiMusicTracks((MidiTracks)4);
-		else
-			_sound->playMidiMusicTracks(MIDITRACK_3, kLoopTypeLast);
-		ship->exploding = true;
-		ship->explosionFrame = -1;
-		ship->cloakRequested = false;
-		ship->cloakActive = false;
-	}
+	if (damageShipSystem(ship, side, damage) && !ship->exploding)
+		destroyShip(ship);
+}
+
+void StarTrekEngine::destroyShip(R3 *ship) {
+	// Track 4 of the bridge music is not a sound effect
+	if (ship == &_enterpriseR3)
+		_sound->playMidiMusicTracks((MidiTracks)4);
+	else
+		_sound->playMidiMusicTracks(MIDITRACK_3, kLoopTypeLast);
+	ship->exploding = true;
+	ship->explosionFrame = -1;
+	ship->cloakRequested = false;
+	ship->cloakActive = false;
 }
 
 // Returns true if the ship is destroyed
@@ -591,6 +611,16 @@ void StarTrekEngine::applyDemoHit(R3 *ship, R3 *projectile) {
 		"Hull", "Bridge", "port torpedoes", "starboard torpedoes", "port phasers",
 		"starboard phasers", "sensors", "impulse engines", "port warp engine", "starboard warp engine"
 	};
+
+	// Very easy combat: a hit takes the shields and half of the hull. The missions let
+	// some ships flee then, the others are destroyed in the next tick.
+	if (ship != &_enterpriseR3 && oneHitCombat()) {
+		for (int i = 0; i < 6; i++)
+			ship->systems[i].strength = 0;
+		ShipSystem &hull = ship->systems[6];
+		hull.strength = MIN<int16>(hull.strength, MAX((hull.maxStrength >> 1) - 1, 1));
+		return;
+	}
 
 	Point3 local = multPointMatrix(projectile->pos - ship->pos, ship->matrix.invert());
 	ShipSide side = findSide(local);

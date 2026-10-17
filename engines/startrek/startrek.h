@@ -532,6 +532,7 @@ private:
 	void fireEnterpriseWeapons(bool torpedoes);
 	void updateProjectiles();
 	void applyHit(R3 *ship, R3 *projectile);
+	void destroyShip(R3 *ship);
 	bool damageShipSystem(R3 *ship, int side, int16 damage);
 	void loadProjectileView(R3 *projectile);
 	void removeProjectiles();
@@ -913,6 +914,7 @@ public:
 	// The Mac demo is the floppy version with the first room of "Demon World" only
 	bool isMacDemo() const;
 	bool easierCombat() const;
+	bool oneHitCombat() const;
 	bool charactersAnimate() const;
 	uint8 getGameType() const;
 	Common::Language getLanguage() const;
