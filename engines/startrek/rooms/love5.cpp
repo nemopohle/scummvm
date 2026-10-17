@@ -526,7 +526,7 @@ void Room::love5UseSTricorderOnDevice() {
 }
 
 void Room::love5UseMTricorderOnMarcusOrCheever() {
-	mccoyScan(DIR_W, TX_LOV5_025, false);
+	mccoyScan(DIR_W, TX_SPEAKER_MCCOY, TX_LOV5_025, false);
 }
 
 void Room::love5UseMTricorderOnPreax() {

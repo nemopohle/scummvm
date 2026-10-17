@@ -420,7 +420,7 @@ void Room::trial3UsePhaserAnywhere() {
 
 void Room::trial3UseMTricorderOnKirk() {
 	// BUGFIX: Original animated Spock instead of Mccoy (same for below mccoy-scan functions)
-	mccoyScan(DIR_S, TX_TRI3_015, true);
+	mccoyScan(DIR_S, TX_SPEAKER_MCCOY, TX_TRI3_015, true);
 }
 
 void Room::trial3UseMTricorderOnSpock() {
