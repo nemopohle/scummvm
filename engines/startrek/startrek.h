@@ -891,8 +891,16 @@ private:
 
 	// saveload.cpp
 public:
+	bool hasFeature(EngineFeature f) const override;
+	bool canLoadGameStateCurrently(Common::U32String *msg = nullptr) override;
+	bool canSaveGameStateCurrently(Common::U32String *msg = nullptr) override;
+	Common::Error loadGameState(int slot) override;
+	Common::Error saveGameState(int slot, const Common::String &desc, bool isAutosave = false) override;
+
 	bool showSaveMenu();
 	bool showLoadMenu();
+	// Pops the next event of a main loop, which can save or load meanwhile
+	bool popMainLoopEvent(TrekEvent *e, bool canSaveLoad);
 
 	bool saveGame(int slot, Common::String desc);
 	bool loadGame(int slot);
@@ -933,6 +941,7 @@ public:
 	// Done by the main loop after the reset
 	int _pendingLoadSlot;
 	bool _pendingRestart;
+	bool _canSaveLoad;
 
 	// NOTE: this has a different meaning than the original game. When non-empty, a new
 	// room load is triggered, as opposed to original behaviour where this was only read

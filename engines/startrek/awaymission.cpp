@@ -204,7 +204,7 @@ void StarTrekEngine::initAwayCrewPositions(int warpEntryIndex) {
 void StarTrekEngine::handleAwayMissionEvents() {
 	TrekEvent event;
 
-	if (popNextEvent(&event)) {
+	if (popMainLoopEvent(&event, !_awayMission.disableInput)) {
 		switch (event.type) {
 		case TREKEVENT_TICK:
 			updateActorAnimations();

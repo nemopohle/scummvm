@@ -91,6 +91,7 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_resetGameMode = false;
 	_pendingLoadSlot = -1;
 	_pendingRestart = false;
+	_canSaveLoad = false;
 
 	_inQuitGameMenu = false;
 	_textDisplayMode = TEXTDISPLAY_SUBTITLES;

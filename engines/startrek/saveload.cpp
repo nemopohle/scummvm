@@ -19,8 +19,6 @@
  *
  */
 
-#include "gui/saveload.h"
-
 #include "graphics/thumbnail.h"
 
 #include "common/file.h"
@@ -34,47 +32,53 @@
 
 namespace StarTrek {
 
+bool StarTrekEngine::hasFeature(EngineFeature f) const {
+	return
+	    (f == kSupportsReturnToLauncher) ||
+	    (f == kSupportsLoadingDuringRuntime) ||
+	    (f == kSupportsSavingDuringRuntime);
+}
+
+bool StarTrekEngine::canLoadGameStateCurrently(Common::U32String *msg) {
+	return _canSaveLoad;
+}
+
+bool StarTrekEngine::canSaveGameStateCurrently(Common::U32String *msg) {
+	return _canSaveLoad;
+}
+
+Common::Error StarTrekEngine::loadGameState(int slot) {
+	// The main loop loads the game after leaving the current game mode
+	_pendingLoadSlot = slot;
+	_resetGameMode = true;
+	return Common::kNoError;
+}
+
+Common::Error StarTrekEngine::saveGameState(int slot, const Common::String &desc, bool isAutosave) {
+	return saveGame(slot, desc) ? Common::kNoError : Common::kWritingFailed;
+}
+
+// The options menus can always save and load
 bool StarTrekEngine::showSaveMenu() {
-	GUI::SaveLoadChooser *dialog;
-	Common::String desc;
-	int slot;
-
-	dialog = new GUI::SaveLoadChooser(true);
-
-	slot = dialog->runModalWithCurrentTarget();
-	desc = dialog->getResultString();
-
-	if (desc.empty()) {
-		// create our own description for the saved game, the user didn't enter it
-		desc = dialog->createDefaultSaveDescription(slot);
-	}
-
-	if (desc.size() > 28)
-		desc = Common::String(desc.c_str(), 28);
-
-	delete dialog;
-
-	if (slot < 0)
-		return true;
-
-	return saveGame(slot, desc);
+	_canSaveLoad = true;
+	bool result = saveGameDialog();
+	_canSaveLoad = false;
+	return result;
 }
 
 bool StarTrekEngine::showLoadMenu() {
-	GUI::SaveLoadChooser *dialog;
-	int slot;
+	_canSaveLoad = true;
+	bool result = loadGameDialog();
+	_canSaveLoad = false;
+	return result;
+}
 
-	dialog = new GUI::SaveLoadChooser(false);
-	slot = dialog->runModalWithCurrentTarget();
-
-	delete dialog;
-
-	if (slot < 0)
-		return false;
-
-	_pendingLoadSlot = slot;
-	_resetGameMode = true;
-	return true;
+bool StarTrekEngine::popMainLoopEvent(TrekEvent *e, bool canSaveLoad) {
+	_canSaveLoad = canSaveLoad && !(_gameDescription->desc.flags & ADGF_DEMO);
+	bool result = popNextEvent(e);
+	_canSaveLoad = false;
+	// Nothing else happens after loading a game
+	return result && !_resetGameMode;
 }
 
 const uint32 CURRENT_SAVEGAME_VERSION = 5;

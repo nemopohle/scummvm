@@ -249,6 +249,7 @@ SaveStateDescriptor StarTrekMetaEngine::querySaveMetaInfos(const char *target, i
 		}
 
 		SaveStateDescriptor descriptor(this, slotNr, meta.description);
+		descriptor.setAutosave(slotNr == getAutosaveSlot());
 
 		if (meta.thumbnail == nullptr) {
 			return SaveStateDescriptor();

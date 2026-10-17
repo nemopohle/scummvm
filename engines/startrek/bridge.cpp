@@ -431,7 +431,7 @@ void StarTrekEngine::runBridge() {
 void StarTrekEngine::handleBridgeEvents() {
 	TrekEvent event;
 
-	if (popNextEvent(&event)) {
+	if (popMainLoopEvent(&event, !_bridgeInputLocked)) {
 		if (_gameIsPaused) {
 			if (event.type == TREKEVENT_LBUTTONDOWN || event.type == TREKEVENT_KEYDOWN) {
 				_gameIsPaused = false;
