@@ -724,7 +724,7 @@ void Room::love3PouredAmmoniaDownShaft() {
 
 
 void Room::love3UseRomulanLaughingGasOnShaft() {
-	if (_awayMission->love.gotPointsForGassingRomulans) {
+	if (!_awayMission->love.gotPointsForGassingRomulans) {
 		// BUG-ish: you could get the points for this by starting the action, then
 		// canceling it before Kirk reaches the shaft.
 		_awayMission->love.gotPointsForGassingRomulans = true;
