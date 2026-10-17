@@ -683,6 +683,7 @@ public:
 	void updateKeyboardMouse(bool queueEvents);
 	void pauseUntilKeyPress();
 	void discardMouseMoveEvents();
+	uint32 getNextTickMillis() const;
 	void waitForNextTick(bool queueEvents = true);
 	void initializeEventsAndMouse();
 	/**

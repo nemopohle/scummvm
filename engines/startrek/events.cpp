@@ -246,14 +246,20 @@ void StarTrekEngine::pauseUntilKeyPress() {
 	}
 }
 
+uint32 StarTrekEngine::getNextTickMillis() const {
+	// The BIOS clock ticks 1193182 / 65536 times per second
+	uint64 ticks = (uint64)_frameStartMillis * 1193182 / 65536000 + 1;
+	return (ticks * 65536000 + 1193181) / 1193182;
+}
+
 void StarTrekEngine::waitForNextTick(bool queueEvents) {
 	// The recorded input of the DOS demo has its own ticks
 	if (_demoEvents)
 		queueEvents = false;
 	pollEvents(queueEvents);
 
-	uint nextFrame = _frameStartMillis + 1000 / 18.206;
-	uint millis = _system->getMillis();
+	uint32 nextFrame = getNextTickMillis();
+	uint32 millis = _system->getMillis();
 
 	if (millis < nextFrame)
 		_system->delayMillis(nextFrame - millis);
@@ -291,8 +297,8 @@ bool StarTrekEngine::getNextEvent(TrekEvent *e, bool poll) {
 		pollEvents(true);
 
 		// Check for tick event
-		uint nextFrame = _frameStartMillis + 1000 / 18.206;
-		uint millis = _system->getMillis();
+		uint32 nextFrame = getNextTickMillis();
+		uint32 millis = _system->getMillis();
 
 		if (millis >= nextFrame) {
 			_clockTicks++;
