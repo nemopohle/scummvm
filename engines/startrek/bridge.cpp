@@ -546,6 +546,9 @@ void StarTrekEngine::handleBridgeEvents() {
 				if (event.kbd.flags & Common::KBD_CTRL)
 					showQuitGamePrompt(20, 20);
 				break;
+			case Common::KEYCODE_F5:
+				showScummVMMenu();
+				break;
 			case Common::KEYCODE_BACKQUOTE:
 			case Common::KEYCODE_TILDE:	// Ship speed: reverse
 				if (!_enterpriseState.inOrbit)

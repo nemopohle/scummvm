@@ -73,6 +73,13 @@ bool StarTrekEngine::showLoadMenu() {
 	return result;
 }
 
+// F5 opens the ScummVM menu, like in other engines
+void StarTrekEngine::showScummVMMenu() {
+	_canSaveLoad = !(_gameDescription->desc.flags & ADGF_DEMO);
+	openMainMenuDialog();
+	_canSaveLoad = false;
+}
+
 bool StarTrekEngine::popMainLoopEvent(TrekEvent *e, bool canSaveLoad) {
 	_canSaveLoad = canSaveLoad && !(_gameDescription->desc.flags & ADGF_DEMO);
 	bool result = popNextEvent(e);

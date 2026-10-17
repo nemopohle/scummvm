@@ -319,6 +319,10 @@ void StarTrekEngine::handleAwayMissionEvents() {
 				}
 				break;
 
+			case Common::KEYCODE_F5:
+				showScummVMMenu();
+				break;
+
 			default:
 				break;
 			}

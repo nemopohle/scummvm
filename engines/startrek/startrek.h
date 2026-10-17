@@ -899,6 +899,7 @@ public:
 
 	bool showSaveMenu();
 	bool showLoadMenu();
+	void showScummVMMenu();
 	// Pops the next event of a main loop, which can save or load meanwhile
 	bool popMainLoopEvent(TrekEvent *e, bool canSaveLoad);
 
