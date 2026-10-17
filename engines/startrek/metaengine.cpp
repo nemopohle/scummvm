@@ -62,7 +62,7 @@ bool StarTrekEngine::isMacDemo() const {
 
 // Options of the Mac versions
 bool StarTrekEngine::easierCombat() const {
-	return getPlatform() == Common::kPlatformMacintosh && ConfMan.getBool("easier_combat");
+	return ConfMan.getBool("easier_combat");
 }
 
 bool StarTrekEngine::charactersAnimate() const {
