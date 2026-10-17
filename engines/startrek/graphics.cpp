@@ -314,17 +314,21 @@ void Graphics::setMouseBitmap(Common::String bitmapName) {
 		0
 	);
 
-	_cursorPixels.resize(bitmap->width * bitmap->height);
-	if (!_cursorPixels.empty())
-		memcpy(_cursorPixels.data(), bitmap->pixels, _cursorPixels.size());
-	_cursorSize = Common::Point(bitmap->width, bitmap->height);
-	_cursorHotspot = Common::Point(bitmap->xoffset, bitmap->yoffset);
+	Cursor cursor;
+	cursor.pixels.resize(bitmap->width * bitmap->height);
+	if (!cursor.pixels.empty())
+		memcpy(cursor.pixels.data(), bitmap->pixels, cursor.pixels.size());
+	cursor.size = Common::Point(bitmap->width, bitmap->height);
+	cursor.hotspot = Common::Point(bitmap->xoffset, bitmap->yoffset);
+	_cursors.push_back(cursor);
 
 	delete bitmap;
 }
 
 void Graphics::popMouseBitmap() {
 	CursorMan.popCursor();
+	if (!_cursors.empty())
+		_cursors.pop_back();
 }
 
 void Graphics::toggleMouse(bool visible) {
@@ -345,12 +349,13 @@ void Graphics::unlockMousePosition() {
 
 // Like the original, this moves the cursor image instead of the mouse
 void Graphics::updateLockedMouse() {
-	if (_cursorPixels.empty())
+	if (_cursors.empty() || _cursors.back().pixels.empty())
 		return;
-	Common::Point hotspot = _cursorHotspot;
+	const Cursor &cursor = _cursors.back();
+	Common::Point hotspot = cursor.hotspot;
 	if (_lockedMousePos.x != -1)
 		hotspot += getMousePos() - _lockedMousePos;
-	CursorMan.replaceCursor(_cursorPixels.data(), _cursorSize.x, _cursorSize.y, hotspot.x, hotspot.y, 0);
+	CursorMan.replaceCursor(cursor.pixels.data(), cursor.size.x, cursor.size.y, hotspot.x, hotspot.y, 0);
 }
 
 void Graphics::warpMouse(int16 x, int16 y) {

@@ -187,9 +187,13 @@ private:
 
 	// The cursor is drawn at the locked position while the mouse moves freely
 	Common::Point _lockedMousePos;
-	Common::Array<byte> _cursorPixels;
-	Common::Point _cursorSize;
-	Common::Point _cursorHotspot;
+	struct Cursor {
+		Common::Array<byte> pixels;
+		Common::Point size;
+		Common::Point hotspot;
+	};
+	// Analogous to the stack of the cursor manager
+	Common::Array<Cursor> _cursors;
 };
 
 } // End of namespace StarTrek
