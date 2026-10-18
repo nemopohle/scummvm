@@ -70,7 +70,7 @@ enum GlobalGameStringIDs {
  * Corrects the room texts of the CD versions: the speech files that are missing or
  * wrong, and with english also the texts that differ from their speech.
  */
-Common::String patchRoomMessage(const char *text, bool english);
+Common::String patchRoomMessage(const char *text, Common::Language language);
 
 struct RoomTextOffsets {
 	int16 id;

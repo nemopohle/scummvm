@@ -817,6 +817,29 @@ static const TextFix kEnglishTextFixes[] = {
 	{ nullptr, nullptr, nullptr }
 };
 
+// ENHANCEMENT: The German CD left these texts in English, the Amiga version translated them
+static const TextFix kGermanTextFixes[] = {
+	{ "#FEA0\\FEA0_108#", "Everyone is healthy, Jim, there's no need for the medical kit here.",
+	  "Alle sind gesund, Jim, wir brauchen keine Medizin zu verschwenden." },
+	{ "#FEA5\\FEA5_007#", "Anyone for a campfire?",
+	  "Hat jemand Lust auf ein Lagerfeuer?" },
+	{ "#FEA5\\FEA5_010#", "Everyone is healthy, Jim, there's no need for the medical kit here.",
+	  "Alle sind gesund, Jim, wir brauchen keine Medizin zu verschwenden." },
+	{ "#FEA5\\FEA5_022#", "I recommend caution here, Captain.",
+	  "Ich empfehle \xe4u\xdf" "erste Vorsicht, Captain." },
+	{ "#FEA5\\FEA5_036#", "Reminds me of a planet I was stationed on once. The native girls were real friendly. Ensign Shou had his bachelor party there, great time. You ever been to Omicron Draconis, Captain?",
+	  "Erinnert mich an einen Planeten, auf dem ich mal stationiert war. Die dortigen M\xe4" "dchen waren sehr nett. Kadett Shou hatte dort seine Junggesellen-Party. Nettes Pl\xe4tzchen. Waren Sie schon mal auf Omicron Draconis, Captain?" },
+	{ "#LOV5\\LOV5_020#", "Jim, we need to synthesize more before we can use it.",
+	  "Das ist nur eine Probe, Jim. Wir m\xfcssen mehr davon synthetisieren, bevor wir es als Serum benutzen k\xf6nnen." },
+	{ "#MUD3\\MUD3_024#", "And instead, he wiped the memory. That knowledge was priceless!",
+	  "Anstelle dessen hat er den Speicher gel\xf6scht. Das Wissen war unbezahlbar!!" },
+	{ "#MUD3\\MUD3_025#", "If you're incapable of emotion, how do you know what \"awe\" is, Spock?",
+	  "Wenn Sie keine Emotionen kennen, woher wissen Sie, was Demut ist, Spock?" },
+	{ "#MUD5\\MUD5N008#", "There seems to be something wrong with the life support generator.",
+	  "Da stimmt etwas nicht mit dem Lebenserhaltungs-System." },
+	{ nullptr, nullptr, nullptr }
+};
+
 static void applyTextFixes(Common::String &text, const TextFix *fixes) {
 	for (const TextFix *fix = fixes; fix->origText; fix++) {
 		if (fix->prefix && !text.hasPrefix(fix->prefix))
@@ -827,11 +850,13 @@ static void applyTextFixes(Common::String &text, const TextFix *fixes) {
 	}
 }
 
-Common::String patchRoomMessage(const char *text, bool english) {
+Common::String patchRoomMessage(const char *text, Common::Language language) {
 	Common::String txt = text;
 
-	if (english)
+	if (language == Common::EN_ANY)
 		applyTextFixes(txt, kEnglishTextFixes);
+	else if (language == Common::DE_DEU)
+		applyTextFixes(txt, kGermanTextFixes);
 	applyTextFixes(txt, kSpeechFixes);
 
 	// Some speech files are named with a hyphen instead of an underscore (e.g. in LOV2)
