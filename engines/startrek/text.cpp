@@ -817,8 +817,17 @@ static const TextFix kEnglishTextFixes[] = {
 	{ nullptr, nullptr, nullptr }
 };
 
-// ENHANCEMENT: The German CD left these texts in English, the Amiga version translated them
+// ENHANCEMENT: Typos and untranslated texts of the German CD
 static const TextFix kGermanTextFixes[] = {
+	{ "#DEM3\\DEM3_008#", "ddies", "dies" },
+	{ "#DEM3\\DEM3_016#", "DDas", "Das" },
+	{ "#TUG2\\TUG2_019#", "ddu", "du" },
+	{ "#MUD0\\MUD0_022#", "ww\xfcrde", "w\xfcrde" },
+	{ "#MUD3\\MUD3_022#", "ww\xe4re", "w\xe4re" },
+	{ "#MUD3\\MUD3N005#", "wwohl", "wohl" },
+	{ "#MUD4\\MUD4_047#", "wwo ", "wo " },
+	{ "#FEA5\\FEA5N012#", "ddient", "dient" },
+	// The German CD left these texts in English, the Amiga version translated them
 	{ "#FEA0\\FEA0_108#", "Everyone is healthy, Jim, there's no need for the medical kit here.",
 	  "Alle sind gesund, Jim, wir brauchen keine Medizin zu verschwenden." },
 	{ "#FEA5\\FEA5_007#", "Anyone for a campfire?",
