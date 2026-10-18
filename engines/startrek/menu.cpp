@@ -346,7 +346,7 @@ int StarTrekEngine::showActionMenu() {
 	menuSprite.drawPriority2 = 8;
 	bool displayMenu = true;
 
-	while (displayMenu) {
+	while (displayMenu && !shouldQuit()) {
 		_sound->checkLoopMusic();
 
 		if (!popNextEvent(&event))
@@ -661,7 +661,7 @@ int StarTrekEngine::handleMenuEvents(uint32 ticksUntilClickingEnabled, bool inTe
 	uint32 tickWhenClickingEnabled = _clockTicks + ticksUntilClickingEnabled;
 
 	while (true) {
-		if (_resetGameMode)
+		if (_resetGameMode || shouldQuit())
 			return inTextbox ? TEXTBUTTON_CONFIRM : MENUEVENT_RCLICK_OFFBUTTON;
 
 		TrekEvent event;
@@ -1021,7 +1021,7 @@ void StarTrekEngine::showGameOverMenu() {
 	if (_resetGameMode)
 		return;
 
-	while (true) {
+	while (!shouldQuit()) {
 		_inQuitGameMenu = true;
 		int selected = showText(&StarTrekEngine::readTextFromArray, (uintptr)options, 20, 20, TEXTCOLOR_YELLOW, true, false, true);
 		_inQuitGameMenu = false;
@@ -1130,7 +1130,7 @@ void StarTrekEngine::showRepublicMap(int16 arg0, int16 turbolift) {
 		bool exitLoop = 0;
 		int16 var54 = 0x2d;
 
-		while (!exitLoop) {
+		while (!exitLoop && !shouldQuit()) {
 			TrekEvent event;
 			if (!popNextEvent(&event))
 				continue;
@@ -1188,7 +1188,7 @@ void StarTrekEngine::showRepublicMap(int16 arg0, int16 turbolift) {
 
 	bool exitLoop = false;
 
-	while (!exitLoop) {
+	while (!exitLoop && !shouldQuit()) {
 		TrekEvent event;
 		if (!popNextEvent(&event))
 			continue;

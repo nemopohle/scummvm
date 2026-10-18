@@ -875,7 +875,7 @@ Common::String StarTrekEngine::showTextInputBox(int16 x, int16 y, const Common::
 
 	bool loop = true;
 
-	while (loop) {
+	while (loop && !shouldQuit()) {
 		TrekEvent event;
 		if (!popNextEvent(&event))
 			continue;

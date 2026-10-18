@@ -176,7 +176,8 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 }
 
 StarTrekEngine::~StarTrekEngine() {
-	delete _activeMenu->nextMenu;
+	if (_activeMenu)
+		delete _activeMenu->nextMenu;
 	delete _activeMenu;
 
 	delete _gfx;
@@ -351,7 +352,7 @@ Common::Error StarTrekEngine::runGameMode(int mode, bool resume) {
 			_gameMode = GAMEMODE_BRIDGE;
 	}
 
-	while (true) {
+	while (!shouldQuit()) {
 		if (_resetGameMode) {
 			if (_pendingRestart) {
 				_pendingRestart = false;

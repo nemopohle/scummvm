@@ -845,6 +845,8 @@ int StarTrekEngine::selectObjectForUseAction() {
 		TrekEvent event;
 
 		while (true) {
+			if (shouldQuit())
+				return -1;
 			if (!getNextEvent(&event))
 				continue;
 
@@ -1220,7 +1222,7 @@ int StarTrekEngine::showInventoryMenu(int x, int y, bool restoreMouse) {
 	bool displayMenu = true;
 	int lastItemIndex = -1;
 
-	while (displayMenu) {
+	while (displayMenu && !shouldQuit()) {
 		_sound->checkLoopMusic();
 
 		TrekEvent event;

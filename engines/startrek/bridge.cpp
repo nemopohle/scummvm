@@ -416,7 +416,7 @@ void StarTrekEngine::cleanupBridge() {
 }
 
 void StarTrekEngine::runBridge() {
-	while (_gameMode == GAMEMODE_BRIDGE && !_resetGameMode) {
+	while (_gameMode == GAMEMODE_BRIDGE && !_resetGameMode && !shouldQuit()) {
 		if (_returnedFromAwayMission) {
 			_returnedFromAwayMission = false;
 			// The away mission has its own texts
@@ -871,7 +871,7 @@ int StarTrekEngine::showStarMap() {
 	_gfx->fadeinScreen();
 
 	bool selected = false;
-	while (!selected) {
+	while (!selected && !shouldQuit()) {
 		TrekEvent event;
 		if (!popNextEvent(&event))
 			continue;
