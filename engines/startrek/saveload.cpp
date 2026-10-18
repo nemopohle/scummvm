@@ -100,7 +100,7 @@ Common::String StarTrekEngine::readTextFromSaveList(int choiceIndex, uintptr dat
 		return Common::String();
 	if (numSaves != 0)
 		return localizeText("Cancel.");
-	if (getPlatform() == Common::kPlatformAmiga && getLanguage() == Common::EN_ANY)
+	if (isFloppyVersion() && getLanguage() == Common::EN_ANY)
 		return "There are no saved games.";
 	return localizeText("#GENE\\GENERJ01#No games saved.");
 }
