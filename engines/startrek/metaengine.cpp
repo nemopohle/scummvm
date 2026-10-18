@@ -73,8 +73,9 @@ bool StarTrekEngine::originalSaveLoad() const {
 	return getPlatform() != Common::kPlatformMacintosh && ConfMan.getBool("originalsaveload");
 }
 
+// The DOS and Amiga versions only animate them with enough memory
 bool StarTrekEngine::charactersAnimate() const {
-	return getPlatform() != Common::kPlatformMacintosh || ConfMan.getBool("characters_animate");
+	return ConfMan.getBool("characters_animate");
 }
 
 } // End of Namespace StarTrek
