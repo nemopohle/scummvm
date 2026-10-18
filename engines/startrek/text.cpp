@@ -859,12 +859,12 @@ static void applyTextFixes(Common::String &text, const TextFix *fixes) {
 	}
 }
 
-Common::String patchRoomMessage(const char *text, Common::Language language) {
+Common::String patchRoomMessage(const char *text, Common::Language language, bool fixTexts) {
 	Common::String txt = text;
 
-	if (language == Common::EN_ANY)
+	if (fixTexts && language == Common::EN_ANY)
 		applyTextFixes(txt, kEnglishTextFixes);
-	else if (language == Common::DE_DEU)
+	else if (fixTexts && language == Common::DE_DEU)
 		applyTextFixes(txt, kGermanTextFixes);
 	applyTextFixes(txt, kSpeechFixes);
 

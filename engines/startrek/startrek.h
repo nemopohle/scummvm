@@ -930,6 +930,7 @@ public:
 	bool easierCombat() const;
 	bool oneHitCombat() const;
 	bool originalSaveLoad() const;
+	bool textFixes() const;
 	bool charactersAnimate() const;
 	uint8 getGameType() const;
 	Common::Language getLanguage() const;

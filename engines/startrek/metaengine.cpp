@@ -74,6 +74,10 @@ bool StarTrekEngine::originalSaveLoad() const {
 }
 
 // The DOS and Amiga versions only animate them with enough memory
+bool StarTrekEngine::textFixes() const {
+	return ConfMan.getBool("text_fixes");
+}
+
 bool StarTrekEngine::charactersAnimate() const {
 	return ConfMan.getBool("characters_animate");
 }
@@ -132,6 +136,17 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 			_s("Use the original save/load screens instead of the ScummVM ones"),
 			"originalsaveload",
 			false,
+			0,
+			0
+		}
+	},
+	{
+		GAMEOPTION_TEXT_FIXES,
+		{
+			_s("Fix text errors"),
+			_s("Corrects typos and translates the texts that the original left untranslated"),
+			"text_fixes",
+			true,
 			0,
 			0
 		}

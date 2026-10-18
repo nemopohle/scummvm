@@ -64,6 +64,7 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	ConfMan.registerDefault("easier_combat", false);
 	ConfMan.registerDefault("one_hit_combat", false);
 	ConfMan.registerDefault("originalsaveload", false);
+	ConfMan.registerDefault("text_fixes", true);
 	ConfMan.registerDefault("characters_animate", true);
 	ConfMan.registerDefault("copy_protection", false);
 

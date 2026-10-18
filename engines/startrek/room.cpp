@@ -421,7 +421,7 @@ const char *Room::getText(uint16 textId) {
 
 	// The corrected texts stay valid as long as the room, like the ones in the RDF file
 	if (!_patchedTexts.contains(textId))
-		_patchedTexts[textId] = patchRoomMessage(text, _vm->getLanguage());
+		_patchedTexts[textId] = patchRoomMessage(text, _vm->getLanguage(), _vm->textFixes());
 	return _patchedTexts[textId].c_str();
 }
 
