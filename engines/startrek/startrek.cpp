@@ -181,6 +181,8 @@ StarTrekEngine::~StarTrekEngine() {
 		delete _activeMenu->nextMenu;
 	delete _activeMenu;
 
+	// The sounds may use the data of the engine
+	_mixer->stopAll();
 	delete _gfx;
 	delete _sound;
 	delete _resource;

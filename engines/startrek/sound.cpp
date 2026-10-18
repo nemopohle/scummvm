@@ -113,6 +113,8 @@ Sound::~Sound() {
 		_midiDriver->setTimerCallback(nullptr, nullptr);
 	for (int i = 0; i < NUM_MIDI_SLOTS; i++)
 		delete _midiSlots[i].midiParser;
+	if (_midiDriver)
+		_midiDriver->close();
 	delete _midiDriver;
 	delete _soundHandle;
 	delete[] _loadedSoundData;
