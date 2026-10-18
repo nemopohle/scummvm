@@ -900,6 +900,11 @@ public:
 	bool showSaveMenu();
 	bool showLoadMenu();
 	void showScummVMMenu();
+	bool showOriginalSaveMenu();
+	bool showOriginalLoadMenu();
+	// Shows the saved games, returns the chosen index or -1
+	int chooseSavedGame(const char *header, const SaveStateList &saves);
+	Common::String readTextFromSaveList(int choiceIndex, uintptr data, Common::String *headerTextOutput);
 	// Pops the next event of a main loop, which can save or load meanwhile
 	bool popMainLoopEvent(TrekEvent *e, bool canSaveLoad);
 
@@ -924,6 +929,7 @@ public:
 	bool isMacDemo() const;
 	bool easierCombat() const;
 	bool oneHitCombat() const;
+	bool originalSaveLoad() const;
 	bool charactersAnimate() const;
 	uint8 getGameType() const;
 	Common::Language getLanguage() const;

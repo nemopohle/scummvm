@@ -61,19 +61,111 @@ Common::Error StarTrekEngine::saveGameState(int slot, const Common::String &desc
 // The options menus can always save and load
 bool StarTrekEngine::showSaveMenu() {
 	_canSaveLoad = true;
-	bool result = saveGameDialog();
+	bool result = originalSaveLoad() ? showOriginalSaveMenu() : saveGameDialog();
 	_canSaveLoad = false;
 	return result;
 }
 
 bool StarTrekEngine::showLoadMenu() {
 	_canSaveLoad = true;
-	bool result = loadGameDialog();
+	bool result = originalSaveLoad() ? showOriginalLoadMenu() : loadGameDialog();
 	_canSaveLoad = false;
 	return result;
 }
 
-// F5 opens the ScummVM menu, like in other engines
+struct SavedGamesMenu {
+	const char *header;
+	const SaveStateList *saves;
+};
+
+// The original lists the newest saved game first
+static SaveStateList listSavedGames(const MetaEngine *metaEngine, const Common::String &target, bool withAutosave) {
+	SaveStateList saves = metaEngine->listSaves(target.c_str());
+	SaveStateList result;
+	for (int i = saves.size() - 1; i >= 0; i--) {
+		if (withAutosave || saves[i].getSaveSlot() != metaEngine->getAutosaveSlot())
+			result.push_back(saves[i]);
+	}
+	return result;
+}
+
+Common::String StarTrekEngine::readTextFromSaveList(int choiceIndex, uintptr data, Common::String *headerTextOutput) {
+	const SavedGamesMenu *menu = (const SavedGamesMenu *)data;
+	int numSaves = menu->saves->size();
+
+	*headerTextOutput = centerTextboxHeader(localizeText(menu->header));
+	if (choiceIndex < numSaves)
+		return localizeText("Description:\n") + (*menu->saves)[choiceIndex].getDescription();
+	if (choiceIndex > numSaves)
+		return Common::String();
+	if (numSaves != 0)
+		return localizeText("Cancel.");
+	if (getPlatform() == Common::kPlatformAmiga && getLanguage() == Common::EN_ANY)
+		return "There are no saved games.";
+	return localizeText("#GENE\\GENERJ01#No games saved.");
+}
+
+int StarTrekEngine::chooseSavedGame(const char *header, const SaveStateList &saves) {
+	SavedGamesMenu menu = { header, &saves };
+	int index = showText(&StarTrekEngine::readTextFromSaveList, (uintptr)&menu, 20, 20, TEXTCOLOR_YELLOW, true, 0, true);
+	return index < (int)saves.size() ? index : -1;
+}
+
+bool StarTrekEngine::showOriginalSaveMenu() {
+	static const char *const options[] = {
+		"Save Game",
+		"#GENE\\GENER023#Save new game.",
+		"#GENE\\GENER019#Replace previous game.",
+		"#GENE\\GENER002#Delete previous game.",
+		"#GENE\\GENER000#Cancel.",
+		""
+	};
+	const MetaEngine *metaEngine = getMetaEngine();
+
+	while (!shouldQuit()) {
+		int choice = showText(&StarTrekEngine::readTextFromArray, (uintptr)options, 20, 20, TEXTCOLOR_YELLOW, true, 0, true);
+		SaveStateList saves = listSavedGames(metaEngine, _targetName, false);
+
+		if (choice == 0) {
+			// A new game gets the slot after the newest one
+			int slot = saves.empty() ? 1 : saves[0].getSaveSlot() + 1;
+			for (int i = 1; slot > metaEngine->getMaximumSaveSlot() && i <= metaEngine->getMaximumSaveSlot(); i++) {
+				if (!metaEngine->querySaveMetaInfos(_targetName.c_str(), i).isValid() && i != metaEngine->getAutosaveSlot())
+					slot = i;
+			}
+			if (slot > metaEngine->getMaximumSaveSlot()) {
+				showTextbox("", localizeText("#GENE\\GENER024#Too many games saved.  Replace or delete a previous game."), 20, 20, TEXTCOLOR_YELLOW, 0);
+				continue;
+			}
+
+			memset(_textInputBuffer, 0, TEXT_INPUT_BUFFER_SIZE - 1);
+			Common::String desc = showTextInputBox(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, localizeText("Description:\n                    "));
+			while (desc.hasPrefix(" "))
+				desc.deleteChar(0);
+			return !desc.empty() && saveGameState(slot, desc).getCode() == Common::kNoError;
+		} else if (choice == 1) {
+			int index = chooseSavedGame("Save Game", saves);
+			if (index < 0)
+				return false;
+			return saveGameState(saves[index].getSaveSlot(), saves[index].getDescription()).getCode() == Common::kNoError;
+		} else if (choice == 2) {
+			int index = chooseSavedGame("Delete Game", saves);
+			if (index >= 0)
+				metaEngine->removeSaveState(_targetName.c_str(), saves[index].getSaveSlot());
+		} else {
+			return false;
+		}
+	}
+	return false;
+}
+
+bool StarTrekEngine::showOriginalLoadMenu() {
+	SaveStateList saves = listSavedGames(getMetaEngine(), _targetName, true);
+	int index = chooseSavedGame("Load Game", saves);
+	return index >= 0 && loadGameState(saves[index].getSaveSlot()).getCode() == Common::kNoError;
+}
+
+// F5 opens the ScummVM menu, like in other engines, or the options of the game
 void StarTrekEngine::showScummVMMenu() {
 	_canSaveLoad = !(_gameDescription->desc.flags & ADGF_DEMO);
 	openMainMenuDialog();

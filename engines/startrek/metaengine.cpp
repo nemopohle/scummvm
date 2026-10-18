@@ -68,6 +68,11 @@ bool StarTrekEngine::oneHitCombat() const {
 	return ConfMan.getBool("one_hit_combat");
 }
 
+// The Mac versions use the dialogs of the system
+bool StarTrekEngine::originalSaveLoad() const {
+	return getPlatform() != Common::kPlatformMacintosh && ConfMan.getBool("originalsaveload");
+}
+
 bool StarTrekEngine::charactersAnimate() const {
 	return getPlatform() != Common::kPlatformMacintosh || ConfMan.getBool("characters_animate");
 }
@@ -114,6 +119,17 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 			_s("Enable copy protection"),
 			_s("The destination of each mission isn't preselected on the star map"),
 			"copy_protection",
+			false,
+			0,
+			0
+		}
+	},
+	{
+		GAMEOPTION_ORIGINAL_SAVELOAD,
+		{
+			_s("Use original save/load screens"),
+			_s("Use the original save/load screens instead of the ScummVM ones"),
+			"originalsaveload",
 			false,
 			0,
 			0
