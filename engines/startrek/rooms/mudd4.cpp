@@ -240,6 +240,8 @@ extern const RoomTextOffsets mudd4TextOffsets[] = {
 
 extern const RoomText mudd4Texts[] = {
 	{ TX_MUD4_003, Common::EN_ANY, "#MUD4\\MUD4_003#<<Done>>" },
+	{ TX_MUD4_003, Common::DE_DEU, "#MUD4\\MUD4_003#Ende" },
+	{ TX_MUD4_003, Common::FR_FRA, "#MUD4\\MUD4_003#Fait" },
 	{ -1, Common::UNK_LANG, "" }
 };
 

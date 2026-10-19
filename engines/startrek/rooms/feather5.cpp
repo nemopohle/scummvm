@@ -190,6 +190,9 @@ extern const RoomTextOffsets feather5TextOffsets[] = {
 
 extern const RoomText feather5Texts[] = {
 	{ TX_FEA5_001, Common::EN_ANY, "#FEA5\\FEA5_001#This is a very finely crafted knife." },
+	// The texts of the Amiga versions
+	{ TX_FEA5_001, Common::DE_DEU, "#FEA5\\FEA5_001#So einfach kommen Sie nicht aus dem Vertrag mit der Fernseh-Produktionsgesellschaft heraus!" },
+	{ TX_FEA5_001, Common::FR_FRA, "#FEA5\\FEA5_001#C'est un couteau joliment travaill\xe9." },
 	{ -1, Common::UNK_LANG, "" }
 };
 

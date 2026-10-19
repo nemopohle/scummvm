@@ -841,7 +841,7 @@ static const TextFix kGermanTextFixes[] = {
 	{ "#LOV5\\LOV5_020#", "Jim, we need to synthesize more before we can use it.",
 	  "Das ist nur eine Probe, Jim. Wir m\xfcssen mehr davon synthetisieren, bevor wir es als Serum benutzen k\xf6nnen." },
 	{ "#MUD3\\MUD3_024#", "And instead, he wiped the memory. That knowledge was priceless!",
-	  "Anstelle dessen hat er den Speicher gel\xf6scht. Das Wissen war unbezahlbar!!" },
+	  "Anstelle dessen hat er den Speicher gel\xf6scht. Das Wissen war unbezahlbar!" },
 	{ "#MUD3\\MUD3_025#", "If you're incapable of emotion, how do you know what \"awe\" is, Spock?",
 	  "Wenn Sie keine Emotionen kennen, woher wissen Sie, was Demut ist, Spock?" },
 	{ "#MUD5\\MUD5N008#", "There seems to be something wrong with the life support generator.",
