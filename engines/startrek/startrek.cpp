@@ -65,6 +65,7 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	ConfMan.registerDefault("one_hit_combat", false);
 	ConfMan.registerDefault("originalsaveload", false);
 	ConfMan.registerDefault("text_fixes", true);
+	ConfMan.registerDefault("smooth_space", true);
 	ConfMan.registerDefault("characters_animate", true);
 	ConfMan.registerDefault("copy_protection", false);
 
@@ -94,6 +95,10 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_pendingLoadSlot = -1;
 	_pendingRestart = false;
 	_canSaveLoad = false;
+	_prevSpaceValid = false;
+	_smoothSpaceAllowed = false;
+	_drawingSmoothSpace = false;
+	_lastTickShowedStatic = false;
 
 	_inQuitGameMenu = false;
 	_textDisplayMode = TEXTDISPLAY_SUBTITLES;

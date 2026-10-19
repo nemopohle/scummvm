@@ -431,7 +431,11 @@ void StarTrekEngine::runBridge() {
 void StarTrekEngine::handleBridgeEvents() {
 	TrekEvent event;
 
-	if (popMainLoopEvent(&event, !_bridgeInputLocked)) {
+	_smoothSpaceAllowed = smoothSpace();
+	bool hasEvent = popMainLoopEvent(&event, !_bridgeInputLocked);
+	_smoothSpaceAllowed = false;
+
+	if (hasEvent) {
 		if (_gameIsPaused) {
 			if (event.type == TREKEVENT_LBUTTONDOWN || event.type == TREKEVENT_KEYDOWN) {
 				_gameIsPaused = false;
@@ -616,6 +620,8 @@ void StarTrekEngine::updateBridgeTick() {
 }
 
 void StarTrekEngine::updateBridgeSpace() {
+	if (smoothSpace())
+		saveSpaceState();
 	_enterpriseR3.shieldsOn = _enterpriseState.shields;
 	_enterpriseR3.weaponsOn = _enterpriseState.weapons;
 	distributeEnergy(&_enterpriseR3);
@@ -633,6 +639,11 @@ void StarTrekEngine::updateBridgeSpace() {
 	const ShipSystem &viewscreen = _enterpriseR3.systems[12];
 	bool showStatic = viewscreen.maxStrength > 0 && viewscreen.strength < (int16)(msRand() % viewscreen.maxStrength);
 	updateStarfieldAndShips(showStatic);
+
+	// The smooth frames lag one tick behind, starting with the state before this tick
+	_lastTickShowedStatic = showStatic;
+	if (smoothSpace())
+		drawSmoothSpace(0.0);
 }
 
 void StarTrekEngine::setMouseControllingShip(bool enable) {

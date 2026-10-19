@@ -988,6 +988,129 @@ void StarTrekEngine::drawStarfield() {
 	delete file;
 }
 
+void StarTrekEngine::saveSpaceState() {
+	_prevSpaceObjects.clear();
+	for (int i = 0; i < NUM_SPACE_OBJECTS; i++) {
+		R3 *r3 = _r3List[i];
+		if (r3 != nullptr) {
+			SpaceObjectState state = { r3, r3->pos, r3->matrix };
+			_prevSpaceObjects.push_back(state);
+		}
+	}
+	_prevStarfieldPosition = _starfieldPosition;
+	_prevCameraMatrix = _someMatrix;
+	_prevSpaceValid = true;
+}
+
+static Point3 interpolatePosition(const Point3 &from, const Point3 &to, double progress) {
+	Point3 result;
+	for (int i = 0; i < 3; i++)
+		result[i] = from[i] + (int32)((to[i] - from[i]) * progress);
+	return result;
+}
+
+// Returns false for jumps that shouldn't be animated
+static bool interpolateMatrix(const Matrix &from, const Matrix &to, double progress, Matrix &result) {
+	int32 dot = 0;
+	for (int i = 0; i < 3; i++)
+		dot += ((int32)from[2][i].raw() * to[2][i].raw()) >> 14;
+	if (dot < 0x3000)
+		return false;
+	for (int row = 0; row < 3; row++) {
+		for (int i = 0; i < 3; i++) {
+			int16 a = from[row][i].raw();
+			int16 b = to[row][i].raw();
+			result[row][i] = Fixed14::fromRaw(a + (int16)((b - a) * progress));
+		}
+	}
+	normalizeMatrix(result);
+	return true;
+}
+
+static bool isSpaceJump(const Point3 &from, const Point3 &to) {
+	const int32 maxDistance = 2000;
+	for (int i = 0; i < 3; i++) {
+		if (ABS(to[i] - from[i]) > maxDistance)
+			return true;
+	}
+	return false;
+}
+
+void StarTrekEngine::drawSmoothSpace(double progress) {
+	if (!_prevSpaceValid)
+		return;
+
+	// Drawing changes some fields of the objects, the stars and the random numbers
+	R3 *savedList[NUM_SPACE_OBJECTS];
+	Common::Array<R3> savedObjects;
+	for (int i = 0; i < NUM_SPACE_OBJECTS; i++) {
+		savedList[i] = _r3List[i];
+		if (_r3List[i] != nullptr)
+			savedObjects.push_back(*_r3List[i]);
+	}
+	Star savedStars[NUM_STARS];
+	memcpy(savedStars, _starList, sizeof(_starList));
+	const Point3 savedStarfieldPosition = _starfieldPosition;
+	const Matrix savedCameraMatrix = _someMatrix;
+	const Matrix savedStarPositionMatrix = _starPositionMatrix;
+	const uint32 savedMsRandState = _msRandState;
+	const uint32 savedRandomSeed = _randomSource.getSeed();
+
+	for (uint i = 0; i < _prevSpaceObjects.size(); i++) {
+		const SpaceObjectState &prev = _prevSpaceObjects[i];
+		R3 *r3 = prev.r3;
+		bool listed = false;
+		for (int j = 0; j < NUM_SPACE_OBJECTS; j++)
+			listed |= _r3List[j] == r3;
+		if (!listed || isSpaceJump(prev.pos, r3->pos))
+			continue;
+		Matrix matrix;
+		if (interpolateMatrix(prev.matrix, r3->matrix, progress, matrix))
+			r3->matrix = matrix;
+		r3->pos = interpolatePosition(prev.pos, r3->pos, progress);
+	}
+
+	Matrix cameraMatrix;
+	if (!isSpaceJump(_prevStarfieldPosition, _starfieldPosition)
+	        && interpolateMatrix(_prevCameraMatrix, _someMatrix, progress, cameraMatrix)) {
+		_starfieldPosition = interpolatePosition(_prevStarfieldPosition, _starfieldPosition, progress);
+		_someMatrix = cameraMatrix;
+	}
+
+	_drawingSmoothSpace = true;
+	updateStarfieldAndShips(_lastTickShowedStatic);
+	_drawingSmoothSpace = false;
+
+	uint index = 0;
+	for (int i = 0; i < NUM_SPACE_OBJECTS; i++) {
+		_r3List[i] = savedList[i];
+		if (_r3List[i] != nullptr)
+			*_r3List[i] = savedObjects[index++];
+	}
+	memcpy(_starList, savedStars, sizeof(_starList));
+	_starfieldPosition = savedStarfieldPosition;
+	_someMatrix = savedCameraMatrix;
+	_starPositionMatrix = savedStarPositionMatrix;
+	_msRandState = savedMsRandState;
+	_randomSource.setSeed(savedRandomSeed);
+}
+
+// Called while waiting for the next tick
+void StarTrekEngine::updateSmoothSpace() {
+	if (!_smoothSpaceAllowed || !_prevSpaceValid || _gameMode != GAMEMODE_BRIDGE || _gameIsPaused)
+		return;
+
+	uint32 nextTick = getNextTickMillis();
+	uint32 tickLength = nextTick - _frameStartMillis;
+	uint32 elapsed = _system->getMillis() - _frameStartMillis;
+	if (tickLength == 0 || elapsed >= tickLength)
+		return;
+
+	drawSmoothSpace((double)elapsed / tickLength);
+	_gfx->drawAllSprites(false);
+	_gfx->updateScreen();
+}
+
 // Objects farther away are drawn first
 bool compareR3Objects(R3 *obj1, R3 *obj2) {
 	return obj1->field54 > obj2->field54;
@@ -1014,7 +1137,8 @@ void StarTrekEngine::updateStarfieldAndShips(bool arg0) {
 			break;
 		case 2:
 			if (r3->exploding) {
-				r3->explosionFrame++;
+				if (!_drawingSmoothSpace)
+					r3->explosionFrame++;
 				if (r3->explosionFrame > 45) {
 					if (r3 == &_enterpriseR3)
 						enterpriseDestroyed = true;

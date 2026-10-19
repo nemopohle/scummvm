@@ -74,6 +74,10 @@ bool StarTrekEngine::originalSaveLoad() const {
 }
 
 // The DOS and Amiga versions only animate them with enough memory
+bool StarTrekEngine::smoothSpace() const {
+	return ConfMan.getBool("smooth_space");
+}
+
 bool StarTrekEngine::textFixes() const {
 	return ConfMan.getBool("text_fixes");
 }
@@ -146,6 +150,17 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 			_s("Fix text errors"),
 			_s("Corrects typos and translates the texts that the original left untranslated"),
 			"text_fixes",
+			true,
+			0,
+			0
+		}
+	},
+	{
+		GAMEOPTION_SMOOTH_SPACE,
+		{
+			_s("Smooth space flight"),
+			_s("Draws the view of space with more frames per second. The game itself runs as in the original."),
+			"smooth_space",
 			true,
 			0,
 			0

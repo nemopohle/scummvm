@@ -505,6 +505,11 @@ private:
 	void clearStarfieldPixels();
 	void drawStarfield();
 	void updateStarfieldAndShips(bool arg0);
+	// Smooth space flight: frames between the ticks show the space objects between
+	// their positions before and after the last tick
+	void saveSpaceState();
+	void drawSmoothSpace(double progress);
+	void updateSmoothSpace();
 	R3 *sub_19f24(R3 *r3);
 	void drawR3Shape(R3 *r3);
 	bool sub_1c022(R3 *r3);
@@ -929,6 +934,7 @@ public:
 	bool isMacDemo() const;
 	bool easierCombat() const;
 	bool oneHitCombat() const;
+	bool smoothSpace() const;
 	bool originalSaveLoad() const;
 	bool textFixes() const;
 	bool charactersAnimate() const;
@@ -1080,6 +1086,18 @@ public:
 	byte _planetTexture[PLANET_TEXTURE_SIZE * PLANET_TEXTURE_SIZE];
 	Common::String _planetTextureName;
 	R3 *_r3List[NUM_SPACE_OBJECTS];
+	struct SpaceObjectState {
+		R3 *r3;
+		Point3 pos;
+		Matrix matrix;
+	};
+	Common::Array<SpaceObjectState> _prevSpaceObjects;
+	Point3 _prevStarfieldPosition;
+	Matrix _prevCameraMatrix;
+	bool _prevSpaceValid;
+	bool _smoothSpaceAllowed;
+	bool _drawingSmoothSpace;
+	bool _lastTickShowedStatic;
 	R3 *_orderedR3List[NUM_SPACE_OBJECTS];
 	Matrix _starPositionMatrix;
 	Matrix _someMatrix;
