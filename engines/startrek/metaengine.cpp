@@ -73,15 +73,19 @@ bool StarTrekEngine::originalSaveLoad() const {
 	return getPlatform() != Common::kPlatformMacintosh && ConfMan.getBool("originalsaveload");
 }
 
-// The DOS and Amiga versions only animate them with enough memory
 bool StarTrekEngine::smoothSpace() const {
 	return ConfMan.getBool("smooth_space");
+}
+
+bool StarTrekEngine::smoothScaling() const {
+	return ConfMan.getBool("smooth_scaling");
 }
 
 bool StarTrekEngine::textFixes() const {
 	return ConfMan.getBool("text_fixes");
 }
 
+// The DOS and Amiga versions only animate them with enough memory
 bool StarTrekEngine::charactersAnimate() const {
 	return ConfMan.getBool("characters_animate");
 }
@@ -162,6 +166,17 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 			_s("Draws the view of space with more frames per second. The game itself runs as in the original."),
 			"smooth_space",
 			true,
+			0,
+			0
+		}
+	},
+	{
+		GAMEOPTION_SMOOTH_SCALING,
+		{
+			_s("Smooth scaling"),
+			_s("Mixes the colors of characters and starships when they are scaled or rotated instead of dropping pixels"),
+			"smooth_scaling",
+			false,
 			0,
 			0
 		}

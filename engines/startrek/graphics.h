@@ -144,6 +144,7 @@ public:
 	void addSprite(Sprite *sprite);
 	void delSprite(Sprite *sprite);
 	int16 getPaletteFadeLevel() const { return _paletteFadeLevel; }
+	const byte *getPalette() const { return _palData; }
 	void cyclePalette(int start, int count, int offset);
 	bool hasSprite(const Sprite *sprite) const;
 

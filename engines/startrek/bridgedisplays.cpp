@@ -83,13 +83,25 @@ void StarTrekEngine::updateBridgeDisplays() {
 	}
 }
 
+static const int kCycledBridgeColors[][2] = { { 0xd0, 8 }, { 0xe0, 8 }, { 0xe8, 8 }, { 0xf2, 11 } };
+
 void StarTrekEngine::cycleBridgeColors() {
 	if (_gfx->getPaletteFadeLevel() != 100 || (_frameIndex & 1) != 0)
 		return;
 
-	static const int kRanges[][2] = { { 0xd0, 8 }, { 0xe0, 8 }, { 0xe8, 8 }, { 0xf2, 11 } };
-	for (int i = 0; i < ARRAYSIZE(kRanges); i++)
-		_gfx->cyclePalette(kRanges[i][0], kRanges[i][1], (_frameIndex >> 1) % kRanges[i][1]);
+	for (int i = 0; i < ARRAYSIZE(kCycledBridgeColors); i++) {
+		const int *range = kCycledBridgeColors[i];
+		_gfx->cyclePalette(range[0], range[1], (_frameIndex >> 1) % range[1]);
+	}
+}
+
+bool StarTrekEngine::isCycledBridgeColor(byte color) const {
+	for (int i = 0; i < ARRAYSIZE(kCycledBridgeColors); i++) {
+		const int *range = kCycledBridgeColors[i];
+		if (color >= range[0] && color < range[0] + range[1])
+			return true;
+	}
+	return false;
 }
 
 void StarTrekEngine::updateScanner() {

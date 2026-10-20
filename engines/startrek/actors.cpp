@@ -1376,6 +1376,12 @@ Bitmap *StarTrekEngine::scaleBitmap(Bitmap *bitmap, Fixed8 scale) {
 	origHeight--;
 	scaledHeight--;
 
+	if (smoothScaling()) {
+		scaleBitmapSmooth(bitmap, scaledBitmap);
+		delete bitmap;
+		return scaledBitmap;
+	}
+
 	byte *src = bitmap->pixels;
 	byte *dest = scaledBitmap->pixels;
 
@@ -1483,6 +1489,135 @@ void StarTrekEngine::scaleBitmapRow(byte *src, byte *dest, uint16 origWidth, uin
 			}
 		}
 	}
+}
+
+// A box filter of at most one source pixel, from left to left + box in source pixels.
+// Returns the first source pixel under it and its share; the next one gets the rest.
+// Sharpening the shares keeps the graphics crisp.
+void StarTrekEngine::getFilterWeights(float left, float box, int &first, float &weight) {
+	first = (int)floor(left);
+	weight = CLIP((first + 1 - left) / box, 0.0f, 1.0f);
+	weight = CLIP((weight - 0.5f) * 3 + 0.5f, 0.0f, 1.0f);
+}
+
+void StarTrekEngine::initColorFilter(bool skipCycledColors) {
+	const byte *palette = _gfx->getPalette();
+	if (memcmp(_nearestColorPalette, palette, sizeof(_nearestColorPalette)) != 0 || skipCycledColors != _nearestColorsSkipCycled) {
+		memcpy(_nearestColorPalette, palette, sizeof(_nearestColorPalette));
+		_nearestColorsSkipCycled = skipCycledColors;
+		_nearestColors.clear();
+	}
+
+	// The colors are mixed in linear light. The Amiga palette has 8 bits per component.
+	if (_linearColors[1] == 0) {
+		_maxColorValue = getPlatform() == Common::kPlatformAmiga ? 255 : 63;
+		for (int i = 0; i <= _maxColorValue; i++)
+			_linearColors[i] = pow((float)i / _maxColorValue, 2.2f);
+	}
+}
+
+// Mixes the colors of the 2x2 source pixels from (left, top), weighted with the shares
+// of the first column and row. Pixels outside the bitmap are transparent.
+byte StarTrekEngine::filterPixel(const Bitmap *bitmap, int left, int top, float weightLeft, float weightTop) {
+	const byte *palette = _nearestColorPalette;
+	byte colors[4];
+	float weights[4];
+	int numColors = 0;
+	float opaque = 0;
+	float sum[3] = { 0, 0, 0 };
+	for (int i = 0; i < 4; i++) {
+		const int x = left + (i & 1);
+		const int y = top + (i >> 1);
+		const float weight = ((i & 1) ? 1 - weightLeft : weightLeft) * ((i >> 1) ? 1 - weightTop : weightTop);
+		if (weight <= 0 || x < 0 || y < 0 || x >= bitmap->width || y >= bitmap->height)
+			continue;
+		const byte color = bitmap->pixels[y * bitmap->width + x];
+		if (color == 0)
+			continue;
+		opaque += weight;
+		for (int c = 0; c < 3; c++)
+			sum[c] += _linearColors[palette[color * 3 + c]] * weight;
+		int j = 0;
+		while (j < numColors && colors[j] != color)
+			j++;
+		if (j == numColors) {
+			colors[numColors] = color;
+			weights[numColors++] = 0;
+		}
+		weights[j] += weight;
+	}
+
+	// Pixels stay transparent when less than half of them is covered
+	if (opaque < 0.5f)
+		return 0;
+
+	int dominant = 0;
+	for (int j = 1; j < numColors; j++) {
+		if (weights[j] > weights[dominant])
+			dominant = j;
+	}
+	if (numColors == 1)
+		return colors[0];
+
+	// The palette may lack a color close to the mix, like for gold on blue
+	byte rgb[3];
+	for (int c = 0; c < 3; c++)
+		rgb[c] = (byte)(pow(sum[c] / opaque, 1 / 2.2f) * _maxColorValue + 0.5f);
+	const byte nearest = findNearestColor(rgb[0], rgb[1], rgb[2]);
+	const int maxDistance = _maxColorValue == 255 ? 30 * 16 : 30;
+	return getColorDistance(nearest, rgb[0], rgb[1], rgb[2]) <= maxDistance ? nearest : colors[dominant];
+}
+
+void StarTrekEngine::scaleBitmapSmooth(const Bitmap *bitmap, Bitmap *scaledBitmap) {
+	initColorFilter(false);
+
+	const float stepX = (float)bitmap->width / scaledBitmap->width;
+	const float stepY = (float)bitmap->height / scaledBitmap->height;
+	const float boxX = MIN(stepX, 1.0f);
+	const float boxY = MIN(stepY, 1.0f);
+	byte *dest = scaledBitmap->pixels;
+
+	for (int y = 0; y < scaledBitmap->height; y++) {
+		int top;
+		float weightTop;
+		getFilterWeights((y + 0.5f) * stepY - boxY / 2, boxY, top, weightTop);
+		for (int x = 0; x < scaledBitmap->width; x++) {
+			int left;
+			float weightLeft;
+			getFilterWeights((x + 0.5f) * stepX - boxX / 2, boxX, left, weightLeft);
+			*dest++ = filterPixel(bitmap, left, top, weightLeft, weightTop);
+		}
+	}
+}
+
+int StarTrekEngine::getColorDistance(byte color, byte r, byte g, byte b) const {
+	const byte *rgb = _nearestColorPalette + color * 3;
+	const int dr = rgb[0] - r;
+	const int dg = rgb[1] - g;
+	const int db = rgb[2] - b;
+	return 3 * dr * dr + 4 * dg * dg + 2 * db * db;
+}
+
+byte StarTrekEngine::findNearestColor(byte r, byte g, byte b) {
+	const uint32 key = (r << 16) | (g << 8) | b;
+	if (_nearestColors.contains(key))
+		return _nearestColors[key];
+
+	// Color 0 is transparent, and cycled colors would flicker
+	byte nearest = 1;
+	int nearestDistance = INT_MAX;
+	for (int i = 1; i < 256; i++) {
+		if (_nearestColorsSkipCycled && isCycledBridgeColor(i))
+			continue;
+		const int distance = getColorDistance(i, r, g, b);
+		if (distance < nearestDistance) {
+			nearestDistance = distance;
+			nearest = i;
+		}
+	}
+
+	_nearestColors[key] = nearest;
+	return nearest;
 }
 
 } // End of namespace StarTrek

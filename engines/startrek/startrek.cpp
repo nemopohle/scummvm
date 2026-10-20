@@ -66,6 +66,7 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	ConfMan.registerDefault("originalsaveload", false);
 	ConfMan.registerDefault("text_fixes", true);
 	ConfMan.registerDefault("smooth_space", true);
+	ConfMan.registerDefault("smooth_scaling", false);
 	ConfMan.registerDefault("characters_animate", true);
 	ConfMan.registerDefault("copy_protection", false);
 
@@ -99,6 +100,10 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	_smoothSpaceAllowed = false;
 	_drawingSmoothSpace = false;
 	_lastTickShowedStatic = false;
+	memset(_nearestColorPalette, 0, sizeof(_nearestColorPalette));
+	_nearestColorsSkipCycled = false;
+	memset(_linearColors, 0, sizeof(_linearColors));
+	_maxColorValue = 63;
 
 	_inQuitGameMenu = false;
 	_textDisplayMode = TEXTDISPLAY_SUBTITLES;

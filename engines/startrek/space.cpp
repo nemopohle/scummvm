@@ -1562,6 +1562,13 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 
 			byte *bgPixels = _gfx->getBackgroundPixels() + shpImageTop * SCREEN_WIDTH;
 
+			// The filter covers at most one pixel of the shape per screen pixel
+			const bool smooth = smoothScaling() && !(cloaking && r3->cloakLevel >= 20);
+			const float boxX = CLIP(MAX(ABS(xDiff), ABS(var3f2)) / 256.0f, 0.01f, 1.0f);
+			const float boxY = CLIP(MAX(ABS(yDiff), ABS(var3f4)) / 256.0f, 0.01f, 1.0f);
+			if (smooth)
+				initColorFilter(true);
+
 			for (int y = shpImageTop; y <= shpImageBottom; y++) {
 				int16 leftBound = leftBounds[y];
 				int16 rowWidth = rightBounds[y] - leftBound + 1;
@@ -1582,7 +1589,22 @@ void StarTrekEngine::drawR3Shape(R3 *r3) {
 				uint16 bx = srcY;
 				byte *di = bgPixels2;
 
-				if (var3fa) {
+				if (smooth) {
+					// The pixels of the shape have their centers at whole positions
+					for (int a = 0; a < rowWidth; a++) {
+						int left, top;
+						float weightLeft, weightTop;
+						getFilterWeights(cx / 256.0f + 0.5f - boxX / 2, boxX, left, weightLeft);
+						getFilterWeights(bx / 256.0f + 0.5f - boxY / 2, boxY, top, weightTop);
+						byte b = filterPixel(&tmpBitmap, left, top, weightLeft, weightTop);
+						cx += xDiff;
+						bx += yDiff;
+						if (b == 0)
+							di++;
+						else
+							*(di++) = b;
+					}
+				} else if (var3fa) {
 					cx += 0x80;
 					bx += 0x80;
 
