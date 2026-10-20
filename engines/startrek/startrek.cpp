@@ -419,9 +419,10 @@ Common::Error StarTrekEngine::runGameMode(int mode, bool resume) {
 				continue; // Back to start of loop
 
 			case GAMEMODE_BEAMUP:
+				// Also removes the icons of an unfinished use action
+				unloadRoom();
 				runTransportSequence("teleb");
 				_gameMode = GAMEMODE_BRIDGE;
-				delete _room;
 				//sub_15c61();
 				_sound->stopAllVocSounds();
 				_sound->playVoc("bridloop");
