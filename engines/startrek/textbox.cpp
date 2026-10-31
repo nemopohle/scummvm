@@ -820,9 +820,25 @@ Common::String StarTrekEngine::readTextFromFoundComputerTopics(int choiceIndex, 
 	Common::String line;
 	while (!content->eos() && !content->err()) {
 		line = content->readLine();
-		if (line == "$")
+		// The text ends at the first '$'
+		size_t end = line.findFirstOf('$');
+		if (end != Common::String::npos)
+			line = line.substr(0, end);
+
+		// Like in the original, an empty line starts a new line
+		if (line.empty()) {
+			if (end == Common::String::npos)
+				mainText += '\n';
+		} else {
+			// Most German lines lack the space at their end
+			if (textFixes() && !mainText.empty() && line[0] != ' ' && !mainText.hasSuffix(" ")
+			        && !mainText.hasSuffix("-") && !mainText.hasSuffix("#") && !mainText.hasSuffix("\n"))
+				mainText += ' ';
+			mainText += line;
+		}
+
+		if (end != Common::String::npos)
 			break;
-		mainText += line;
 	}
 	delete content;
 
