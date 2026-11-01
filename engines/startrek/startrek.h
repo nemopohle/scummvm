@@ -23,7 +23,6 @@
 #define STARTREK_H
 
 #include "common/events.h"
-#include "common/hashmap.h"
 #include "common/list.h"
 #include "common/ptr.h"
 #include "common/random.h"
@@ -555,7 +554,6 @@ private:
 	void removeBridgeDisplays();
 	void updateBridgeDisplays();
 	void cycleBridgeColors();
-	bool isCycledBridgeColor(byte color) const;
 	void updateScanner();
 	void drawBridgeLine(int16 x, int16 y, int16 length, byte color);
 	void drawConsoleBars();
@@ -680,12 +678,6 @@ public:
 	 * loop).
 	 */
 	void scaleBitmapRow(byte *src, byte *dest, uint16 origWidth, uint16 scaledWidth);
-	static void getFilterWeights(float left, float box, int &first, float &weight);
-	void initColorFilter(bool skipCycledColors);
-	byte filterPixel(const Bitmap *bitmap, int left, int top, float weightLeft, float weightTop);
-	void scaleBitmapSmooth(const Bitmap *bitmap, Bitmap *scaledBitmap);
-	byte findNearestColor(byte r, byte g, byte b);
-	int getColorDistance(byte color, byte r, byte g, byte b) const;
 
 	// events.cpp
 public:
@@ -943,7 +935,6 @@ public:
 	bool easierCombat() const;
 	bool oneHitCombat() const;
 	bool smoothSpace() const;
-	bool smoothScaling() const;
 	bool originalSaveLoad() const;
 	bool textFixes() const;
 	bool charactersAnimate() const;
@@ -1107,11 +1098,6 @@ public:
 	bool _smoothSpaceAllowed;
 	bool _drawingSmoothSpace;
 	bool _lastTickShowedStatic;
-	byte _nearestColorPalette[256 * 3];
-	bool _nearestColorsSkipCycled;
-	float _linearColors[256];
-	int _maxColorValue;
-	Common::HashMap<uint32, byte> _nearestColors;
 	R3 *_orderedR3List[NUM_SPACE_OBJECTS];
 	Matrix _starPositionMatrix;
 	Matrix _someMatrix;
