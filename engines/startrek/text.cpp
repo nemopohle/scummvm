@@ -732,10 +732,26 @@ static const TranslatedText kGermanFixedTexts[] = {
 	{ nullptr, nullptr }
 };
 
+// ENHANCEMENT: Typos of the French texts of the executable
+static const TranslatedText kFrenchFixedTexts[] = {
+	{ "Text subtitles.",
+	  "Sous-titrages texte." },
+	{ "#GENE\\GENE_F14#Turbolift access is blocked by an extremely high radiation level.",
+	  "#GENE\\GENE_F14#Un niveau de radiation extr\xeamement \xe9lev\xe9 bloque l'acc\xe8s \xe0 ce turbotransporteur." },
+	{ "#GENE\\GENE_F15#This Turbolift cannot reach that area of the ship.",
+	  "#GENE\\GENE_F15#Ce turbo-transporteur ne peut pas atteindre cette partie du vaisseau." },
+	{ nullptr, nullptr }
+};
+
 const char *StarTrekEngine::localizeText(const char *text) const {
 	bool isAmiga = getPlatform() == Common::kPlatformAmiga;
-	if (getLanguage() == Common::DE_DEU && !isAmiga && textFixes()) {
-		for (const TranslatedText *t = kGermanFixedTexts; t->english; t++) {
+	const TranslatedText *fixedTexts = nullptr;
+	if (getLanguage() == Common::DE_DEU)
+		fixedTexts = kGermanFixedTexts;
+	else if (getLanguage() == Common::FR_FRA)
+		fixedTexts = kFrenchFixedTexts;
+	if (fixedTexts && !isAmiga && textFixes()) {
+		for (const TranslatedText *t = fixedTexts; t->english; t++) {
 			if (!strcmp(t->english, text))
 				return t->translated;
 		}
@@ -838,6 +854,8 @@ static const TextFix kEnglishTextFixes[] = {
 };
 
 #include "startrek/textfixes_de.h"
+#include "startrek/textfixes_en.h"
+#include "startrek/textfixes_fr.h"
 
 // ENHANCEMENT: Typos and untranslated texts of the German CD
 static const TextFix kGermanTextFixes[] = {
@@ -884,11 +902,14 @@ static void applyTextFixes(Common::String &text, const TextFix *fixes) {
 Common::String patchText(const char *text, Common::Language language, bool fixTexts) {
 	Common::String txt = text;
 
-	if (fixTexts && language == Common::EN_ANY)
+	if (fixTexts && language == Common::EN_ANY) {
 		applyTextFixes(txt, kEnglishTextFixes);
-	else if (fixTexts && language == Common::DE_DEU) {
+		applyTextFixes(txt, kEnglishTextErrorFixes);
+	} else if (fixTexts && language == Common::DE_DEU) {
 		applyTextFixes(txt, kGermanTextFixes);
 		applyTextFixes(txt, kGermanTextErrorFixes);
+	} else if (fixTexts && language == Common::FR_FRA) {
+		applyTextFixes(txt, kFrenchTextErrorFixes);
 	}
 	applyTextFixes(txt, kSpeechFixes);
 
