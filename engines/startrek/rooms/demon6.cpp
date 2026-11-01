@@ -381,7 +381,11 @@ void Room::demon6UseBerryOnSynthesizer() {
 
 void Room::demon6MccoyReachedSynthesizer() {
 	loadActorAnim2(OBJECT_MCCOY, "musemn", -1, -1, 1);
-	playVoc("LD1REPLI");
+	// The floppy version plays the sound of the synthesizer as a music track
+	if (_vm->isFloppyVersion())
+		playMidiMusicTracks(MIDITRACK_15);
+	else
+		playVoc("LD1REPLI");
 }
 
 void Room::demon6FinishedMakingHypoDytoxin() {
