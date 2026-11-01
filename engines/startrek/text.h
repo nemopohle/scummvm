@@ -67,7 +67,7 @@ enum GlobalGameStringIDs {
 };
 
 /**
- * Corrects the texts of the CD versions: the speech files that are missing or wrong,
+ * Corrects the texts: the speech files of the CD versions that are missing or wrong,
  * and with the text fixes also the errors of the texts.
  */
 Common::String patchText(const char *text, Common::Language language, bool fixTexts);

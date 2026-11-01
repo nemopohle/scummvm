@@ -416,7 +416,7 @@ const char *Room::getText(uint16 textId) {
 	}
 
 	const char *text = textId < 5000 ? (const char *)_rdfData + offset : (const char *)_commonRdfData + offset;
-	if (!isCD)
+	if (!isCD && !_vm->textFixes())
 		return text;
 
 	// The corrected texts stay valid as long as the room, like the ones in the RDF file

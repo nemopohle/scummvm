@@ -889,8 +889,14 @@ static const TextFix kGermanTextFixes[] = {
 	{ nullptr, nullptr, nullptr }
 };
 
+// An empty prefix replaces the whole text if it is the same
 static void applyTextFixes(Common::String &text, const TextFix *fixes) {
 	for (const TextFix *fix = fixes; fix->origText; fix++) {
+		if (fix->prefix && !*fix->prefix) {
+			if (text == fix->origText)
+				text = fix->newText;
+			continue;
+		}
 		if (fix->prefix && !text.hasPrefix(fix->prefix))
 			continue;
 		size_t pos = text.find(fix->origText);
@@ -905,11 +911,14 @@ Common::String patchText(const char *text, Common::Language language, bool fixTe
 	if (fixTexts && language == Common::EN_ANY) {
 		applyTextFixes(txt, kEnglishTextFixes);
 		applyTextFixes(txt, kEnglishTextErrorFixes);
+		applyTextFixes(txt, kEnglishFloppyTextErrorFixes);
 	} else if (fixTexts && language == Common::DE_DEU) {
 		applyTextFixes(txt, kGermanTextFixes);
 		applyTextFixes(txt, kGermanTextErrorFixes);
+		applyTextFixes(txt, kGermanAmigaTextErrorFixes);
 	} else if (fixTexts && language == Common::FR_FRA) {
 		applyTextFixes(txt, kFrenchTextErrorFixes);
+		applyTextFixes(txt, kFrenchAmigaTextErrorFixes);
 	}
 	applyTextFixes(txt, kSpeechFixes);
 

@@ -174,7 +174,7 @@ private:
 	const RoomText *_roomStaticTextList;
 	Common::String _commonTextRdf;
 	byte *_commonRdfData;
-	// The texts of the CD versions after patchText(), by their ID
+	// The patched texts, by their ID
 	Common::HashMap<uint16, Common::String> _patchedTexts;
 
 	byte *loadRoomRDF(Common::String fileName);
