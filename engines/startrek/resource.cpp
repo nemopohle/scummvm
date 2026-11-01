@@ -29,10 +29,12 @@
 #include "startrek/iwfile.h"
 #include "startrek/lzss.h"
 #include "startrek/resource.h"
+#include "startrek/text.h"
 
 namespace StarTrek {
 
-Resource::Resource(Common::Platform platform, bool isDemo) : _platform(platform), _isDemo(isDemo), _macResFork(nullptr) {
+Resource::Resource(Common::Platform platform, bool isDemo) : _platform(platform), _isDemo(isDemo), _macResFork(nullptr),
+	_language(Common::EN_ANY), _fixTexts(false) {
 	if (_platform == Common::kPlatformMacintosh) {
 		_macResFork = new Common::MacResManager();
 		if (!_macResFork->open("Star Trek Data"))
@@ -300,7 +302,7 @@ Common::String Resource::getLoadedText(int textIndex) {
 
 		if (curIndex == textIndex) {
 			delete txtFile;
-			return str;
+			return patchText(str.c_str(), _language, _fixTexts);
 		}
 
 		curIndex++;

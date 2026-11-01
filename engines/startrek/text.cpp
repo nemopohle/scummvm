@@ -719,8 +719,28 @@ static const TranslatedText kMacFloppyTexts[] = {
 	{ nullptr, nullptr }
 };
 
+// ENHANCEMENT: Typos of the German texts of the executable
+static const TranslatedText kGermanFixedTexts[] = {
+	{ "#BRID\\B_155#Nothing to report, Captain.",
+	  "#BRID\\B_155#Keine besonderen Vorkommnisse, Captain." },
+	{ "#BRID\\B_354#Disarming weapons.",
+	  "#BRID\\B_354#Waffen gesichert." },
+	{ "for the following recently completed missions:\n\n",
+	  "f\xfcr die folgenden abgeschlossenen Missionen:\n\n" },
+	{ "#GENE\\GENE_F15#This Turbolift cannot reach that area of the ship.",
+	  "#GENE\\GENE_F15#Dieser Turbolift erm\xf6glicht keinen Zugang in diesen Schiffsbereich." },
+	{ nullptr, nullptr }
+};
+
 const char *StarTrekEngine::localizeText(const char *text) const {
 	bool isAmiga = getPlatform() == Common::kPlatformAmiga;
+	if (getLanguage() == Common::DE_DEU && !isAmiga && textFixes()) {
+		for (const TranslatedText *t = kGermanFixedTexts; t->english; t++) {
+			if (!strcmp(t->english, text))
+				return t->translated;
+		}
+	}
+
 	const TranslatedText *table;
 	if (getLanguage() == Common::DE_DEU)
 		table = isAmiga ? kAmigaGermanTexts : kGermanTexts;
@@ -817,6 +837,8 @@ static const TextFix kEnglishTextFixes[] = {
 	{ nullptr, nullptr, nullptr }
 };
 
+#include "startrek/textfixes_de.h"
+
 // ENHANCEMENT: Typos and untranslated texts of the German CD
 static const TextFix kGermanTextFixes[] = {
 	{ "#DEM3\\DEM3_008#", "ddies", "dies" },
@@ -859,13 +881,15 @@ static void applyTextFixes(Common::String &text, const TextFix *fixes) {
 	}
 }
 
-Common::String patchRoomMessage(const char *text, Common::Language language, bool fixTexts) {
+Common::String patchText(const char *text, Common::Language language, bool fixTexts) {
 	Common::String txt = text;
 
 	if (fixTexts && language == Common::EN_ANY)
 		applyTextFixes(txt, kEnglishTextFixes);
-	else if (fixTexts && language == Common::DE_DEU)
+	else if (fixTexts && language == Common::DE_DEU) {
 		applyTextFixes(txt, kGermanTextFixes);
+		applyTextFixes(txt, kGermanTextErrorFixes);
+	}
 	applyTextFixes(txt, kSpeechFixes);
 
 	// Some speech files are named with a hyphen instead of an underscore (e.g. in LOV2)

@@ -75,6 +75,11 @@ public:
 		_txtFilename = txtFileName;
 	}
 
+	void setTextFixes(Common::Language language, bool fixTexts) {
+		_language = language;
+		_fixTexts = fixTexts;
+	}
+
 	Common::List<ResourceIndex> _resources;
 
 private:
@@ -89,6 +94,8 @@ private:
 	Common::Platform _platform;
 	bool _isDemo;
 	Common::String _txtFilename;
+	Common::Language _language;
+	bool _fixTexts;
 	//Common::List<ResourceIndex> _resources;
 };
 

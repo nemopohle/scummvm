@@ -842,6 +842,8 @@ Common::String StarTrekEngine::readTextFromFoundComputerTopics(int choiceIndex, 
 	}
 	delete content;
 
+	headerText = patchText(headerText.c_str(), getLanguage(), textFixes());
+	mainText = patchText(mainText.c_str(), getLanguage(), textFixes());
 	*headerTextOutput = "R: " + headerText;
 	return mainText;
 }
