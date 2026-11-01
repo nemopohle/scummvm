@@ -572,7 +572,8 @@ void StarTrekEngine::playWarpSequence() {
 	_someMatrix = shipMatrix;
 
 	_sound->stopAllVocSounds();
-	_sound->playMidiMusicTracks(MIDITRACK_12);
+	// The floppy version continues with the music of the bridge
+	_sound->playMidiMusicTracks(MIDITRACK_12, isFloppyVersion() ? kLoopTypeTrack0 : kLoopTypeNone);
 
 	R3 warpFlash = R3();
 	for (int frame = 0; frame < 64; frame++) {
