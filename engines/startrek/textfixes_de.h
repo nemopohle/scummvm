@@ -686,6 +686,7 @@ static const TextFix kGermanTextErrorFixes[] = {
 	{ "#BRID\\B_168#", "entschl\xfcsseln", "entschl\xfcsseln," },
 	{ "#BRID\\C_011#", "dievor", "die vor" },
 	{ "#BRID\\C_010#", "Ideal", "Ideale" },
+	{ "#BRID\\B_125#", "die Republic...", "Republic..." },
 	{ "#BRID\\B_124#", "Constitution- class starship, heading for Vardaine Klasse,", "Constitution-Klasse," },
 	{ "#BRID\\B_162#", "inklusive,", "inklusive" },
 	{ "#BRID\\B_313#", "Enterprise-2,", "Enterprise-2." },
