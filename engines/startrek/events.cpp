@@ -313,8 +313,6 @@ bool StarTrekEngine::getNextEvent(TrekEvent *e, bool poll) {
 		if (!_eventQueue.empty())
 			break;
 
-		updateSmoothSpace();
-
 		// Still no events; wait a 60th of a second before checking for events again
 		int delay = 1000 / 60;
 		millis = _system->getMillis();
