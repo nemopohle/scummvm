@@ -236,6 +236,7 @@ private:
 		uint8 program;
 		int32 ticker;
 		const uint8 *curPos;
+		uint8 curCmd;
 	};
 
 	bool parseEvent(HSSong &song, TrackState *s);
@@ -243,7 +244,6 @@ private:
 
 	uint8 _partVolume[16];
 	uint8 _partPrograms[16];
-	uint8 _curCmd;
 
 	ShStBuffer _data;
 	Common::Array<ShStBuffer> _tracks;
@@ -685,7 +685,7 @@ void HSSong::updateTempo() {
 	_internalTempo = _scan ? 32767 : ((_ticksPerSecond << 6) / _tempo);
 }
 
-HSMidiParser::HSMidiParser(HSLowLevelDriver *driver) : _driver(driver), _trackState(nullptr), _tracks(), _data(), _curCmd(0) {
+HSMidiParser::HSMidiParser(HSLowLevelDriver *driver) : _driver(driver), _trackState(nullptr), _tracks(), _data() {
 	_trackState = new TrackState[24]();
 	memset(_partPrograms, 0, sizeof(_partPrograms));
 	memset(_partVolume, 0, sizeof(_partVolume));
@@ -752,6 +752,7 @@ bool HSMidiParser::loadTracks(HSSong &song) {
 		_trackState[ch].status = 'F';
 		_trackState[ch].ticker = 0;
 		_trackState[ch].program = prg++;
+		_trackState[ch].curCmd = 0;
 	}
 
 	return true;
@@ -843,7 +844,8 @@ bool HSMidiParser::parseEvent(HSSong &song, TrackState *s) {
 		if (s->curPos <= s->data->ptr)
 			error("HSMidiParser::parseEvent(): Data error");
 		s->curPos--;
-		in = _curCmd;
+		// The running status belongs to the track
+		in = s->curCmd;
 	} else if (in == 0xff) {
 		uint evt = *s->curPos++;
 		if (evt == 0x2f) {
@@ -857,7 +859,7 @@ bool HSMidiParser::parseEvent(HSSong &song, TrackState *s) {
 		return true;
 	}
 
-	_curCmd = in;
+	s->curCmd = in;
 	uint8 evt = in & 0xf0;
 	uint8 chan = in & 0x0f;
 	uint8 arg1 = *s->curPos++;
