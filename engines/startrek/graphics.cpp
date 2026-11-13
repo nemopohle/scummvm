@@ -347,13 +347,16 @@ void Graphics::unlockMousePosition() {
 	updateLockedMouse();
 }
 
-// Like the original, this moves the cursor image instead of the mouse
+// Like the original, this moves the cursor image instead of the mouse. The recorded
+// input of the DOS demo moves it the same way.
 void Graphics::updateLockedMouse() {
 	if (_cursors.empty() || _cursors.back().pixels.empty())
 		return;
 	const Cursor &cursor = _cursors.back();
 	Common::Point hotspot = cursor.hotspot;
-	if (_lockedMousePos.x != -1)
+	if (_vm->_demoEvents)
+		hotspot += _vm->_system->getEventManager()->getMousePos() - _vm->_demoMousePos;
+	else if (_lockedMousePos.x != -1)
 		hotspot += getMousePos() - _lockedMousePos;
 	CursorMan.replaceCursor(cursor.pixels.data(), cursor.size.x, cursor.size.y, hotspot.x, hotspot.y, 0);
 }
@@ -679,7 +682,7 @@ void Graphics::forceDrawAllSprites(bool updateScreenFlag) {
 }
 
 void Graphics::updateScreen() {
-	if (_lockedMousePos.x != -1)
+	if (_lockedMousePos.x != -1 || _vm->_demoEvents)
 		updateLockedMouse();
 	if (_vm->_gameMode == GAMEMODE_AWAYMISSION)
 		_vm->updateHotspots();

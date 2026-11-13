@@ -335,6 +335,7 @@ void StarTrekEngine::startDemoPlayback() {
 void StarTrekEngine::stopDemoPlayback() {
 	delete _demoEvents;
 	_demoEvents = nullptr;
+	_gfx->updateLockedMouse();
 }
 
 // Each poll of the original is recorded, with the type 7 if there was no event. The
@@ -380,7 +381,6 @@ bool StarTrekEngine::readDemoEvent() {
 		} else {
 			_demoMousePos = Common::Point(x, y);
 			event.mouse = _demoMousePos;
-			_system->warpMouse(x, y);
 		}
 		addEventToQueue(event);
 		return true;
