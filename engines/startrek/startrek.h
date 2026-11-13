@@ -396,7 +396,7 @@ public:
 	void showDemoSubtitles(const Common::String &name);
 	Common::String loadDemoText(const Common::String &name);
 	const char *readDemoTextLine(const char *pos, Common::String &line, uint maxLength);
-	void initDemoR3ObjectToMove(R3 *r3, int16 srcDepth, int16 srcAngle, int16 destDepth, int16 destAngle, int16 ticks);
+	Point3 initDemoR3ObjectToMove(R3 *r3, int16 srcDepth, int16 srcAngle, int16 destDepth, int16 destAngle, int16 ticks);
 	void moveDemoEnterprise();
 	void showDemoTitle();
 	void showDemoLog();

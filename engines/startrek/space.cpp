@@ -1050,7 +1050,14 @@ void StarTrekEngine::updateStarfieldAndShips(bool arg0) {
 	}
 
 	if (numObjects != 0) {
-		Common::sort(_orderedR3List, _orderedR3List + numObjects, &compareR3Objects);
+		// Objects at the same distance keep their order, like the title of the DOS demo
+		for (int i = 1; i < numObjects; i++) {
+			R3 *r3 = _orderedR3List[i];
+			int j = i;
+			for (; j > 0 && compareR3Objects(r3, _orderedR3List[j - 1]); j--)
+				_orderedR3List[j] = _orderedR3List[j - 1];
+			_orderedR3List[j] = r3;
+		}
 
 		for (int i = 0; i < numObjects; i++) {
 			R3 *r3 = _orderedR3List[i];

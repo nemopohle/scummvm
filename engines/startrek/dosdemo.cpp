@@ -35,15 +35,6 @@ static void moveDemoR3(R3 &r3) {
 	r3.pos.z += r3.speed.z;
 }
 
-// Where an object moved by initDemoR3ObjectToMove() arrives
-static Point3 getDemoR3Destination(const R3 &r3, int ticks) {
-	Point3 dest = r3.pos;
-	dest.x += r3.speed.x * ticks;
-	dest.y += r3.speed.y * ticks;
-	dest.z += r3.speed.z * ticks;
-	return dest;
-}
-
 // The DOS demo of 1991 shows its parts in a loop: an intro, an away mission, a
 // montage, a space battle and an ending.
 void StarTrekEngine::runDosDemo() {
@@ -209,15 +200,22 @@ const char *StarTrekEngine::readDemoTextLine(const char *pos, Common::String &li
 }
 
 // Moves an object of the starfield from one place to another in front of the camera,
-// like initIntroR3ObjectToMove(), which has the parameters in another order
-void StarTrekEngine::initDemoR3ObjectToMove(R3 *r3, int16 srcDepth, int16 srcAngle, int16 destDepth, int16 destAngle, int16 ticks) {
+// like initIntroR3ObjectToMove(), which has the parameters in another order.
+// Returns the exact destination, where the object is put at the end.
+Point3 StarTrekEngine::initDemoR3ObjectToMove(R3 *r3, int16 srcDepth, int16 srcAngle, int16 destDepth, int16 destAngle, int16 ticks) {
 	initIntroR3ObjectToMove(r3, srcAngle, srcDepth, destAngle, destDepth, ticks);
+
+	int16 angle = ((int32)destAngle << 9) / 180;
+	Point3 dest;
+	dest.x = fixedMult(destDepth, angleSin(angle)) + _starfieldPosition.x;
+	dest.y = 0;
+	dest.z = fixedMult(destDepth, angleCos(angle)) + _starfieldPosition.z;
+	return dest;
 }
 
 // The Enterprise passes the camera
 void StarTrekEngine::moveDemoEnterprise() {
-	initDemoR3ObjectToMove(&_enterpriseR3, 6000, 330, 400, 90, 30);
-	Point3 dest = getDemoR3Destination(_enterpriseR3, 30);
+	Point3 dest = initDemoR3ObjectToMove(&_enterpriseR3, 6000, 330, 400, 90, 30);
 
 	for (int frame = 0; frame < 40 && !shouldQuit(); frame++) {
 		runDemoFrame(false);
@@ -249,8 +247,7 @@ void StarTrekEngine::showDemoTitle() {
 		parts[i].field1e = 3;
 		parts[i].field22 = 2000;
 		parts[i].field24 = 3000;
-		initDemoR3ObjectToMove(&parts[i], kParts[i].srcDepth, kParts[i].srcAngle, 3000, 0, 20);
-		dest[i] = getDemoR3Destination(parts[i], 20);
+		dest[i] = initDemoR3ObjectToMove(&parts[i], kParts[i].srcDepth, kParts[i].srcAngle, 3000, 0, 20);
 		addR3(&parts[i]);
 	}
 
