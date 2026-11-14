@@ -276,6 +276,12 @@ bool StarTrekEngine::loadGame(int slot) {
 		}
 	}
 
+	// Loading the room or the bridge stops the sounds, so the loop starts afterwards
+	if (!_sound->_loopingAudioName.empty()) {
+		_sound->stopAllVocSounds();
+		_sound->playVoc(_sound->_loopingAudioName);
+	}
+
 	return true;
 }
 
@@ -339,11 +345,6 @@ bool StarTrekEngine::saveOrLoadGameData(Common::SeekableReadStream *in, Common::
 	}
 
 	ser.syncString(_sound->_loopingAudioName);
-
-	if (ser.isLoading()) {
-		if (!_sound->_loopingAudioName.empty())
-			_sound->playVoc(_sound->_loopingAudioName);
-	}
 
 	if (meta->version >= 1) {
 		int16 bridgeSequence = -1;
