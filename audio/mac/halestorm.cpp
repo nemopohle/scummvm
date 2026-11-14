@@ -1515,7 +1515,7 @@ void HSLowLevelDriver::pcmUpdateChannel(HSSoundChannel &chan) {
 			}
 		}
 
-		if (next == 1 || (int)chan.tickDataLen < (chan.dataEnd - src)) {
+		if (next == 1 || (next == 0 && (int)chan.tickDataLen < (chan.dataEnd - src))) {
 			if (!(rate & 0xffff) || chan.imode == kNone) {
 				if (chan.stateCur.velocity) {
 					HS_DOCYCLE(HS_CYCL_DEF((_transCycleLenDef + 1) * 5), at[*src], HS_VOID)
