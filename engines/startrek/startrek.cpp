@@ -209,6 +209,7 @@ Common::Error StarTrekEngine::run() {
 
 	_resource = new Resource(getPlatform(), isDemo);
 	_resource->setTextFixes(getLanguage(), textFixes());
+	_resource->setMacCDTexts(isCd && getPlatform() == Common::kPlatformMacintosh);
 	_gfx = new Graphics(this);
 	_sound = new Sound(this);
 	setDebugger(new Console(this));

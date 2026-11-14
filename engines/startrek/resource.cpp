@@ -34,7 +34,7 @@
 namespace StarTrek {
 
 Resource::Resource(Common::Platform platform, bool isDemo) : _platform(platform), _isDemo(isDemo), _macResFork(nullptr),
-	_language(Common::EN_ANY), _fixTexts(false) {
+	_language(Common::EN_ANY), _fixTexts(false), _macCDTexts(false) {
 	if (_platform == Common::kPlatformMacintosh) {
 		_macResFork = new Common::MacResManager();
 		if (!_macResFork->open("Star Trek Data"))
@@ -286,8 +286,24 @@ Common::MemoryReadStreamEndian *Resource::loadFileWithParams(Common::String file
 	return loadFile(filename);
 }
 
+// The Mac CD version has no texts that only the floppy versions show, and the
+// rating of the trial comes first
+int Resource::getMacCDTextIndex(int textIndex) const {
+	if (_txtFilename.equalsIgnoreCase("demon") && textIndex > 3)
+		return textIndex - 1;
+	if (_txtFilename.equalsIgnoreCase("tug") && textIndex > 38)
+		return textIndex - 1;
+	if (_txtFilename.equalsIgnoreCase("mudd") && textIndex > 40)
+		return textIndex - 2;
+	if (_txtFilename.equalsIgnoreCase("trial") && textIndex <= 26)
+		return textIndex == 26 ? 0 : textIndex + 1;
+	return textIndex;
+}
+
 Common::String Resource::getLoadedText(int textIndex) {
 	Common::MemoryReadStreamEndian *txtFile = loadFile(_txtFilename + ".txt");
+	if (_macCDTexts)
+		textIndex = getMacCDTextIndex(textIndex);
 
 	Common::String str;
 	byte cur;
