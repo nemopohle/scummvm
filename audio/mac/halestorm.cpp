@@ -2653,13 +2653,13 @@ bool HSVolumeScaler::process(const ShStBuffer &src, uint8 *dst, uint16 para1, ui
 	uint32 len = src.len - copySndHeader(s, dst);
 
 	for (uint32 i = 0; i < len; ++i) {
-		int16 a = (int16)*s++;
-		a = (a - 128) * para1;
-		if (a > 0)
-			a += (para2 << 1);
+		int32 a = ((int32)*s++ - 128) * para1;
+		// Rounded to the nearest value, so that silence stays silent
+		if (a >= 0)
+			a += (para2 >> 1);
 		else
-			a -= (para2 << 1);
-		a = CLIP<int16>(a / para2, -128, 127) + 128;
+			a -= (para2 >> 1);
+		a = CLIP<int32>(a / para2, -128, 127) + 128;
 		*dst++ = (a & 0xff);
 	}
 
