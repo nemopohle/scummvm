@@ -99,7 +99,7 @@ bool Sound::initMacSound() {
 	}
 
 	_macDriver = new Audio::HalestormDriver(_macLoader, _vm->_system->getMixer());
-	if (!_macDriver->init(true, Audio::HalestormDriver::kSimple, 2, true))
+	if (!_macDriver->init(true, Audio::HalestormDriver::kSimple, 2, false))
 		return false;
 	// Like the original on a 68040: 4 song voices (3 of them polyphonic), 2 sound
 	// effect voices, 22 kHz with interpolation
