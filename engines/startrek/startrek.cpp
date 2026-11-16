@@ -77,6 +77,8 @@ StarTrekEngine::StarTrekEngine(OSystem *syst, const StarTrekGameDescription *gam
 	memset(_actionOnWalkCompletionInUse, 0, sizeof(_actionOnWalkCompletionInUse));
 
 	_clockTicks = 0;
+	_gameMode = -1;
+	_lastGameMode = -1;
 
 	_musicEnabled = true;
 	_sfxEnabled = true;
