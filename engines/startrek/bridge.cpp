@@ -253,8 +253,8 @@ void StarTrekEngine::showMissionPerformance(int missionId, int textId, int16 sco
 	if (maxScore >= 1)
 		percent = MAX<int>(MIN(score, maxScore), 0) * 100 / maxScore;
 
-	// The floppy version has unvoiced texts
-	static const char *const kDescriptions[2][5] = {
+	// The floppy versions and the Mac CD version have unvoiced texts
+	static const char *const kDescriptions[3][5] = {
 		{
 			"#BRID\\B_199#I'll be frank, Kirk. Starfleet expects more of you than that. Try to do better on your next assignment.",
 			"#BRID\\B_197#A satisfactory performance, Captain, but there's still room for improvement.",
@@ -268,6 +268,13 @@ void StarTrekEngine::showMissionPerformance(int missionId, int textId, int16 sco
 			"Well done, Captain. Keep up the good work.",
 			"The top brass at Star Fleet are impressed. Outstanding work, Jim.",
 			"A perfect mission, Jim! You are a model for all Star Fleet"
+		},
+		{
+			"I'll be frank, Kirk, Starfleet expects more out of you than that. Try to do better on your next assignment.",
+			"A satisfactory performance, Captain, but there's still room for improvement.",
+			"Well done, Captain. Keep up the good work.",
+			"The top brass at Starfleet are impressed. Outstanding work, Jim.",
+			"A perfect mission, Jim! You are a model for all Starfleet."
 		}
 	};
 	static const MidiTracks kTracks[] = { MIDITRACK_13, MIDITRACK_13, MIDITRACK_11, MIDITRACK_12, MIDITRACK_14 };
@@ -284,7 +291,8 @@ void StarTrekEngine::showMissionPerformance(int missionId, int textId, int16 sco
 	else
 		commendationPoints = 4;
 	MidiTracks midiTrack = kTracks[commendationPoints];
-	Common::String performanceDescription = localizeText(kDescriptions[isFloppyVersion()][commendationPoints]);
+	bool isMacCd = !isFloppyVersion() && getPlatform() == Common::kPlatformMacintosh;
+	Common::String performanceDescription = localizeText(kDescriptions[isMacCd ? 2 : isFloppyVersion()][commendationPoints]);
 
 	_sound->playMidiMusicTracks(midiTrack, kLoopTypeLast);
 
@@ -299,13 +307,13 @@ void StarTrekEngine::showMissionPerformance(int missionId, int textId, int16 sco
 	// The Admiral stays on the viewscreen after the last mission
 	bool removeTalker = missionId != 6;
 	Common::String text = _resource->getLoadedText(textId);
-	if (isFloppyVersion()) {
-		// One textbox with the description, and either of two admirals
+	if (isFloppyVersion() || isMacCd) {
+		// One textbox with the description. The floppy versions have either of two admirals.
 		Common::String texts[] = {
 			Common::String::format(text.c_str(), percent, commendationPoints, performanceDescription.c_str()),
 			""
 		};
-		showBridgeScreenTalkerWithMessages(texts, "Admiral", (msRand() & 1) ? "admira" : "woman", removeTalker);
+		showBridgeScreenTalkerWithMessages(texts, "Admiral", (isFloppyVersion() && (msRand() & 1)) ? "admira" : "woman", removeTalker);
 	} else {
 		Common::String texts[] = {
 			Common::String::format(

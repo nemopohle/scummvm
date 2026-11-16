@@ -1501,7 +1501,7 @@ void StarTrekEngine::endGame() {
 		points += _missionPoints[i];
 	int percent = CLIP(points * 100 / 28, 0, 100);
 	int epilogue = percent <= 50 ? 0 : (percent <= 85 ? 1 : 2);
-	if (isFloppyVersion()) {
+	if (isFloppyVersion() || getPlatform() == Common::kPlatformMacintosh) {
 		// One textbox with both texts
 		Common::String review = Common::String::format(_resource->getLoadedText(45).c_str(), percent);
 		showTextbox("Admiral", review + _resource->getLoadedText(kAdmiralTexts[epilogue]), 160, 190, 44, -7);
